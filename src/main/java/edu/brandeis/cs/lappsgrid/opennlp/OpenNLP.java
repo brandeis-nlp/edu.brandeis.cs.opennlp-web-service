@@ -88,8 +88,9 @@ public class OpenNLP implements IOpenNLP , IVersion {
 	protected void init() throws OpenNLPWebServiceException {
 		logger.info("init(): Creating OpenNLP ...");
 
-		InputStream stream = ResourceLoader.open(FILE_PROPERTIES);
-		if (stream == null) {
+//		InputStream stream = ResourceLoader.open(FILE_PROPERTIES);
+        InputStream stream = this.getClass().getResourceAsStream(FILE_PROPERTIES);
+        if (stream == null) {
 			logger.error("init(): fail to open \"" + FILE_PROPERTIES + "\".");
 			throw new OpenNLPWebServiceException("init(): fail to open \""
 					+ FILE_PROPERTIES + "\".");

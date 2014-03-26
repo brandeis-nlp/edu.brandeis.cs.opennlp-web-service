@@ -29,7 +29,7 @@ import edu.brandeis.cs.lappsgrid.opennlp.OpenNLPWebServiceException;
 public interface IOpenNLP extends WebService {
 	public static final long [] TYPES_REQUIRES = new long[] { Types.OPENNLP, Types.TEXT };
 	public static final long [] TYPES_PRODUCES = new long[] { Types.OPENNLP, Types.SENTENCE };
-	public static final String FILE_PROPERTIES = "opennlp-web-service.properties";
+	public static final String FILE_PROPERTIES = "/opennlp-web-service.properties";
 	
 	public static final String SPLITTER_LINE = "\n";
 	
