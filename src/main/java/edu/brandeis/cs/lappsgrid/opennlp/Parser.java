@@ -56,8 +56,8 @@ public class Parser extends AbstractWebService implements IParser {
 		logger.info("init(): Creating OpenNLP Parser ...");
 
 		Properties prop = new Properties();
-		InputStream stream = ResourceLoader
-				.open("opennlp-web-service.properties");
+
+		InputStream stream = this.getClass().getResourceAsStream("/" + "opennlp-web-service.properties");
 		if (stream == null) {
 			logger.error("init(): fail to open \"opennlp-web-service.properties\".");
 			throw new OpenNLPWebServiceException(
@@ -78,7 +78,8 @@ public class Parser extends AbstractWebService implements IParser {
 
 		logger.info("init(): load opennlp-web-service.properties.");
 
-		stream = ResourceLoader.open(parserModel);
+//		stream = ResourceLoader.open(parserModel);
+        stream = this.getClass().getResourceAsStream("/" + parserModel);
 		if (stream == null) {
 			logger.error("init(): fail to open PARSER MODEl \"" + parserModel
 					+ "\".");

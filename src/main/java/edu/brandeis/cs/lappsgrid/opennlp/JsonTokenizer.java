@@ -67,7 +67,8 @@ public class JsonTokenizer extends AbstractWebService implements ITokenizer
 
       logger.info("init(): load opennlp-web-service.properties.");
 
-      stream = ResourceLoader.open(tokenModel);
+//      stream = ResourceLoader.open(tokenModel);
+      stream = this.getClass().getResourceAsStream("/" + tokenModel);
       if (stream == null) {
          logger.error("init(): fail to open TOKEN MODEl \""+tokenModel+"\".");
          throw new OpenNLPWebServiceException("init(): fail to open TOKEN MODEl \""+tokenModel+"\".");

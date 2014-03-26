@@ -52,7 +52,9 @@ public class Splitter  extends AbstractWebService implements ISplitter {
 	      logger.info("init(): Creating OpenNLP SentenceDetector ...");
 	      
 	      Properties prop = new Properties();          
-	      InputStream stream = ResourceLoader.open("opennlp-web-service.properties");
+//	      InputStream stream = ResourceLoader.open("opennlp-web-service.properties");
+
+          InputStream stream = this.getClass().getResourceAsStream("/" + "opennlp-web-service.properties");
 	      if (stream == null) {
 	    	  logger.error("init(): fail to open \"opennlp-web-service.properties\".");
 	    	  throw new OpenNLPWebServiceException("init(): fail to open \"opennlp-web-service.properties\".");
@@ -70,7 +72,8 @@ public class Splitter  extends AbstractWebService implements ISplitter {
 	      
 	      logger.info("init(): load opennlp-web-service.properties.");
 	      
-	      stream = ResourceLoader.open(sentenceModel);
+//	      stream = ResourceLoader.open(sentenceModel);
+          stream = this.getClass().getResourceAsStream("/" + sentenceModel);
 	      if (stream == null) {
 	    	  logger.error("init(): fail to open SENTENCE MODEl \""+sentenceModel+"\".");
 	    	  throw new OpenNLPWebServiceException("init(): fail to open SENTENCE MODEl \""+sentenceModel+"\".");

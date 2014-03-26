@@ -51,7 +51,9 @@ public class POSTagger extends AbstractWebService implements IPOSTagger  {
 	      logger.info("init(): Creating OpenNLP POSTagger ...");
 	      
 	      Properties prop = new Properties();          
-	      InputStream stream = ResourceLoader.open("opennlp-web-service.properties");
+//	      InputStream stream = ResourceLoader.open("opennlp-web-service.properties");
+
+          InputStream stream = this.getClass().getResourceAsStream("/" + "opennlp-web-service.properties");
 	      if (stream == null) {
 	    	  logger.error("init(): fail to open \"opennlp-web-service.properties\".");
 	    	  throw new OpenNLPWebServiceException("init(): fail to open \"opennlp-web-service.properties\".");
@@ -69,7 +71,8 @@ public class POSTagger extends AbstractWebService implements IPOSTagger  {
 	      
 	      logger.info("init(): load opennlp-web-service.properties.");
 	      
-	      stream = ResourceLoader.open(taggerModel);
+//	      stream = ResourceLoader.open(taggerModel);
+          stream = this.getClass().getResourceAsStream("/" + taggerModel);
 	      if (stream == null) {
 	    	  logger.error("init(): fail to open POSTAGGER MODEl \""+taggerModel+"\".");
 	    	  throw new OpenNLPWebServiceException("init(): fail to open POSTAGGER MODEl \""+taggerModel+"\".");

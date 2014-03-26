@@ -54,7 +54,8 @@ public class NamedEntityRecognizer extends AbstractWebService implements INamedE
 
 	protected static final TokenNameFinder load(String nerModel) throws OpenNLPWebServiceException {
 		TokenNameFinder nameFinder;
-		InputStream stream = ResourceLoader.open(nerModel);
+//		InputStream stream = ResourceLoader.open(nerModel);
+        InputStream stream = NamedEntityRecognizer.class.getResourceAsStream("/" + nerModel);
 		if (stream == null) {
 			logger.error("load(): fail to open NER MODEL \"" + nerModel
 					+ "\".");
@@ -84,8 +85,9 @@ public class NamedEntityRecognizer extends AbstractWebService implements INamedE
 		logger.info("init(): Creating OpenNLP NamedEntityRecognizer ...");
 
 		Properties prop = new Properties();
-		InputStream stream = ResourceLoader
-				.open("opennlp-web-service.properties");
+//		InputStream stream = ResourceLoader
+//				.open("opennlp-web-service.properties");
+        InputStream stream = this.getClass().getResourceAsStream("/" + "opennlp-web-service.properties");
 		if (stream == null) {
 			logger.error("init(): fail to open \"opennlp-web-service.properties\".");
 			throw new OpenNLPWebServiceException(
