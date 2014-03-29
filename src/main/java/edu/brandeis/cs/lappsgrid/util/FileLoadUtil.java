@@ -27,7 +27,8 @@ public class FileLoadUtil {
 	public static File locate(String resource) {
 		File resFile;
 		try {
-			resFile = new File(getClassLoader().getResource(resource).toURI());
+//			resFile = new File(getClassLoader().getResource(resource).toURI());
+            resFile = new File(FileLoadUtil.class.getResource(resource).toURI());
 			// System.out.println(checksumSHA1(resFile));
 			// System.out.println(resFile);
 		} catch (Exception e) {

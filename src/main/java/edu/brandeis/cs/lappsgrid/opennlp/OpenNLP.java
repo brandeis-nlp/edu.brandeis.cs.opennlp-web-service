@@ -159,7 +159,7 @@ public class OpenNLP implements IOpenNLP , IVersion {
 				logger.info("loadAll(): load " + nerModel + " ...");
 				T tool = null;
 				if (nerModel.trim().length() > 0) {
-					File file = FileLoadUtil.locate(nerModel);
+					File file = FileLoadUtil.locate("/" + nerModel);
 
 					try {
 						String key = file.getCanonicalPath();
