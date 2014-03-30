@@ -129,7 +129,10 @@ public class Splitter  extends AbstractWebService implements ISplitter {
             ann.setId(id.generate("tok"));
             ann.setLabel(Annotations.SENTENCE);
             Map<String, String> features = ann.getFeatures();
-            putFeature(features, "Sentence", sentence);
+
+            String escaped = sentence.toString();
+            escaped = escaped.replaceAll("\n", "\\n");
+            putFeature(features, "Sentence", escaped);
 
             step.addAnnotation(ann);
         }
