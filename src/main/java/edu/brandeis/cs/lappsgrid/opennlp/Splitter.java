@@ -117,9 +117,10 @@ public class Splitter  extends AbstractWebService implements ISplitter {
         // steps
         ProcessingStep step = new ProcessingStep();
         // steps metadata
-        step.getMetadata().put(Metadata.PRODUCED_BY, this.getClass().getName() + ":" + VERSION);
-        step.getMetadata().put(Metadata.CONTAINS, "Splitter");
+//        step.getMetadata().put(Metadata.PRODUCED_BY, this.getClass().getName() + ":" + VERSION);
+//        step.getMetadata().put(Metadata.CONTAINS, "Splitter");
 
+        step.addContains(Annotations.SENTENCE, this.getClass().getName() + ":" + VERSION, "chunk:sentence");
         //
         IDGenerator id = new IDGenerator();
 
@@ -136,13 +137,13 @@ public class Splitter  extends AbstractWebService implements ISplitter {
 
             step.addAnnotation(ann);
         }
-
-	    if (data.getDiscriminator() != Types.TEXT)
-	    {
-	         String type = DiscriminatorRegistry.get(data.getDiscriminator());
-	         logger.error("execute(): Invalid input, expected TEXT, found " + type);
-	         return DataFactory.error("execute(): Invalid input, expected TEXT, found " + type);
-	    }
+//
+//	    if (data.getDiscriminator() != Types.TEXT)
+//	    {
+//	         String type = DiscriminatorRegistry.get(data.getDiscriminator());
+//	         logger.error("execute(): Invalid input, expected TEXT, found " + type);
+//	         return DataFactory.error("execute(): Invalid input, expected TEXT, found " + type);
+//	    }
 
 
 		logger.info("execute(): Execute OpenNLP SentenceDetector!");

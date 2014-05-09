@@ -114,8 +114,10 @@ public class POSTagger extends AbstractWebService implements IPOSTagger  {
         // steps
         ProcessingStep step = new ProcessingStep();
         // steps metadata
-        step.getMetadata().put(Metadata.PRODUCED_BY, this.getClass().getName() + ":" + VERSION);
-        step.getMetadata().put(Metadata.CONTAINS, "Splitter");
+//        step.getMetadata().put(Metadata.PRODUCED_BY, this.getClass().getName() + ":" + VERSION);
+//        step.getMetadata().put(Metadata.CONTAINS, "Splitter");
+
+        step.addContains(Features.PART_OF_SPEECH, this.getClass().getName() + ":" + VERSION, "posTag");
 
         //
         IDGenerator id = new IDGenerator();
@@ -131,12 +133,12 @@ public class POSTagger extends AbstractWebService implements IPOSTagger  {
             step.addAnnotation(ann);
         }
 
-        if (data.getDiscriminator() != Types.TEXT)
-        {
-            String type = DiscriminatorRegistry.get(data.getDiscriminator());
-            logger.error("execute(): Invalid input, expected TEXT, found " + type);
-            return DataFactory.error("execute(): Invalid input, expected TEXT, found " + type);
-        }
+//        if (data.getDiscriminator() != Types.TEXT)
+//        {
+//            String type = DiscriminatorRegistry.get(data.getDiscriminator());
+//            logger.error("execute(): Invalid input, expected TEXT, found " + type);
+//            return DataFactory.error("execute(): Invalid input, expected TEXT, found " + type);
+//        }
 
         container.getSteps().add(step);
         return DataFactory.json(container.toJson());

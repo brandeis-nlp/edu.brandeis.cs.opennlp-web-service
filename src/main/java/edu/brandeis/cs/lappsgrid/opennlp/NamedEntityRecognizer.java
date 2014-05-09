@@ -139,9 +139,9 @@ public class NamedEntityRecognizer extends AbstractWebService implements INamedE
         // steps
         ProcessingStep step = new ProcessingStep();
         // steps metadata
-        step.getMetadata().put(Metadata.PRODUCED_BY, this.getClass().getName() + ":" + VERSION);
-        step.getMetadata().put(Metadata.CONTAINS, "ner");
-
+//        step.getMetadata().put(Metadata.PRODUCED_BY, this.getClass().getName() + ":" + VERSION);
+//        step.getMetadata().put(Metadata.CONTAINS, "ner");
+        step.addContains(Features.NER, this.getClass().getName() + ":" + VERSION, "ner");
         //
         IDGenerator id = new IDGenerator();
 

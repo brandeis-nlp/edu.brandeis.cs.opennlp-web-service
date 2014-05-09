@@ -125,9 +125,9 @@ public class Parser extends AbstractWebService implements IParser {
         // steps
         ProcessingStep step = new ProcessingStep();
         // steps metadata
-        step.getMetadata().put(Metadata.PRODUCED_BY, this.getClass().getName() + ":" + VERSION);
-        step.getMetadata().put(Metadata.CONTAINS, "Splitter");
-
+//        step.getMetadata().put(Metadata.PRODUCED_BY, this.getClass().getName() + ":" + VERSION);
+//        step.getMetadata().put(Metadata.CONTAINS, "Splitter");
+        step.addContains(Annotations.TOKEN, this.getClass().getName() + ":" + VERSION, "Parser");
         //
         IDGenerator id = new IDGenerator();
 

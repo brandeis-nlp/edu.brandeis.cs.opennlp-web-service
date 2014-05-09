@@ -116,10 +116,9 @@ public class Tokenizer extends AbstractWebService implements ITokenizer {
         // steps
         ProcessingStep step = new ProcessingStep();
         // steps metadata
-        step.getMetadata().put(Metadata.PRODUCED_BY, this.getClass().getName() + ":" + VERSION);
-        step.getMetadata().put(Metadata.CONTAINS, Features.PART_OF_SPEECH);
-
-        //
+//        step.getMetadata().put(Metadata.PRODUCED_BY, this.getClass().getName() + ":" + VERSION);
+//        step.getMetadata().put(Metadata.CONTAINS, Features.PART_OF_SPEECH);
+        step.addContains(Features.PART_OF_SPEECH, this.getClass().getName() + ":" + VERSION, "Tokens");
         IDGenerator id = new IDGenerator();
 
         for (String token: tokens) {
