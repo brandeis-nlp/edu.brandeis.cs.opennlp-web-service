@@ -191,50 +191,6 @@ public class POSTagger extends AbstractWebService implements IPOSTagger  {
         }
     }
 
-//
-//	public Data executes(Data data) {
-//		logger.info("execute(): Execute OpenNLP POSTagger ...");
-//
-//        Container container = null;
-//        try {
-//            container = getContainer(data);
-//        } catch (LappsException e) {
-//            return DataFactory.error(e.getMessage());
-//        }
-//        String[] tags = tag(new String[]{"This email message is intended solely for the individual or individuals named above."});
-//        // steps
-//        ProcessingStep step = new ProcessingStep();
-//        // steps metadata
-////        step.getMetadata().put(Metadata.PRODUCED_BY, this.getClass().getName() + ":" + VERSION);
-////        step.getMetadata().put(Metadata.CONTAINS, "Splitter");
-//
-//        step.addContains(Features.PART_OF_SPEECH, this.getClass().getName() + ":" + VERSION, "posTag");
-//
-//        //
-//        IDGenerator id = new IDGenerator();
-//        System.out.println("TAGS: "  + container.getText());
-//        System.out.println("TAGS: "  + Arrays.toString(tags));
-//        for (String tag: tags) {
-//            org.anc.lapps.serialization.Annotation ann =
-//                    new org.anc.lapps.serialization.Annotation();
-//            ann.setId(id.generate("tok"));
-//            ann.setLabel(Annotations.SENTENCE);
-//            Map<String, String> features = ann.getFeatures();
-//            putFeature(features, Features.PART_OF_SPEECH, tag);
-//            step.addAnnotation(ann);
-//        }
-//
-////        if (data.getDiscriminator() != Types.TEXT)
-////        {
-////            String type = DiscriminatorRegistry.get(data.getDiscriminator());
-////            logger.error("execute(): Invalid input, expected TEXT, found " + type);
-////            return DataFactory.error("execute(): Invalid input, expected TEXT, found " + type);
-////        }
-//
-//        container.getSteps().add(step);
-//        return DataFactory.json(container.toJson());
-//	}
-//
 	@Override
 	public long[] requires() {
 		return TYPES_REQUIRES;

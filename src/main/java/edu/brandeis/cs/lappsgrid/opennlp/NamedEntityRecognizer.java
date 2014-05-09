@@ -21,6 +21,8 @@ import org.anc.util.IDGenerator;
 import org.lappsgrid.api.Data;
 import org.lappsgrid.api.LappsException;
 import org.lappsgrid.core.DataFactory;
+import org.lappsgrid.discriminator.DiscriminatorRegistry;
+import org.lappsgrid.discriminator.Types;
 import org.lappsgrid.vocabulary.Annotations;
 import org.lappsgrid.vocabulary.Features;
 import org.lappsgrid.vocabulary.Metadata;
@@ -125,9 +127,25 @@ public class NamedEntityRecognizer extends AbstractWebService implements INamedE
 	}
 
 	@Override
-	public Data execute(Data data) {
-		logger.info("execute(): Execute OpenNLP NamedEntityRecognizer ...");
+    public Data execute(Data data) {
+        logger.info("execute(): Execute OpenNLP NamedEntityRecognizer ...");
 
+        long discriminator = data.getDiscriminator();
+        if (discriminator == Types.ERROR)
+        {
+            return data;
+        } else if (discriminator == Types.JSON) {
+
+
+        } else if (discriminator == Types.TEXT)
+        {
+
+        } else {
+            String name = DiscriminatorRegistry.get(discriminator);
+            String message = "Invalid input type. Expected JSON but found " + name;
+            logger.warn(message);
+            return DataFactory.error(message);
+        }
 
         Container container = null;
         try {
@@ -164,7 +182,48 @@ public class NamedEntityRecognizer extends AbstractWebService implements INamedE
         container.getSteps().add(step);
         logger.info("execute(): Execute OpenNLP NamedEntityRecognizer!");
         return DataFactory.json(container.toJson());
-	}
+    }
+
+//	public Data execute(Data data) {
+//		logger.info("execute(): Execute OpenNLP NamedEntityRecognizer ...");
+//
+//
+//        Container container = null;
+//        try {
+//            container = getContainer(data);
+//        } catch (LappsException e) {
+//            return DataFactory.error(e.getMessage());
+//        }
+//
+//        // steps
+//        ProcessingStep step = new ProcessingStep();
+//        // steps metadata
+////        step.getMetadata().put(Metadata.PRODUCED_BY, this.getClass().getName() + ":" + VERSION);
+////        step.getMetadata().put(Metadata.CONTAINS, "ner");
+//        step.addContains(Features.NER, this.getClass().getName() + ":" + VERSION, "ner");
+//        //
+//        IDGenerator id = new IDGenerator();
+//
+//        String[] tokens = container.getText().split("\\n+");
+//        // spans for each of the names identified
+//        Span[] spans = find(tokens);
+//        String[] strSpans = new String[spans.length];
+//        for (int i = 0; i < spans.length; i++) {
+//            org.anc.lapps.serialization.Annotation ann =
+//                    new org.anc.lapps.serialization.Annotation();
+//            ann.setId(id.generate("tok"));
+//            ann.setLabel(Annotations.TOKEN);
+//            ann.setStart(spans[i].getStart());
+//            ann.setEnd(spans[i].getEnd());
+//            Map<String, String> features = ann.getFeatures();
+//            putFeature(features, Features.NER, spans[i].getType());
+//            step.addAnnotation(ann);
+//        }
+//
+//        container.getSteps().add(step);
+//        logger.info("execute(): Execute OpenNLP NamedEntityRecognizer!");
+//        return DataFactory.json(container.toJson());
+//	}
 
 	@Override
 	public long[] requires() {

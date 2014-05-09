@@ -7,6 +7,8 @@ import opennlp.tools.util.Span;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.lappsgrid.api.Data;
+import org.lappsgrid.discriminator.Types;
 
 /**
  * <i>TestSplitter.java</i> Language Application Grids (<b>LAPPS</b>)
@@ -43,4 +45,13 @@ public class TestSplitter extends TestService {
 				"[[0..16), [17..30)]",
 				Arrays.toString(offsets));
 	}
+
+
+    @Test
+    public void testExecute(){
+        data.setPayload("Hi. How are you? This is Mike.");
+        data.setDiscriminator(Types.TEXT);
+        Data res = splitter.execute(data);
+        System.out.println(res.getPayload());
+    }
 }
