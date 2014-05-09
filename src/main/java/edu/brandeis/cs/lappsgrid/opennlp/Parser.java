@@ -131,7 +131,7 @@ public class Parser extends AbstractWebService implements IParser {
         //
         IDGenerator id = new IDGenerator();
 
-        Parse parses[] = ParserTool.parseLine(data.getPayload(), parser, 1);
+        Parse parses[] = ParserTool.parseLine(container.getText(), parser, 1);
         StringBuffer builder = new StringBuffer();
         for (int pi = 0, pn = parses.length; pi < pn; pi++) {
             builder.setLength(0);

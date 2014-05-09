@@ -145,7 +145,7 @@ public class NamedEntityRecognizer extends AbstractWebService implements INamedE
         //
         IDGenerator id = new IDGenerator();
 
-        String[] tokens = data.getPayload().split("\\n+");
+        String[] tokens = container.getText().split("\\n+");
         // spans for each of the names identified
         Span[] spans = find(tokens);
         String[] strSpans = new String[spans.length];

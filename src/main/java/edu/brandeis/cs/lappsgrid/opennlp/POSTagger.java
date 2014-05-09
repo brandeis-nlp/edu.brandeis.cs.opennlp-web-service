@@ -110,7 +110,7 @@ public class POSTagger extends AbstractWebService implements IPOSTagger  {
         } catch (LappsException e) {
             return DataFactory.error(e.getMessage());
         }
-        String[] tags = tag(new String[]{data.getPayload()});
+        String[] tags = tag(new String[]{container.getText()});
         // steps
         ProcessingStep step = new ProcessingStep();
         // steps metadata

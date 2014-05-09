@@ -11,6 +11,7 @@ import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.sentdetect.SentenceModel;
 import opennlp.tools.util.Span;
 
+import org.anc.lapps.serialization.Annotation;
 import org.anc.lapps.serialization.Container;
 import org.anc.lapps.serialization.ProcessingStep;
 import org.anc.resource.ResourceLoader;
@@ -112,39 +113,30 @@ public class Splitter  extends AbstractWebService implements ISplitter {
             return DataFactory.error(e.getMessage());
         }
 
-        String[] sentences = sentDetect(data.getPayload());
-
+//        String[] sentences = sentDetect(container.getText());
+        Span[] spans = sentPosDetect(container.getText());
         // steps
         ProcessingStep step = new ProcessingStep();
-        // steps metadata
-//        step.getMetadata().put(Metadata.PRODUCED_BY, this.getClass().getName() + ":" + VERSION);
-//        step.getMetadata().put(Metadata.CONTAINS, "Splitter");
 
         step.addContains(Annotations.SENTENCE, this.getClass().getName() + ":" + VERSION, "chunk:sentence");
         //
         IDGenerator id = new IDGenerator();
 
-        for (String sentence: sentences) {
+        for (Span span : spans) {
             org.anc.lapps.serialization.Annotation ann =
                     new org.anc.lapps.serialization.Annotation();
             ann.setId(id.generate("tok"));
             ann.setLabel(Annotations.SENTENCE);
+            ann.setStart(span.getStart());
+            ann.setEnd(span.getEnd());
             Map<String, String> features = ann.getFeatures();
-
+            String sentence = container.getText().substring(span.getStart(), span.getEnd());
             String escaped = sentence.toString();
             escaped = escaped.replaceAll("\n", "\\n");
             putFeature(features, "Sentence", escaped);
 
             step.addAnnotation(ann);
         }
-//
-//	    if (data.getDiscriminator() != Types.TEXT)
-//	    {
-//	         String type = DiscriminatorRegistry.get(data.getDiscriminator());
-//	         logger.error("execute(): Invalid input, expected TEXT, found " + type);
-//	         return DataFactory.error("execute(): Invalid input, expected TEXT, found " + type);
-//	    }
-
 
 		logger.info("execute(): Execute OpenNLP SentenceDetector!");
         container.getSteps().add(step);

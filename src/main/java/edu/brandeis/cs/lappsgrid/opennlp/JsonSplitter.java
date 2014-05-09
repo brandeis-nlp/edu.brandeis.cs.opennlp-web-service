@@ -127,17 +127,17 @@ public class JsonSplitter extends AbstractWebService implements ISplitter
 
       //String[] sentences = sentDetect(data.getPayload());
       Span[] spans = sentPosDetect(container.getText());
-      ProcessingStep step = new ProcessingStep();
-      step.getMetadata().put(Metadata.PRODUCED_BY, this.getClass().getName());
-      IDGenerator id = new IDGenerator();
-      for (Span span : spans) {
-         Annotation a = new Annotation();
-         a.setLabel(Annotations.SENTENCE);
-         a.setId(id.generate("s"));
-         a.setStart(span.getStart());
-         a.setEnd(span.getEnd());
-         step.addAnnotation(a);
-      }
+       ProcessingStep step = new ProcessingStep();
+       step.getMetadata().put(Metadata.PRODUCED_BY, this.getClass().getName());
+       IDGenerator id = new IDGenerator();
+       for (Span span : spans) {
+           Annotation a = new Annotation();
+           a.setLabel(Annotations.SENTENCE);
+           a.setId(id.generate("s"));
+           a.setStart(span.getStart());
+           a.setEnd(span.getEnd());
+           step.addAnnotation(a);
+       }
       container.getSteps().add(step);
       logger.info("execute(): Execute OpenNLP SentenceDetector!");
       //return DataFactory.stringList(sentences);

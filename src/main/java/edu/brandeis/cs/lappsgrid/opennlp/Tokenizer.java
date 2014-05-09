@@ -111,7 +111,7 @@ public class Tokenizer extends AbstractWebService implements ITokenizer {
             return DataFactory.error(e.getMessage());
         }
 
-        String[] tokens = tokenize(data.getPayload());
+        String[] tokens = tokenize(container.getText());
 
         // steps
         ProcessingStep step = new ProcessingStep();
