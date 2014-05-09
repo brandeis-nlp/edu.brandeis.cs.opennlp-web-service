@@ -2,6 +2,7 @@ package edu.brandeis.cs.lappsgrid.opennlp;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Properties;
 
@@ -16,6 +17,8 @@ import org.anc.lapps.serialization.Container;
 import org.anc.lapps.serialization.ProcessingStep;
 import org.anc.resource.ResourceLoader;
 import org.anc.util.IDGenerator;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.lappsgrid.api.Data;
 import org.lappsgrid.api.LappsException;
 import org.lappsgrid.core.DataFactory;
@@ -102,47 +105,125 @@ public class Splitter  extends AbstractWebService implements ISplitter {
 		return DataFactory.ok();
 	}
 
-	@Override
-	public Data execute(Data data) {
-		logger.info("execute(): Execute OpenNLP SentenceDetector ...");
 
-        Container container = null;
-        try {
-            container = getContainer(data);
-        } catch (LappsException e) {
-            return DataFactory.error(e.getMessage());
+
+    @Override
+    public Data execute(Data data) {
+        logger.info("execute(): Execute OpenNLP SentenceDetector ...");
+        long discriminator = data.getDiscriminator();
+        if (discriminator == Types.ERROR)
+        {
+            return data;
+        } else if (discriminator == Types.JSON) {
+            JSONObject jsonobj = new JSONObject(data.getPayload());
+
+            String text = jsonobj.getJSONObject("text").getString("@value");
+            JSONArray steps =  jsonobj.getJSONArray("steps");
+
+            JSONObject resultStep = new JSONObject();
+            JSONObject resultContain = new JSONObject();
+            resultContain.put( "producer", this.getClass().getName() + ":" + VERSION);
+            resultContain.put( "type", "splitter:opennlp");
+            resultStep.put("metadata", new JSONObject().put("contains", new JSONObject().put("Sentence", resultContain)));
+
+
+            Span[] spans = sentPosDetect(text);
+            IDGenerator id = new IDGenerator();
+
+            JSONArray annotations = new JSONArray();
+            for (Span span : spans) {
+                JSONObject annotation = new JSONObject();
+                annotation.put("id", id.generate("s"));
+                annotation.put("start", span.getStart());
+                annotation.put("end", span.getEnd());
+                annotation.put("@type", Annotations.SENTENCE);
+                annotations.put(annotation);
+            }
+
+            jsonobj.put("steps", steps.put(resultStep));
+            return DataFactory.json(jsonobj.toString());
+
+        } else if (discriminator == Types.TEXT)
+        {
+            String text = data.getPayload();
+            Span[] spans = sentPosDetect(text);
+
+            IDGenerator id = new IDGenerator();
+            JSONArray annotations = new JSONArray();
+            for (Span span : spans) {
+                JSONObject annotation = new JSONObject();
+                annotation.put("id", id.generate("s"));
+                annotation.put("start", span.getStart());
+                annotation.put("end", span.getEnd());
+                annotation.put("@type", Annotations.SENTENCE);
+                annotations.put(annotation);
+            }
+
+            JSONObject resultStep = new JSONObject();
+            JSONObject resultContain = new JSONObject();
+            resultContain.put( "producer", this.getClass().getName() + ":" + VERSION);
+            resultContain.put( "type", "splitter:opennlp");
+            resultStep.put("metadata", new JSONObject().put("contains", new JSONObject().put("Sentence", resultContain)));
+
+            JSONObject jsonobj = new JSONObject();
+            JSONArray steps = new JSONArray();
+            jsonobj.put("metadata", new JSONObject());
+            jsonobj.put("text", new JSONObject().put("@value", text));
+            jsonobj.put("steps", steps.put(resultStep));
+            return DataFactory.json(jsonobj.toString());
+
         }
-
-//        String[] sentences = sentDetect(container.getText());
-        Span[] spans = sentPosDetect(container.getText());
-        // steps
-        ProcessingStep step = new ProcessingStep();
-
-        step.addContains(Annotations.SENTENCE, this.getClass().getName() + ":" + VERSION, "chunk:sentence");
-        //
-        IDGenerator id = new IDGenerator();
-
-        for (Span span : spans) {
-            org.anc.lapps.serialization.Annotation ann =
-                    new org.anc.lapps.serialization.Annotation();
-            ann.setId(id.generate("tok"));
-            ann.setLabel(Annotations.SENTENCE);
-            ann.setStart(span.getStart());
-            ann.setEnd(span.getEnd());
-            Map<String, String> features = ann.getFeatures();
-            String sentence = container.getText().substring(span.getStart(), span.getEnd());
-            String escaped = sentence.toString();
-            escaped = escaped.replaceAll("\n", "\\n");
-            putFeature(features, "Sentence", escaped);
-
-            step.addAnnotation(ann);
+        else {
+            String name = DiscriminatorRegistry.get(discriminator);
+            String message = "Invalid input type. Expected JSON but found " + name;
+            logger.warn(message);
+            return DataFactory.error(message);
         }
+    }
 
-		logger.info("execute(): Execute OpenNLP SentenceDetector!");
-        container.getSteps().add(step);
-        return DataFactory.json(container.toJson());
-	}
-	
+
+    //
+//	@Override
+//	public Data execute(Data data) {
+//		logger.info("execute(): Execute OpenNLP SentenceDetector ...");
+//
+//        Container container = null;
+//        try {
+//            container = getContainer(data);
+//        } catch (LappsException e) {
+//            return DataFactory.error(e.getMessage());
+//        }
+//
+////        String[] sentences = sentDetect(container.getText());
+//        Span[] spans = sentPosDetect(container.getText());
+//        // steps
+//        ProcessingStep step = new ProcessingStep();
+//
+//        step.addContains(Annotations.SENTENCE, this.getClass().getName() + ":" + VERSION, "chunk:sentence");
+//        //
+//        IDGenerator id = new IDGenerator();
+//
+//        for (Span span : spans) {
+//            org.anc.lapps.serialization.Annotation ann =
+//                    new org.anc.lapps.serialization.Annotation();
+//            ann.setId(id.generate("tok"));
+//            ann.setLabel(Annotations.SENTENCE);
+//            ann.setStart(span.getStart());
+//            ann.setEnd(span.getEnd());
+//            Map<String, String> features = ann.getFeatures();
+//            String sentence = container.getText().substring(span.getStart(), span.getEnd());
+//            String escaped = sentence.toString();
+//            escaped = escaped.replaceAll("\n", "\\n");
+//            putFeature(features, "Sentence", escaped);
+//
+//            step.addAnnotation(ann);
+//        }
+//
+//		logger.info("execute(): Execute OpenNLP SentenceDetector!");
+//        container.getSteps().add(step);
+//        return DataFactory.json(container.toJson());
+//	}
+//
 	@Override
 	public long[] requires() {
 		return TYPES_REQUIRES;

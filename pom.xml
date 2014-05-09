@@ -123,6 +123,20 @@
 			<artifactId>lucene-wordnet</artifactId>
 			<version>3.3.0</version>
 		</dependency>
+
+
+        <!--- JSON Support -->
+        <dependency>
+            <groupId>com.jayway.jsonpath</groupId>
+            <artifactId>json-path</artifactId>
+            <version>0.9.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20140107</version>
+        </dependency>
 	</dependencies>
 
 	<build>

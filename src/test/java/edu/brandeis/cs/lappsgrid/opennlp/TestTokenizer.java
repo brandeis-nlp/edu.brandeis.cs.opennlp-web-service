@@ -17,7 +17,7 @@ import org.junit.Test;
  * @author Chunqi Shi ( <i>shicq@cs.brandeis.edu</i> )<br>Nov 20, 2013<br>
  * 
  */
-public class TestTokenizer extends TestCase {
+public class TestTokenizer extends TestService {
 	
 	Tokenizer tokenizer;
 	

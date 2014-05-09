@@ -22,7 +22,7 @@ import org.junit.Test;
  *         Nov 20, 2013<br>
  * 
  */
-public class TestNamedEntityRecognizer extends TestCase {
+public class TestNamedEntityRecognizer extends TestService {
 
 	NamedEntityRecognizer ner;
 

@@ -2,6 +2,7 @@ package edu.brandeis.cs.lappsgrid.opennlp;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Properties;
 
@@ -14,6 +15,8 @@ import org.anc.lapps.serialization.Container;
 import org.anc.lapps.serialization.ProcessingStep;
 import org.anc.resource.ResourceLoader;
 import org.anc.util.IDGenerator;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.lappsgrid.api.Data;
 import org.lappsgrid.api.LappsException;
 import org.lappsgrid.core.DataFactory;
@@ -101,41 +104,162 @@ public class Tokenizer extends AbstractWebService implements ITokenizer {
 	}
 
 	@Override
-	public Data execute(Data data) {
-		logger.info("execute(): Execute OpenNLP tokenizer ...");
+    public Data execute(Data data) {
+        logger.info("execute(): Execute OpenNLP tokenizer ...");
+        long discriminator = data.getDiscriminator();
+        if (discriminator == Types.ERROR)
+        {
+            return data;
+        } else if (discriminator == Types.JSON) {
+            JSONObject jsonobj = new JSONObject(data.getPayload());
 
-        Container container = null;
-        try {
-            container = getContainer(data);
-        } catch (LappsException e) {
-            return DataFactory.error(e.getMessage());
+            String text = jsonobj.getJSONObject("text").getString("@value");
+            JSONArray steps =  jsonobj.getJSONArray("steps");
+
+            ArrayList<JSONObject> laststeparr = new ArrayList<JSONObject>(16);
+            JSONObject laststep = (JSONObject)steps.get(steps.length() - 1);
+            JSONObject laststepmeta = laststep.getJSONObject("metadata");
+            JSONArray laststepannotations = laststep.getJSONArray("annotations");
+
+            // find target JSONObject
+            JSONObject contains = laststepmeta.getJSONObject("contains");
+            Object sentence_type = contains.opt(Annotations.SENTENCE);
+            if (sentence_type != null) {
+                // contains sentence
+                for(int j = 0; j < laststepannotations.length(); j++) {
+                    JSONObject annotation = laststepannotations.getJSONObject(j);
+                    if(annotation.has("@type") && annotation.getString("@type") == Annotations.SENTENCE){
+                        laststeparr.add(annotation);
+                    }
+                }
+            }
+
+            IDGenerator id = new IDGenerator();
+            JSONArray annotations =  new JSONArray();
+            for(JSONObject sentenceannotation: laststeparr) {
+                int start = sentenceannotation.getInt("start");
+                int end = sentenceannotation.getInt("end");
+                String sentence = sentenceannotation.getString(text.substring(start, end));
+                Span[] spans = tokenizePos(sentence);
+                for (Span span : spans) {
+                    JSONObject annotation = new JSONObject();
+                    annotation.put("id", id.generate("tok"));
+                    annotation.put("start", start + span.getStart());
+                    annotation.put("end", start + span.getEnd());
+                    annotation.put("@type", Annotations.TOKEN);
+                    annotation.put("features", new JSONObject().put(Features.WORD, sentence.substring(span.getStart(), span.getEnd())));
+                    annotations.put(annotation);
+                }
+            }
+
+            // put into json.
+            JSONObject resultStep = new JSONObject();
+            JSONObject resultContain = new JSONObject();
+            resultContain.put("producer", this.getClass().getName() + ":" + VERSION);
+            resultContain.put("type", "tokenizer:opennlp");
+            resultStep.put("metadata", new JSONObject().put("contains", new JSONObject().put("Token", resultContain)));
+            resultStep.put("annotations", annotations);
+            jsonobj.put("steps", steps.put(resultStep));
+            return DataFactory.json(jsonobj.toString());
+
+        } else if (discriminator == Types.TEXT) {
+            String text = data.getPayload();
+            Span[] spans = tokenizePos(text);
+            IDGenerator id = new IDGenerator();
+            JSONArray annotations = new JSONArray();
+            for (Span span : spans) {
+                JSONObject annotation = new JSONObject();
+                annotation.put("id", id.generate("tok"));
+                annotation.put("start", span.getStart());
+                annotation.put("end", span.getEnd());
+                annotation.put("@type", Annotations.TOKEN);
+                annotation.put("features", new JSONObject().put(Features.WORD, text.substring(span.getStart(), span.getEnd())));
+                annotations.put(annotation);
+            }
+
+            JSONObject resultStep = new JSONObject();
+            JSONObject resultContain = new JSONObject();
+            resultContain.put( "producer", this.getClass().getName() + ":" + VERSION);
+            resultContain.put( "type", "tokenizer:opennlp");
+            resultStep.put("metadata", new JSONObject().put("contains", new JSONObject().put( Annotations.TOKEN, resultContain)));
+
+            JSONObject jsonobj = new JSONObject();
+            JSONArray steps = new JSONArray();
+            jsonobj.put("metadata", new JSONObject());
+            jsonobj.put("text", new JSONObject().put("@value", text));
+            jsonobj.put("steps", steps.put(resultStep));
+            return DataFactory.json(jsonobj.toString());
+        } else {
+            String name = DiscriminatorRegistry.get(discriminator);
+            String message = "Invalid input type. Expected JSON but found " + name;
+            logger.warn(message);
+            return DataFactory.error(message);
         }
+//
+//        Container container = null;
+//        try {
+//            container = getContainer(data);
+//        } catch (LappsException e) {
+//            return DataFactory.error(e.getMessage());
+//        }
+//
+//        String[] tokens = tokenize(container.getText());
+//
+//        // steps
+//        ProcessingStep step = new ProcessingStep();
+//        step.addContains(Features.PART_OF_SPEECH, this.getClass().getName() + ":" + VERSION, "Tokens");
+//
+//        IDGenerator id = new IDGenerator();
+//
+//        for (String token: tokens) {
+//            org.anc.lapps.serialization.Annotation ann =
+//                    new org.anc.lapps.serialization.Annotation();
+//            ann.setId(id.generate("tok"));
+//            ann.setLabel(Annotations.TOKEN);
+//            Map<String, String> features = ann.getFeatures();
+//            putFeature(features, Features.WORD, token);
+//
+//            step.addAnnotation(ann);
+//        }
+//
+//        logger.info("execute(): Execute OpenNLP tokenizer!");
+//        container.getSteps().add(step);
+//        return DataFactory.json(container.toJson());
+    }
 
-        String[] tokens = tokenize(container.getText());
-
-        // steps
-        ProcessingStep step = new ProcessingStep();
-        // steps metadata
-//        step.getMetadata().put(Metadata.PRODUCED_BY, this.getClass().getName() + ":" + VERSION);
-//        step.getMetadata().put(Metadata.CONTAINS, Features.PART_OF_SPEECH);
-        step.addContains(Features.PART_OF_SPEECH, this.getClass().getName() + ":" + VERSION, "Tokens");
-        IDGenerator id = new IDGenerator();
-
-        for (String token: tokens) {
-            org.anc.lapps.serialization.Annotation ann =
-                    new org.anc.lapps.serialization.Annotation();
-            ann.setId(id.generate("tok"));
-            ann.setLabel(Annotations.TOKEN);
-            Map<String, String> features = ann.getFeatures();
-            putFeature(features, Features.WORD, token);
-
-            step.addAnnotation(ann);
-        }
-
-		logger.info("execute(): Execute OpenNLP tokenizer!");
-        container.getSteps().add(step);
-        return DataFactory.json(container.toJson());
-	}
+//	public Data execute(Data data) {
+//		logger.info("execute(): Execute OpenNLP tokenizer ...");
+//
+//        Container container = null;
+//        try {
+//            container = getContainer(data);
+//        } catch (LappsException e) {
+//            return DataFactory.error(e.getMessage());
+//        }
+//
+//        String[] tokens = tokenize(container.getText());
+//
+//        // steps
+//        ProcessingStep step = new ProcessingStep();
+//        step.addContains(Features.PART_OF_SPEECH, this.getClass().getName() + ":" + VERSION, "Tokens");
+//
+//        IDGenerator id = new IDGenerator();
+//
+//        for (String token: tokens) {
+//            org.anc.lapps.serialization.Annotation ann =
+//                    new org.anc.lapps.serialization.Annotation();
+//            ann.setId(id.generate("tok"));
+//            ann.setLabel(Annotations.TOKEN);
+//            Map<String, String> features = ann.getFeatures();
+//            putFeature(features, Features.WORD, token);
+//
+//            step.addAnnotation(ann);
+//        }
+//
+//		logger.info("execute(): Execute OpenNLP tokenizer!");
+//        container.getSteps().add(step);
+//        return DataFactory.json(container.toJson());
+//	}
 
 
     @Override

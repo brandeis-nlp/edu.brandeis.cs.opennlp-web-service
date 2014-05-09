@@ -2,10 +2,10 @@ package edu.brandeis.cs.lappsgrid.opennlp;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 import edu.brandeis.cs.lappsgrid.api.opennlp.IVersion;
+import net.arnx.jsonic.JSON;
 import opennlp.tools.postag.POSModel;
 import opennlp.tools.postag.POSTaggerME;
 import opennlp.tools.util.Sequence;
@@ -14,6 +14,8 @@ import org.anc.lapps.serialization.Container;
 import org.anc.lapps.serialization.ProcessingStep;
 import org.anc.resource.ResourceLoader;
 import org.anc.util.IDGenerator;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.lappsgrid.api.Data;
 import org.lappsgrid.api.LappsException;
 import org.lappsgrid.core.DataFactory;
@@ -101,49 +103,138 @@ public class POSTagger extends AbstractWebService implements IPOSTagger  {
 	}
 
 	@Override
-	public Data execute(Data data) {
-		logger.info("execute(): Execute OpenNLP POSTagger ...");
+    public Data execute(Data  data) {
+        long discriminator = data.getDiscriminator();
+        if (discriminator == Types.ERROR)
+        {
+            return data;
+        } else if (discriminator == Types.JSON) {
+            JSONObject jsonobj = new JSONObject(data.getPayload());
 
-        Container container = null;
-        try {
-            container = getContainer(data);
-        } catch (LappsException e) {
-            return DataFactory.error(e.getMessage());
+            String text = jsonobj.getJSONObject("text").getString("@value");
+            JSONArray steps =  jsonobj.getJSONArray("steps");
+
+            ArrayList<JSONObject> tokens = new ArrayList<JSONObject>(16);
+            JSONObject laststep = (JSONObject)steps.get(steps.length() - 1);
+            JSONObject laststepmeta = laststep.getJSONObject("metadata");
+            JSONArray laststepannotations = laststep.getJSONArray("annotations");
+
+            // find target JSONObject
+            JSONObject contains = laststepmeta.getJSONObject("contains");
+            Object sentence_type = contains.opt("Token");
+            if (sentence_type != null) {
+                // contains sentence
+                for(int j = 0; j < laststepannotations.length(); j++) {
+                    JSONObject annotation = laststepannotations.getJSONObject(j);
+                    if(annotation.has("@type") && annotation.getString("@type") == "Token"){
+                        tokens.add(annotation);
+                    }
+                }
+            }
+
+//            ArrayList<String[]> tags = new ArrayList<String[]>(tokens.size());
+            JSONArray annotations =  new JSONArray();
+            for(JSONObject annotation: tokens) {
+                int start = annotation.getInt("start");
+                int end = annotation.getInt("end");
+                String token = annotation.getString(text.substring(start, end));
+                String[] tags = postagger.tag(new String[]{token});
+                JSONObject features = null;
+                if(annotation.has("features")) {
+                    features = annotation.getJSONObject("features");
+                } else {
+                    features = new JSONObject();
+                }
+                features.put("category", tags[0]);
+                features.put("string", token);
+                annotation.put("features", features);
+                annotations.put(annotation);
+            }
+
+            // put into json.
+            JSONObject resultStep = new JSONObject();
+            JSONObject resultContain = new JSONObject();
+            resultContain.put("producer", this.getClass().getName() + ":" + VERSION);
+            resultContain.put("type", "tagger:opennlp");
+            resultStep.put("metadata", new JSONObject().put("contains", new JSONObject().put("Token", resultContain)));
+            resultStep.put("annotations", annotations);
+            jsonobj.put("steps", steps.put(resultStep));
+            return DataFactory.json(jsonobj.toString());
+
+        } else  if (discriminator == Types.TEXT) {
+            String [] tags = tag(new String[]{data.getPayload()});
+            JSONArray annotations = new JSONArray();
+            for(int i = 0; i < tags.length; i++) {
+                JSONObject annotation = new JSONObject();
+                annotation.put("@type", "Token").put("id", i).put("features", new JSONObject().put( "category", tags[i]));
+                annotations.put(annotation);
+            }
+            JSONObject resultStep = new JSONObject();
+            JSONObject resultContain = new JSONObject();
+            resultContain.put( "producer", this.getClass().getName() + ":" + VERSION);
+            resultContain.put( "type", "annotation:tagger");
+            resultStep.put("metadata", new JSONObject().put("contains", new JSONObject().put("Tagger", resultContain)));
+            resultStep.put("annotations", annotations);
+
+            JSONObject jsonobj = new JSONObject();
+            JSONArray steps = new JSONArray();
+            jsonobj.put("metadata", new JSONObject());
+            jsonobj.put("text", new JSONObject().put("@value", data.getPayload()));
+            jsonobj.put("steps", steps.put(resultStep));
+            return DataFactory.json(jsonobj.toString());
+
+        } else {
+            String name = DiscriminatorRegistry.get(discriminator);
+            String message = "Invalid input type. Expected JSON but found " + name;
+            logger.warn(message);
+            return DataFactory.error(message);
         }
-        String[] tags = tag(new String[]{container.getText()});
-        // steps
-        ProcessingStep step = new ProcessingStep();
-        // steps metadata
-//        step.getMetadata().put(Metadata.PRODUCED_BY, this.getClass().getName() + ":" + VERSION);
-//        step.getMetadata().put(Metadata.CONTAINS, "Splitter");
+    }
 
-        step.addContains(Features.PART_OF_SPEECH, this.getClass().getName() + ":" + VERSION, "posTag");
-
-        //
-        IDGenerator id = new IDGenerator();
-
-        for (String tag: tags) {
-            org.anc.lapps.serialization.Annotation ann =
-                    new org.anc.lapps.serialization.Annotation();
-            ann.setId(id.generate("tok"));
-            ann.setLabel(Annotations.SENTENCE);
-            Map<String, String> features = ann.getFeatures();
-            putFeature(features, Features.PART_OF_SPEECH, tag);
-
-            step.addAnnotation(ann);
-        }
-
-//        if (data.getDiscriminator() != Types.TEXT)
-//        {
-//            String type = DiscriminatorRegistry.get(data.getDiscriminator());
-//            logger.error("execute(): Invalid input, expected TEXT, found " + type);
-//            return DataFactory.error("execute(): Invalid input, expected TEXT, found " + type);
+//
+//	public Data executes(Data data) {
+//		logger.info("execute(): Execute OpenNLP POSTagger ...");
+//
+//        Container container = null;
+//        try {
+//            container = getContainer(data);
+//        } catch (LappsException e) {
+//            return DataFactory.error(e.getMessage());
 //        }
-
-        container.getSteps().add(step);
-        return DataFactory.json(container.toJson());
-	}
-	
+//        String[] tags = tag(new String[]{"This email message is intended solely for the individual or individuals named above."});
+//        // steps
+//        ProcessingStep step = new ProcessingStep();
+//        // steps metadata
+////        step.getMetadata().put(Metadata.PRODUCED_BY, this.getClass().getName() + ":" + VERSION);
+////        step.getMetadata().put(Metadata.CONTAINS, "Splitter");
+//
+//        step.addContains(Features.PART_OF_SPEECH, this.getClass().getName() + ":" + VERSION, "posTag");
+//
+//        //
+//        IDGenerator id = new IDGenerator();
+//        System.out.println("TAGS: "  + container.getText());
+//        System.out.println("TAGS: "  + Arrays.toString(tags));
+//        for (String tag: tags) {
+//            org.anc.lapps.serialization.Annotation ann =
+//                    new org.anc.lapps.serialization.Annotation();
+//            ann.setId(id.generate("tok"));
+//            ann.setLabel(Annotations.SENTENCE);
+//            Map<String, String> features = ann.getFeatures();
+//            putFeature(features, Features.PART_OF_SPEECH, tag);
+//            step.addAnnotation(ann);
+//        }
+//
+////        if (data.getDiscriminator() != Types.TEXT)
+////        {
+////            String type = DiscriminatorRegistry.get(data.getDiscriminator());
+////            logger.error("execute(): Invalid input, expected TEXT, found " + type);
+////            return DataFactory.error("execute(): Invalid input, expected TEXT, found " + type);
+////        }
+//
+//        container.getSteps().add(step);
+//        return DataFactory.json(container.toJson());
+//	}
+//
 	@Override
 	public long[] requires() {
 		return TYPES_REQUIRES;

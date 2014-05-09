@@ -1,5 +1,8 @@
 package edu.brandeis.cs.lappsgrid.util;
 
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.ReadContext;
+import com.jayway.jsonpath.internal.JsonReader;
 import org.anc.lapps.serialization.Container;
 import org.lappsgrid.api.Data;
 import org.lappsgrid.api.LappsException;
@@ -35,4 +38,11 @@ public class JsonUtil
       String typeName = DiscriminatorRegistry.get(type);
       throw new LappsException("Unexpected Data object type: " + typeName);
    }
+
+   public static final String jsonpath(String json, String  path){
+       JsonPath jsonPath = JsonPath.compile(path);
+       ReadContext reader = new JsonReader().parse(json);
+       return reader.read(jsonPath).toString();
+   }
+
 }
