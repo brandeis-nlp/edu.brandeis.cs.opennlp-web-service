@@ -1,13 +1,19 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import junit.framework.TestCase;
 import opennlp.tools.tokenize.SimpleTokenizer;
 import opennlp.tools.util.Span;
 
+import org.anc.lapps.serialization.Container;
+import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.lappsgrid.api.Data;
+import org.lappsgrid.core.DataFactory;
 
 /**
  * <i>TestTokenizer.java</i> Language Application Grids (<b>LAPPS</b>)
@@ -30,6 +36,14 @@ public class TestNamedEntityRecognizer extends TestService {
 		ner = new NamedEntityRecognizer();
 	}
 
+
+    @Before
+    public void data() throws IOException {
+        java.io.InputStream in =  this.getClass().getClassLoader().getResourceAsStream("tokens.json");
+        payload = IOUtils.toString(in);
+        data = DataFactory.json(payload);
+        container = new Container(payload);
+    }
 	@Test
 	public void testFind() {
 		String tokens[] = SimpleTokenizer.INSTANCE
@@ -42,4 +56,9 @@ public class TestNamedEntityRecognizer extends TestService {
 				goldSpans);
 	}
 
+    @Test
+    public void testExecute(){
+        Data res = ner.execute(data);
+        System.out.println(res.getPayload());
+    }
 }

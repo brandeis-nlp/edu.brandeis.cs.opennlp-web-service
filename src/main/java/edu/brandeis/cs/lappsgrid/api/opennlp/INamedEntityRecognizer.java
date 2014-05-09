@@ -19,7 +19,7 @@ public interface INamedEntityRecognizer extends WebService {
 	public static final String PROP_COMPNENT_MODEL = "Name-Finder";
 	public static final String TOKEN_SPAN_SPLIT = ":";
 	
-	public static final long [] TYPES_REQUIRES = new long[] { Types.OPENNLP, Types.SENTENCE  };
+	public static final long [] TYPES_REQUIRES = new long[] { Types.SENTENCE  };
 	public static final long [] TYPES_PRODUCES = new long[] { Types.OPENNLP, Types.SENTENCE, Types.TOKEN };
 	
 	/**

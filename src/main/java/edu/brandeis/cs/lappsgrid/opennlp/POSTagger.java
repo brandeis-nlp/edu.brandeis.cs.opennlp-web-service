@@ -131,10 +131,11 @@ public class POSTagger extends AbstractWebService implements IPOSTagger  {
                     }
                 }
             }
-
-//            ArrayList<String[]> tags = new ArrayList<String[]>(tokens.size());
             JSONArray annotations =  new JSONArray();
-            for(JSONObject annotation: tokens) {
+
+            IDGenerator id = new IDGenerator();
+            for(JSONObject tokenannotation: tokens) {
+                JSONObject annotation = new JSONObject(tokenannotation.toString());
                 int start = annotation.getInt("start");
                 int end = annotation.getInt("end");
                 String token = text.substring(start, end);
@@ -145,8 +146,8 @@ public class POSTagger extends AbstractWebService implements IPOSTagger  {
                 } else {
                     features = new JSONObject();
                 }
+                annotation.put("id", id.generate("pos"));
                 features.put("category", tags[0]);
-                features.put("string", token);
                 annotation.put("features", features);
                 annotations.put(annotation);
             }
@@ -166,7 +167,7 @@ public class POSTagger extends AbstractWebService implements IPOSTagger  {
             JSONArray annotations = new JSONArray();
             for(int i = 0; i < tags.length; i++) {
                 JSONObject annotation = new JSONObject();
-                annotation.put("@type", "Token").put("id", i).put("features", new JSONObject().put( "category", tags[i]));
+                annotation.put("@type", "Token").put("id", "pos"+i).put("features", new JSONObject().put( "category", tags[i]));
                 annotations.put(annotation);
             }
             JSONObject resultStep = new JSONObject();

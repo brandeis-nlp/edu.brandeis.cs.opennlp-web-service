@@ -138,36 +138,94 @@ public class NamedEntityRecognizer extends AbstractWebService implements INamedE
             return data;
         } else if (discriminator == Types.JSON) {
 
+            JSONObject jsonobj = new JSONObject(data.getPayload());
+
+            String text = jsonobj.getJSONObject("text").getString("@value");
+            JSONArray steps =  jsonobj.getJSONArray("steps");
+
+            ArrayList<JSONObject> tokens = new ArrayList<JSONObject>(16);
+            JSONObject laststep = (JSONObject)steps.get(steps.length() - 1);
+            JSONObject laststepmeta = laststep.getJSONObject("metadata");
+            JSONArray laststepannotations = laststep.getJSONArray("annotations");
+
+            // find target JSONObject
+            JSONObject contains = laststepmeta.getJSONObject("contains");
+            Object sentence_type = contains.opt("Token");
+            if (sentence_type != null) {
+                // contains sentence
+                for(int j = 0; j < laststepannotations.length(); j++) {
+                    JSONObject annotation = laststepannotations.getJSONObject(j);
+                    if(annotation.has("@type") && annotation.getString("@type").equals("Token")){
+                        tokens.add(annotation);
+                    }
+                }
+            }
+            JSONArray annotations =  new JSONArray();
+
+            IDGenerator id = new IDGenerator();
+            for(JSONObject tokenannotation: tokens) {
+                JSONObject annotation = new JSONObject(tokenannotation.toString());
+                int start = annotation.getInt("start");
+                int end = annotation.getInt("end");
+                String token = text.substring(start, end);
+                JSONObject features = null;
+                if(annotation.has("features")) {
+                    features = annotation.getJSONObject("features");
+                } else {
+                    features = new JSONObject();
+                }
+
+                for (TokenNameFinder nameFinder : nameFinders) {
+                    Span[] partSpans = nameFinder.find(new String[]{token});
+                    for (Span span:partSpans){
+                        features.put(Features.NER,span.getType());
+                    }
+                }
+                annotation.put("id", id.generate("ner"));
+                annotation.put("features", features);
+                if (features.has(Features.NER))
+                    annotations.put(annotation);
+            }
+
+            // put into json.
+            JSONObject resultStep = new JSONObject();
+            JSONObject resultContain = new JSONObject();
+            resultContain.put("producer", this.getClass().getName() + ":" + VERSION);
+            resultContain.put("type", "ner:opennlp");
+            resultStep.put("metadata", new JSONObject().put("contains", new JSONObject().put("Token", resultContain)));
+            resultStep.put("annotations", annotations);
+            jsonobj.put("steps", steps.put(resultStep));
+            return DataFactory.json(jsonobj.toString());
 
         } else if (discriminator == Types.TEXT)
         {
-//
-//            String text = data.getPayload();
-//            Span[] spans = sentPosDetect(text);
-//
-//            IDGenerator id = new IDGenerator();
-//            JSONArray annotations = new JSONArray();
-//            for (Span span : spans) {
-//                JSONObject annotation = new JSONObject();
-//                annotation.put("id", id.generate("s"));
-//                annotation.put("start", span.getStart());
-//                annotation.put("end", span.getEnd());
-//                annotation.put("@type", Annotations.SENTENCE);
-//                annotations.put(annotation);
-//            }
-//
-//            JSONObject resultStep = new JSONObject();
-//            JSONObject resultContain = new JSONObject();
-//            resultContain.put( "producer", this.getClass().getName() + ":" + VERSION);
-//            resultContain.put( "type", "splitter:opennlp");
-//            resultStep.put("metadata", new JSONObject().put("contains", new JSONObject().put("Sentence", resultContain)));
-//            resultStep.put("annotations", annotations);
-//            JSONObject jsonobj = new JSONObject();
-//            JSONArray steps = new JSONArray();
-//            jsonobj.put("metadata", new JSONObject());
-//            jsonobj.put("text", new JSONObject().put("@value", text));
-//            jsonobj.put("steps", steps.put(resultStep));
-//            return DataFactory.json(jsonobj.toString());
+            String text = data.getPayload();
+            Span[] spans = find(new String[]{text});
+
+            IDGenerator id = new IDGenerator();
+            JSONArray annotations = new JSONArray();
+            for (Span span : spans) {
+                JSONObject annotation = new JSONObject();
+                annotation.put("id", id.generate("ner"));
+                annotation.put("start", span.getStart());
+                annotation.put("end", span.getEnd());
+                annotation.put("@type", Annotations.NE);
+                annotation.put("features", new JSONObject().put(Annotations.NE, span.getType()));
+                annotations.put(annotation);
+            }
+
+            JSONObject resultStep = new JSONObject();
+            JSONObject resultContain = new JSONObject();
+            resultContain.put( "producer", this.getClass().getName() + ":" + VERSION);
+            resultContain.put( "type", "ner:opennlp");
+            resultStep.put("metadata", new JSONObject().put("contains", new JSONObject().put(Annotations.NE, resultContain)));
+            resultStep.put("annotations", annotations);
+            JSONObject jsonobj = new JSONObject();
+            JSONArray steps = new JSONArray();
+            jsonobj.put("metadata", new JSONObject());
+            jsonobj.put("text", new JSONObject().put("@value", text));
+            jsonobj.put("steps", steps.put(resultStep));
+            return DataFactory.json(jsonobj.toString());
 
         } else {
             String name = DiscriminatorRegistry.get(discriminator);
@@ -175,42 +233,6 @@ public class NamedEntityRecognizer extends AbstractWebService implements INamedE
             logger.warn(message);
             return DataFactory.error(message);
         }
-
-        Container container = null;
-        try {
-            container = getContainer(data);
-        } catch (LappsException e) {
-            return DataFactory.error(e.getMessage());
-        }
-
-        // steps
-        ProcessingStep step = new ProcessingStep();
-        // steps metadata
-//        step.getMetadata().put(Metadata.PRODUCED_BY, this.getClass().getName() + ":" + VERSION);
-//        step.getMetadata().put(Metadata.CONTAINS, "ner");
-        step.addContains(Features.NER, this.getClass().getName() + ":" + VERSION, "ner");
-        //
-        IDGenerator id = new IDGenerator();
-
-        String[] tokens = container.getText().split("\\n+");
-        // spans for each of the names identified
-        Span[] spans = find(tokens);
-        String[] strSpans = new String[spans.length];
-        for (int i = 0; i < spans.length; i++) {
-            org.anc.lapps.serialization.Annotation ann =
-                    new org.anc.lapps.serialization.Annotation();
-            ann.setId(id.generate("tok"));
-            ann.setLabel(Annotations.TOKEN);
-            ann.setStart(spans[i].getStart());
-            ann.setEnd(spans[i].getEnd());
-            Map<String, String> features = ann.getFeatures();
-            putFeature(features, Features.NER, spans[i].getType());
-            step.addAnnotation(ann);
-        }
-
-        container.getSteps().add(step);
-        logger.info("execute(): Execute OpenNLP NamedEntityRecognizer!");
-        return DataFactory.json(container.toJson());
     }
 
 //	public Data execute(Data data) {

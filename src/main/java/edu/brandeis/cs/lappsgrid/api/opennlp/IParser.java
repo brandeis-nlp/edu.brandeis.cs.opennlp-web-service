@@ -16,7 +16,7 @@ import org.lappsgrid.discriminator.Types;
 public interface IParser extends WebService {
 	public static final String PROP_COMPNENT_MODEL = "Parser";
 	
-	public static final long [] TYPES_REQUIRES = new long[] { Types.OPENNLP, Types.SENTENCE  };
+	public static final long [] TYPES_REQUIRES = new long[] { Types.SENTENCE  };
 	public static final long [] TYPES_PRODUCES = new long[] { Types.OPENNLP, Types.SENTENCE, Types.TOKEN };
 	
 	
