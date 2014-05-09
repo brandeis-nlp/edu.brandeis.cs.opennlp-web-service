@@ -128,7 +128,8 @@ public class Tokenizer extends AbstractWebService implements ITokenizer {
                 // contains sentence
                 for(int j = 0; j < laststepannotations.length(); j++) {
                     JSONObject annotation = laststepannotations.getJSONObject(j);
-                    if(annotation.has("@type") && annotation.getString("@type") == Annotations.SENTENCE){
+                    System.out.println("annotation:" + annotation);
+                    if(annotation.has("@type") && annotation.getString("@type").equals(Annotations.SENTENCE)){
                         laststeparr.add(annotation);
                     }
                 }
@@ -139,7 +140,7 @@ public class Tokenizer extends AbstractWebService implements ITokenizer {
             for(JSONObject sentenceannotation: laststeparr) {
                 int start = sentenceannotation.getInt("start");
                 int end = sentenceannotation.getInt("end");
-                String sentence = sentenceannotation.getString(text.substring(start, end));
+                String sentence = text.substring(start, end);
                 Span[] spans = tokenizePos(sentence);
                 for (Span span : spans) {
                     JSONObject annotation = new JSONObject();

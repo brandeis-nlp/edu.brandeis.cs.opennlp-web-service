@@ -1,12 +1,18 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import junit.framework.TestCase;
 import opennlp.tools.util.Span;
 
+import org.anc.lapps.serialization.Container;
+import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.lappsgrid.api.Data;
+import org.lappsgrid.core.DataFactory;
 
 /**
  * <i>TestTokenizer.java</i> Language Application Grids (<b>LAPPS</b>)
@@ -24,6 +30,15 @@ public class TestTokenizer extends TestService {
 	public TestTokenizer() throws OpenNLPWebServiceException {
 		tokenizer = new Tokenizer();
 	}
+
+
+    @Before
+    public void data() throws IOException {
+        java.io.InputStream in =  this.getClass().getClassLoader().getResourceAsStream("splitter.json");
+        payload = IOUtils.toString(in);
+        data = DataFactory.json(payload);
+        container = new Container(payload);
+    }
 	
 	@Test
 	public void testTokenize() {
@@ -42,4 +57,10 @@ public class TestTokenizer extends TestService {
 				"[[0..2), [2..3), [4..7), [8..11), [12..15), [15..16), [17..21), [22..24), [25..29), [29..30)]",
 				Arrays.toString(boundaries));
 	}
+
+    @Test
+    public void testExecute(){
+        Data res = tokenizer.execute(data);
+        System.out.println(res.getPayload());
+    }
 }

@@ -126,7 +126,7 @@ public class POSTagger extends AbstractWebService implements IPOSTagger  {
                 // contains sentence
                 for(int j = 0; j < laststepannotations.length(); j++) {
                     JSONObject annotation = laststepannotations.getJSONObject(j);
-                    if(annotation.has("@type") && annotation.getString("@type") == "Token"){
+                    if(annotation.has("@type") && annotation.getString("@type").equals("Token")){
                         tokens.add(annotation);
                     }
                 }
@@ -137,7 +137,7 @@ public class POSTagger extends AbstractWebService implements IPOSTagger  {
             for(JSONObject annotation: tokens) {
                 int start = annotation.getInt("start");
                 int end = annotation.getInt("end");
-                String token = annotation.getString(text.substring(start, end));
+                String token = text.substring(start, end);
                 String[] tags = postagger.tag(new String[]{token});
                 JSONObject features = null;
                 if(annotation.has("features")) {
