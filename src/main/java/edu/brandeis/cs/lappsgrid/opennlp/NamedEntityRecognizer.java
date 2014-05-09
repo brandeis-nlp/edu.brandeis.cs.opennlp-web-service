@@ -18,6 +18,8 @@ import org.anc.lapps.serialization.Container;
 import org.anc.lapps.serialization.ProcessingStep;
 import org.anc.resource.ResourceLoader;
 import org.anc.util.IDGenerator;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.lappsgrid.api.Data;
 import org.lappsgrid.api.LappsException;
 import org.lappsgrid.core.DataFactory;
@@ -139,6 +141,33 @@ public class NamedEntityRecognizer extends AbstractWebService implements INamedE
 
         } else if (discriminator == Types.TEXT)
         {
+//
+//            String text = data.getPayload();
+//            Span[] spans = sentPosDetect(text);
+//
+//            IDGenerator id = new IDGenerator();
+//            JSONArray annotations = new JSONArray();
+//            for (Span span : spans) {
+//                JSONObject annotation = new JSONObject();
+//                annotation.put("id", id.generate("s"));
+//                annotation.put("start", span.getStart());
+//                annotation.put("end", span.getEnd());
+//                annotation.put("@type", Annotations.SENTENCE);
+//                annotations.put(annotation);
+//            }
+//
+//            JSONObject resultStep = new JSONObject();
+//            JSONObject resultContain = new JSONObject();
+//            resultContain.put( "producer", this.getClass().getName() + ":" + VERSION);
+//            resultContain.put( "type", "splitter:opennlp");
+//            resultStep.put("metadata", new JSONObject().put("contains", new JSONObject().put("Sentence", resultContain)));
+//            resultStep.put("annotations", annotations);
+//            JSONObject jsonobj = new JSONObject();
+//            JSONArray steps = new JSONArray();
+//            jsonobj.put("metadata", new JSONObject());
+//            jsonobj.put("text", new JSONObject().put("@value", text));
+//            jsonobj.put("steps", steps.put(resultStep));
+//            return DataFactory.json(jsonobj.toString());
 
         } else {
             String name = DiscriminatorRegistry.get(discriminator);
