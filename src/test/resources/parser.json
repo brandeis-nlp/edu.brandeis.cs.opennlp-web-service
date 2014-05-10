@@ -1,0 +1,62 @@
+{
+    "text": {
+        "@value": "Hi. How are you? This is Mike."
+    },
+    "steps": [
+        {
+            "annotations": [
+                {
+                    "id": "s0",
+                    "start": 0,
+                    "@type": "Sentence",
+                    "end": 16
+                },
+                {
+                    "id": "s1",
+                    "start": 17,
+                    "@type": "Sentence",
+                    "end": 30
+                }
+            ],
+            "metadata": {
+                "contains": {
+                    "Sentence": {
+                        "producer": "edu.brandeis.cs.lappsgrid.opennlp.Splitter:0.0.4",
+                        "type": "splitter:opennlp"
+                    }
+                }
+            }
+        },
+        {
+            "annotations": [
+                {
+                    "id": "parser0",
+                    "start": 0,
+                    "@type": "Sentence",
+                    "features": {
+                        "Pattern": "(TOP (S (`` Hi.) (WHADVP (WRB How)) (VP (VBP are)) (. you?)))\n"
+                    },
+                    "end": 16
+                },
+                {
+                    "id": "parser1",
+                    "start": 17,
+                    "@type": "Sentence",
+                    "features": {
+                        "Pattern": "(TOP (S (NP (DT This)) (VP (VBZ is) (NP (NNP Mike.)))))\n"
+                    },
+                    "end": 30
+                }
+            ],
+            "metadata": {
+                "contains": {
+                    "Sentence": {
+                        "producer": "edu.brandeis.cs.lappsgrid.opennlp.Parser:0.0.4",
+                        "type": "parser:opennlp"
+                    }
+                }
+            }
+        }
+    ],
+    "metadata": {}
+}

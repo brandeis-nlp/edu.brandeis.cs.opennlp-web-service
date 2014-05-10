@@ -2,8 +2,15 @@ package edu.brandeis.cs.lappsgrid.opennlp;
 
 import junit.framework.TestCase;
 
+import org.anc.lapps.serialization.Container;
+import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.lappsgrid.api.Data;
+import org.lappsgrid.core.DataFactory;
+
+import java.io.IOException;
 
 /**
  * <i>TestParser.java</i> Language Application Grids (<b>LAPPS</b>)
@@ -17,8 +24,17 @@ import org.junit.Test;
 public class TestParser extends TestService {
 	
 	Parser parser;
-	
-	public TestParser() throws OpenNLPWebServiceException {
+
+
+    @Before
+    public void data() throws IOException {
+        java.io.InputStream in =  this.getClass().getClassLoader().getResourceAsStream("splitter.json");
+        payload = IOUtils.toString(in);
+        data = DataFactory.json(payload);
+        container = new Container(payload);
+    }
+
+    public TestParser() throws OpenNLPWebServiceException {
 		parser = new Parser();
 	}
 	
@@ -30,4 +46,9 @@ public class TestParser extends TestService {
 		Assert.assertEquals("Parse Failure.", print, goldPrint);
 	}
 
+    @Test
+    public void testExecute(){
+        Data res = parser.execute(data);
+        System.out.println(res.getPayload());
+    }
 }
