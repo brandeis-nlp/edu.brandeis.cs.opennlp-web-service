@@ -4,32 +4,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
-import edu.brandeis.cs.lappsgrid.api.opennlp.IVersion;
-import json.JsonNERSerialization;
-import opennlp.tools.cmdline.parser.ParserTool;
+import org.lappsgrid.serialization.json.JsonNERSerialization;
 import opennlp.tools.namefind.NameFinderME;
 import opennlp.tools.namefind.TokenNameFinder;
 import opennlp.tools.namefind.TokenNameFinderModel;
-import opennlp.tools.parser.Parse;
 import opennlp.tools.util.Span;
 
-import org.anc.lapps.serialization.Container;
-import org.anc.lapps.serialization.ProcessingStep;
-import org.anc.resource.ResourceLoader;
-import org.anc.util.IDGenerator;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.lappsgrid.api.Data;
-import org.lappsgrid.api.LappsException;
 import org.lappsgrid.core.DataFactory;
 import org.lappsgrid.discriminator.DiscriminatorRegistry;
 import org.lappsgrid.discriminator.Types;
-import org.lappsgrid.vocabulary.Annotations;
-import org.lappsgrid.vocabulary.Features;
-import org.lappsgrid.vocabulary.Metadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

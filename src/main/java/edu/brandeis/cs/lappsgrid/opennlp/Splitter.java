@@ -2,34 +2,19 @@ package edu.brandeis.cs.lappsgrid.opennlp;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Map;
 import java.util.Properties;
 
-import edu.brandeis.cs.lappsgrid.api.opennlp.IVersion;
-import edu.brandeis.cs.lappsgrid.json.JSONTaggerWrapper;
-import edu.brandeis.cs.lappsgrid.json.JSONTokenizerWrapper;
-import json.JsonSplitterSerialization;
+import org.lappsgrid.serialization.json.JsonSplitterSerialization;
 import opennlp.tools.sentdetect.SentenceDetector;
 import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.sentdetect.SentenceModel;
 import opennlp.tools.util.Span;
 
-import org.anc.lapps.serialization.Annotation;
-import org.anc.lapps.serialization.Container;
-import org.anc.lapps.serialization.ProcessingStep;
-import org.anc.resource.ResourceLoader;
-import org.anc.util.IDGenerator;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.lappsgrid.api.Data;
-import org.lappsgrid.api.LappsException;
 import org.lappsgrid.core.DataFactory;
 import org.lappsgrid.discriminator.DiscriminatorRegistry;
 import org.lappsgrid.discriminator.Types;
-import org.lappsgrid.vocabulary.Annotations;
-import org.lappsgrid.vocabulary.Features;
-import org.lappsgrid.vocabulary.Metadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

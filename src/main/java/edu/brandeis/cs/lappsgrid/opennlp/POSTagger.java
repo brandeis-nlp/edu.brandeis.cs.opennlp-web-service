@@ -4,14 +4,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
-import json.JsonTaggerSerialization;
+import org.lappsgrid.serialization.json.JsonTaggerSerialization;
 import opennlp.tools.postag.POSModel;
 import opennlp.tools.postag.POSTaggerME;
 import opennlp.tools.util.Sequence;
 
-import opennlp.tools.util.Span;
-import org.anc.util.IDGenerator;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.lappsgrid.api.Data;
 import org.lappsgrid.core.DataFactory;
