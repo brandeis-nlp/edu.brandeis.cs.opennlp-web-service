@@ -3,10 +3,12 @@ package edu.brandeis.cs.lappsgrid.opennlp;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 import edu.brandeis.cs.lappsgrid.api.opennlp.IVersion;
+import json.JsonTaggerSerialization;
 import opennlp.tools.cmdline.parser.ParserTool;
 import opennlp.tools.parser.Parse;
 import opennlp.tools.parser.ParserFactory;
@@ -124,79 +126,39 @@ public class Parser extends AbstractWebService implements IParser {
         {
             return data;
         } else if (discriminator == Types.JSON) {
-            JSONObject jsonobj = new JSONObject(data.getPayload());
-
-            String text = jsonobj.getJSONObject("text").getString("@value");
-            JSONArray steps =  jsonobj.getJSONArray("steps");
-
-            ArrayList<JSONObject> laststeparr = new ArrayList<JSONObject>(16);
-            JSONObject laststep = (JSONObject)steps.get(steps.length() - 1);
-            JSONObject laststepmeta = laststep.getJSONObject("metadata");
-            JSONArray laststepannotations = laststep.getJSONArray("annotations");
-
-            // find target JSONObject
-            JSONObject contains = laststepmeta.getJSONObject("contains");
-            Object sentence_type = contains.opt(Annotations.SENTENCE);
-            if (sentence_type != null) {
-                // contains sentence
-                for(int j = 0; j < laststepannotations.length(); j++) {
-                    JSONObject annotation = laststepannotations.getJSONObject(j);
-                    System.out.println("annotation:" + annotation);
-                    if(annotation.has("@type") && annotation.getString("@type").equals(Annotations.SENTENCE)){
-                        laststeparr.add(annotation);
-                    }
-                }
+            String jsonstr = data.getPayload();
+            JsonTaggerSerialization json = new JsonTaggerSerialization(jsonstr);
+            json.setProducer(this.getClass().getName() + ":" + VERSION);
+            json.setType("parser:opennlp");
+            List<JSONObject> annotationObjs = json.findLastAnnotations();
+            if (annotationObjs == null) {
+                String message = "Invalid JSON input. Expected annotation type: " + json.getLastAnnotationType();
+                logger.warn(message);
+                return DataFactory.error(message);
             }
 
-            IDGenerator id = new IDGenerator();
-            JSONArray annotations =  new JSONArray();
-            for(JSONObject sentenceannotation: laststeparr) {
-                int start = sentenceannotation.getInt("start");
-                int end = sentenceannotation.getInt("end");
-                String sentence = text.substring(start, end);
-                String pattern = parse(sentence);
-                JSONObject annotation = new JSONObject(sentenceannotation.toString());
-                annotation.put("id", id.generate("parser"));
-                annotation.put("@type", Annotations.SENTENCE);
-                annotation.put("features", new JSONObject().put("Pattern", pattern));
-                annotations.put(annotation);
+            for(int i = 0; i < annotationObjs.size(); i++ ) {
+                String s = json.getAnnotationTextValue(annotationObjs.get(i));
+                JSONObject annotation = json.newAnnotation(annotationObjs.get(i));
+                json.setPattern(annotation, parse(s));
             }
-
-            // put into json.
-            JSONObject resultStep = new JSONObject();
-            JSONObject resultContain = new JSONObject();
-            resultContain.put("producer", this.getClass().getName() + ":" + VERSION);
-            resultContain.put("type", "parser:opennlp");
-            resultStep.put("metadata", new JSONObject().put("contains", new JSONObject().put(Annotations.SENTENCE, resultContain)));
-            resultStep.put("annotations", annotations);
-            jsonobj.put("steps", steps.put(resultStep));
-            return DataFactory.json(jsonobj.toString());
-
+            return DataFactory.json(json.toString());
         } else if (discriminator == Types.TEXT) {
-            String text = data.getPayload();
-            String pattern = parse(text);
-            IDGenerator id = new IDGenerator();
-            JSONArray annotations = new JSONArray();
-            JSONObject annotation = new JSONObject();
-            annotation.put("id", id.generate("parser"));
-            annotation.put("start", 0);
-            annotation.put("end", text.length());
-            annotation.put("@type", Annotations.SENTENCE);
-            annotation.put("features", new JSONObject().put("Pattern", pattern));
-            annotations.put(annotation);
 
-            JSONObject resultStep = new JSONObject();
-            JSONObject resultContain = new JSONObject();
-            resultContain.put( "producer", this.getClass().getName() + ":" + VERSION);
-            resultContain.put( "type", "parser:opennlp");
-            resultStep.put("metadata", new JSONObject().put("contains", new JSONObject().put( Annotations.SENTENCE, resultContain)));
-            resultStep.put("annotations", annotations);
-            JSONObject jsonobj = new JSONObject();
-            JSONArray steps = new JSONArray();
-            jsonobj.put("metadata", new JSONObject());
-            jsonobj.put("text", new JSONObject().put("@value", text));
-            jsonobj.put("steps", steps.put(resultStep));
-            return DataFactory.json(jsonobj.toString());
+            String textvalue = data.getPayload();
+            JsonTaggerSerialization json = new JsonTaggerSerialization();
+            json.setProducer(this.getClass().getName() + ":" + VERSION);
+            json.setType("parser:opennlp");
+            json.setTextValue(textvalue);
+
+            String pattern = parse(textvalue);
+
+            JSONObject annotation = json.newAnnotation();
+
+            json.setStart(annotation, 0);
+            json.setEnd(annotation, textvalue.length());
+            json.setPattern(annotation, pattern);
+            return DataFactory.json(json.toString());
         } else {
             String name = DiscriminatorRegistry.get(discriminator);
             String message = "Invalid input type. Expected JSON but found " + name;

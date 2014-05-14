@@ -117,20 +117,6 @@ public class OpenNLP implements IOpenNLP , IVersion {
 	@Override
 	public Data execute(Data data) {
 		logger.info("execute(): Execute OpenNLP tokenizer ...");
-		//
-		// if (tokenizer == null) {
-		// try {
-		// init();
-		// } catch (OpenNLPWebServiceException e) {
-		// logger.error("execute(): Fail to initialize Tokenizer");
-		// return DataFactory
-		// .error("execute(): Fail to initialize Tokenizer");
-		// }
-		// }
-		//
-		// String[] tokens = tokenize(data.getPayload());
-		// logger.info("execute(): Execute OpenNLP tokenizer!");
-		// return DataFactory.stringList(tokens);
 		return null;
 	}
 

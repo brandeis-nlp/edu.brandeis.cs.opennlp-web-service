@@ -7,6 +7,9 @@ import java.util.Map;
 import java.util.Properties;
 
 import edu.brandeis.cs.lappsgrid.api.opennlp.IVersion;
+import edu.brandeis.cs.lappsgrid.json.JSONTaggerWrapper;
+import edu.brandeis.cs.lappsgrid.json.JSONTokenizerWrapper;
+import json.JsonSplitterSerialization;
 import opennlp.tools.sentdetect.SentenceDetector;
 import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.sentdetect.SentenceModel;
@@ -115,63 +118,33 @@ public class Splitter  extends AbstractWebService implements ISplitter {
         {
             return data;
         } else if (discriminator == Types.JSON) {
-            JSONObject jsonobj = new JSONObject(data.getPayload());
-
-            String text = jsonobj.getJSONObject("text").getString("@value");
-            JSONArray steps =  jsonobj.getJSONArray("steps");
-
-            JSONObject resultStep = new JSONObject();
-            JSONObject resultContain = new JSONObject();
-            resultContain.put( "producer", this.getClass().getName() + ":" + VERSION);
-            resultContain.put( "type", "splitter:opennlp");
-            resultStep.put("metadata", new JSONObject().put("contains", new JSONObject().put("Sentence", resultContain)));
-
-
-            Span[] spans = sentPosDetect(text);
-            IDGenerator id = new IDGenerator();
-
-            JSONArray annotations = new JSONArray();
+            String jsonstr = data.getPayload();
+            JsonSplitterSerialization json = new JsonSplitterSerialization(jsonstr);
+            json.setProducer(this.getClass().getName() + ":" + VERSION);
+            json.setType("splitter:opennlp");
+            Span[] spans = sentPosDetect(json.getTextValue());
             for (Span span : spans) {
-                JSONObject annotation = new JSONObject();
-                annotation.put("id", id.generate("s"));
-                annotation.put("start", span.getStart());
-                annotation.put("end", span.getEnd());
-                annotation.put("@type", Annotations.SENTENCE);
-                annotations.put(annotation);
+                JSONObject annotation = json.newAnnotation();
+                json.setStart(annotation, span.getStart());
+                json.setEnd(annotation, span.getEnd());
             }
-            resultStep.put("annotations", annotations);
-            jsonobj.put("steps", steps.put(resultStep));
-            return DataFactory.json(jsonobj.toString());
+            return DataFactory.json(json.toString());
 
         } else if (discriminator == Types.TEXT)
         {
             String text = data.getPayload();
+            JsonSplitterSerialization json = new JsonSplitterSerialization();
+            json.setTextValue(text);
+            json.setProducer(this.getClass().getName() + ":" + VERSION);
+            json.setType("splitter:opennlp");
+
             Span[] spans = sentPosDetect(text);
-
-            IDGenerator id = new IDGenerator();
-            JSONArray annotations = new JSONArray();
             for (Span span : spans) {
-                JSONObject annotation = new JSONObject();
-                annotation.put("id", id.generate("s"));
-                annotation.put("start", span.getStart());
-                annotation.put("end", span.getEnd());
-                annotation.put("@type", Annotations.SENTENCE);
-                annotations.put(annotation);
+                JSONObject ann = json.newAnnotation();
+                json.setStart(ann, span.getStart());
+                json.setEnd(ann, span.getEnd());
             }
-
-            JSONObject resultStep = new JSONObject();
-            JSONObject resultContain = new JSONObject();
-            resultContain.put( "producer", this.getClass().getName() + ":" + VERSION);
-            resultContain.put( "type", "splitter:opennlp");
-            resultStep.put("metadata", new JSONObject().put("contains", new JSONObject().put("Sentence", resultContain)));
-            resultStep.put("annotations", annotations);
-            JSONObject jsonobj = new JSONObject();
-            JSONArray steps = new JSONArray();
-            jsonobj.put("metadata", new JSONObject());
-            jsonobj.put("text", new JSONObject().put("@value", text));
-            jsonobj.put("steps", steps.put(resultStep));
-            return DataFactory.json(jsonobj.toString());
-
+            return DataFactory.json(json.toString());
         }
         else {
             String name = DiscriminatorRegistry.get(discriminator);

@@ -4,26 +4,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
-import edu.brandeis.cs.lappsgrid.api.opennlp.IVersion;
-import net.arnx.jsonic.JSON;
+import json.JsonTaggerSerialization;
 import opennlp.tools.postag.POSModel;
 import opennlp.tools.postag.POSTaggerME;
 import opennlp.tools.util.Sequence;
 
-import org.anc.lapps.serialization.Container;
-import org.anc.lapps.serialization.ProcessingStep;
-import org.anc.resource.ResourceLoader;
+import opennlp.tools.util.Span;
 import org.anc.util.IDGenerator;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.lappsgrid.api.Data;
-import org.lappsgrid.api.LappsException;
 import org.lappsgrid.core.DataFactory;
 import org.lappsgrid.discriminator.DiscriminatorRegistry;
 import org.lappsgrid.discriminator.Types;
-import org.lappsgrid.vocabulary.Annotations;
-import org.lappsgrid.vocabulary.Features;
-import org.lappsgrid.vocabulary.Metadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,80 +102,44 @@ public class POSTagger extends AbstractWebService implements IPOSTagger  {
         {
             return data;
         } else if (discriminator == Types.JSON) {
-            JSONObject jsonobj = new JSONObject(data.getPayload());
-
-            String text = jsonobj.getJSONObject("text").getString("@value");
-            JSONArray steps =  jsonobj.getJSONArray("steps");
-
-            ArrayList<JSONObject> tokens = new ArrayList<JSONObject>(16);
-            JSONObject laststep = (JSONObject)steps.get(steps.length() - 1);
-            JSONObject laststepmeta = laststep.getJSONObject("metadata");
-            JSONArray laststepannotations = laststep.getJSONArray("annotations");
-
-            // find target JSONObject
-            JSONObject contains = laststepmeta.getJSONObject("contains");
-            Object sentence_type = contains.opt("Token");
-            if (sentence_type != null) {
-                // contains sentence
-                for(int j = 0; j < laststepannotations.length(); j++) {
-                    JSONObject annotation = laststepannotations.getJSONObject(j);
-                    if(annotation.has("@type") && annotation.getString("@type").equals("Token")){
-                        tokens.add(annotation);
-                    }
-                }
-            }
-            JSONArray annotations =  new JSONArray();
-
-            IDGenerator id = new IDGenerator();
-            for(JSONObject tokenannotation: tokens) {
-                JSONObject annotation = new JSONObject(tokenannotation.toString());
-                int start = annotation.getInt("start");
-                int end = annotation.getInt("end");
-                String token = text.substring(start, end);
-                String[] tags = postagger.tag(new String[]{token});
-                JSONObject features = null;
-                if(annotation.has("features")) {
-                    features = annotation.getJSONObject("features");
-                } else {
-                    features = new JSONObject();
-                }
-                annotation.put("id", id.generate("pos"));
-                features.put("category", tags[0]);
-                annotation.put("features", features);
-                annotations.put(annotation);
+            String jsonstr = data.getPayload();
+            JsonTaggerSerialization json = new JsonTaggerSerialization(jsonstr);
+            json.setProducer(this.getClass().getName() + ":" + VERSION);
+            json.setType("tagger:opennlp");
+            List<JSONObject> tokenObjs = json.findLastAnnotations();
+            if (tokenObjs == null) {
+                String message = "Invalid JSON input. Expected annotation type: " + json.getLastAnnotationType();
+                logger.warn(message);
+                return DataFactory.error(message);
             }
 
-            // put into json.
-            JSONObject resultStep = new JSONObject();
-            JSONObject resultContain = new JSONObject();
-            resultContain.put("producer", this.getClass().getName() + ":" + VERSION);
-            resultContain.put("type", "tagger:opennlp");
-            resultStep.put("metadata", new JSONObject().put("contains", new JSONObject().put("Token", resultContain)));
-            resultStep.put("annotations", annotations);
-            jsonobj.put("steps", steps.put(resultStep));
-            return DataFactory.json(jsonobj.toString());
+            String[] tokens = new String[tokenObjs.size()];
+            for(int i = 0; i < tokens.length; i++ ) {
+                tokens[i] = json.getAnnotationTextValue(tokenObjs.get(i));
+            }
 
+            String[] tags = postagger.tag(tokens);
+
+            for(int i = 0; i < tokenObjs.size(); i++) {
+                JSONObject annotation = json.newAnnotation(tokenObjs.get(i));
+                json.setCategory(annotation, tags[i]);
+            }
+            return DataFactory.json(json.toString());
         } else  if (discriminator == Types.TEXT) {
-            String [] tags = tag(new String[]{data.getPayload()});
-            JSONArray annotations = new JSONArray();
-            for(int i = 0; i < tags.length; i++) {
-                JSONObject annotation = new JSONObject();
-                annotation.put("@type", "Token").put("id", "pos"+i).put("features", new JSONObject().put( "category", tags[i]));
-                annotations.put(annotation);
-            }
-            JSONObject resultStep = new JSONObject();
-            JSONObject resultContain = new JSONObject();
-            resultContain.put( "producer", this.getClass().getName() + ":" + VERSION);
-            resultContain.put( "type", "annotation:tagger");
-            resultStep.put("metadata", new JSONObject().put("contains", new JSONObject().put("Tagger", resultContain)));
-            resultStep.put("annotations", annotations);
+            String textvalue = data.getPayload();
+            JsonTaggerSerialization json = new JsonTaggerSerialization();
+            json.setProducer(this.getClass().getName() + ":" + VERSION);
+            json.setType("tagger:opennlp");
+            json.setTextValue(textvalue);
 
-            JSONObject jsonobj = new JSONObject();
-            JSONArray steps = new JSONArray();
-            jsonobj.put("metadata", new JSONObject());
-            jsonobj.put("text", new JSONObject().put("@value", data.getPayload()));
-            jsonobj.put("steps", steps.put(resultStep));
-            return DataFactory.json(jsonobj.toString());
+            String [] tags = tag(new String[]{textvalue});
+            for(int i = 0; i < tags.length; i++) {
+                JSONObject annotation =  json.newAnnotation();
+                json.setStart(annotation, 0);
+                json.setEnd(annotation, textvalue.length());
+                json.setCategory(annotation, tags[i]);
+            }
+            return DataFactory.json(json.toString());
 
         } else {
             String name = DiscriminatorRegistry.get(discriminator);

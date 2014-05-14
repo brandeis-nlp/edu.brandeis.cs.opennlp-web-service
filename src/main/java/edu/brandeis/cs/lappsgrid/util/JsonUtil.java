@@ -4,6 +4,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
 import com.jayway.jsonpath.internal.JsonReader;
 import org.anc.lapps.serialization.Container;
+import org.json.JSONObject;
 import org.lappsgrid.api.Data;
 import org.lappsgrid.api.LappsException;
 import org.lappsgrid.discriminator.DiscriminatorRegistry;
@@ -43,6 +44,11 @@ public class JsonUtil
        JsonPath jsonPath = JsonPath.compile(path);
        ReadContext reader = new JsonReader().parse(json);
        return reader.read(jsonPath).toString();
+   }
+
+
+   public static final boolean jsonEquals(String json, String other) {
+       return new JSONObject(json).toString().equals(new JSONObject(other).toString());
    }
 
 }

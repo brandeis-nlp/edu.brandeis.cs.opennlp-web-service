@@ -26,6 +26,8 @@ import org.lappsgrid.core.DataFactory;
 public class TestPOSTagger extends TestService {
 	
 	POSTagger postagger;
+
+    Data data2 = null;
 	
 	public TestPOSTagger() throws OpenNLPWebServiceException {
 		postagger = new POSTagger();
@@ -36,6 +38,9 @@ public class TestPOSTagger extends TestService {
         java.io.InputStream in =  this.getClass().getClassLoader().getResourceAsStream("tokens.json");
         payload = IOUtils.toString(in);
         data = DataFactory.json(payload);
+
+        in =  this.getClass().getClassLoader().getResourceAsStream("MASC3-0202-Tagger-in.json");
+        data2 = DataFactory.json(IOUtils.toString(in));
     }
 
     @Test
@@ -50,8 +55,10 @@ public class TestPOSTagger extends TestService {
 
     @Test
     public void testExecute(){
-        Data res = postagger.execute(data);
-        System.out.println(res.getPayload());
+//        Data res = postagger.execute(data);
+//        System.out.println(res.getPayload());
+        Data res2 = postagger.execute(data2);
+        System.out.println(res2.getPayload());
     }
 
 }
