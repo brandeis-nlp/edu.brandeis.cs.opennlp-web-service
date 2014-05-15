@@ -9,7 +9,7 @@ import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.Span;
 
-import org.json.JSONObject;
+import org.lappsgrid.serialization.json.JSONObject;
 import org.lappsgrid.api.Data;
 import org.lappsgrid.core.DataFactory;
 import org.lappsgrid.discriminator.DiscriminatorRegistry;

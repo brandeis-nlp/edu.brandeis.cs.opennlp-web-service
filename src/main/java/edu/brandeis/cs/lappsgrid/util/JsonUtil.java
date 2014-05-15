@@ -1,7 +1,6 @@
 package edu.brandeis.cs.lappsgrid.util;
 
 import org.anc.lapps.serialization.Container;
-import org.json.JSONObject;
 import org.lappsgrid.api.Data;
 import org.lappsgrid.api.LappsException;
 import org.lappsgrid.discriminator.DiscriminatorRegistry;

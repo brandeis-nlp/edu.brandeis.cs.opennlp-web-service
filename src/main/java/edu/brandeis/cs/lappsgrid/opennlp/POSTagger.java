@@ -9,7 +9,7 @@ import opennlp.tools.postag.POSModel;
 import opennlp.tools.postag.POSTaggerME;
 import opennlp.tools.util.Sequence;
 
-import org.json.JSONObject;
+import org.lappsgrid.serialization.json.JSONObject;
 import org.lappsgrid.api.Data;
 import org.lappsgrid.core.DataFactory;
 import org.lappsgrid.discriminator.DiscriminatorRegistry;

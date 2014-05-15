@@ -1,7 +1,6 @@
 package org.lappsgrid.serialization.json;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,7 +66,7 @@ public class JsonSerialization {
         ArrayList<JSONObject> lastAnnotations = null;
         if(steps.length() > 0) {
             for(int i = steps.length() - 1; i >= 0; i--) {
-                lastStep = (JSONObject)steps.get(i);
+                lastStep =  steps.getJSONObject(i);
                 lastStepMeta = lastStep.getJSONObject("metadata");
                 lastStepAnnotations = lastStep.getJSONArray("annotations");
                 lastStepContains = lastStepMeta.getJSONObject("contains");
@@ -188,6 +187,9 @@ public class JsonSerialization {
         annotation.put("end", end);
     }
 
+    public void setLemma(JSONObject annotation, String lemma) {
+        setFeature(annotation, "lemma", lemma);
+    }
 
     public void setWord(JSONObject annotation, String word) {
         setFeature(annotation, "word", word);
@@ -206,11 +208,11 @@ public class JsonSerialization {
     }
 
     public void setFeature(JSONObject annotation, String name,  String value) {
-        Object features = annotation.opt("features");
+        JSONObject features = annotation.getJSONObject("features");
         if (features == null) {
             features = newFeatures(annotation);
         }
-        ((JSONObject)features).put(name, value);
+        features.put(name, value);
     }
 
     public JSONObject newFeatures(JSONObject annotation) {

@@ -11,7 +11,7 @@ import opennlp.tools.parser.Parse;
 import opennlp.tools.parser.ParserFactory;
 import opennlp.tools.parser.ParserModel;
 
-import org.json.JSONObject;
+import org.lappsgrid.serialization.json.JSONObject;
 import org.lappsgrid.api.Data;
 import org.lappsgrid.core.DataFactory;
 import org.lappsgrid.discriminator.DiscriminatorRegistry;

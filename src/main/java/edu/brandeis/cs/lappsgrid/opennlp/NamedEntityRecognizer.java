@@ -6,13 +6,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.lappsgrid.serialization.json.JSONObject;
 import org.lappsgrid.serialization.json.JsonNERSerialization;
 import opennlp.tools.namefind.NameFinderME;
 import opennlp.tools.namefind.TokenNameFinder;
 import opennlp.tools.namefind.TokenNameFinderModel;
 import opennlp.tools.util.Span;
 
-import org.json.JSONObject;
+
 import org.lappsgrid.api.Data;
 import org.lappsgrid.core.DataFactory;
 import org.lappsgrid.discriminator.DiscriminatorRegistry;
