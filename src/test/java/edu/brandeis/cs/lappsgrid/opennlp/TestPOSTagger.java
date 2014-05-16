@@ -55,8 +55,8 @@ public class TestPOSTagger extends TestService {
 
     @Test
     public void testExecute(){
-//        Data res = postagger.execute(data);
-//        System.out.println(res.getPayload());
+        Data res = postagger.execute(data);
+        System.out.println(res.getPayload());
         Data res2 = postagger.execute(data2);
         System.out.println(res2.getPayload());
     }
