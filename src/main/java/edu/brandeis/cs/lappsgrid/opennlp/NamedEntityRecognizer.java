@@ -118,7 +118,14 @@ public class NamedEntityRecognizer extends AbstractWebService implements INamedE
 		return DataFactory.ok();
 	}
 
-	@Override
+
+    public static String capitalize(String s) {
+        if (s == null || s.length() == 0) return s;
+        return s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
+    }
+
+
+    @Override
     public Data execute(Data data) {
         logger.info("execute(): Execute OpenNLP NamedEntityRecognizer ...");
 
@@ -147,7 +154,8 @@ public class NamedEntityRecognizer extends AbstractWebService implements INamedE
             for (TokenNameFinder nameFinder : nameFinders) {
                 Span [] partSpans = nameFinder.find(tokens);
                 for (Span span:partSpans){
-                    JSONObject annotation = json.newAnnotationWithType(span.getType(), tokenObjs.get(span.getStart()));
+                    JSONObject annotation = json.newAnnotationWithType(
+                            capitalize(span.getType()), tokenObjs.get(span.getStart()));
                 }
             }
             return DataFactory.json(json.toString());
@@ -161,7 +169,8 @@ public class NamedEntityRecognizer extends AbstractWebService implements INamedE
 
             Span[] spans = find(new String[]{text});
             for (Span span : spans) {
-                JSONObject annotation = json.newAnnotationWithType(span.getType());
+                JSONObject annotation = json.newAnnotationWithType(
+                        capitalize(span.getType()));
                 json.setWord(annotation, text);
                 json.setStart(annotation, 0);
                 json.setEnd(annotation, text.length());
