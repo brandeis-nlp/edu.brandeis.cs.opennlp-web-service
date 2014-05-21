@@ -20,7 +20,7 @@ public interface INamedEntityRecognizer extends WebService {
 	public static final String TOKEN_SPAN_SPLIT = ":";
 	
 	public static final long [] TYPES_REQUIRES = new long[] { Types.TOKEN, Types.JSON  };
-	public static final long [] TYPES_PRODUCES = new long[] { Types.OPENNLP, Types.NAMED_ENTITES, Types.JSON};
+	public static final long [] TYPES_PRODUCES = new long[] { Types.PERSON, Types.LOCATION, Types.DATE, Types.JSON};
 	
 	/**
 	 *  Generates name tags for the given sequence, typically a sentence, returning token spans for any identified names.

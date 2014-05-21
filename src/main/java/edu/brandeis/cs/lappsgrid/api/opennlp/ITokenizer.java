@@ -16,6 +16,6 @@ public interface ITokenizer extends opennlp.tools.tokenize.Tokenizer, WebService
 	public static final String PROP_COMPNENT_MODEL = "Tokenizer";
 	
 	public static final long [] TYPES_REQUIRES = new long[] { Types.SENTENCE, Types.TEXT, Types.JSON };
-	public static final long [] TYPES_PRODUCES = new long[] { Types.OPENNLP, Types.TOKEN, Types.JSON};
+	public static final long [] TYPES_PRODUCES = new long[] { Types.TOKEN, Types.JSON};
 
 }

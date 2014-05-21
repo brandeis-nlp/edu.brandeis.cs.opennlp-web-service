@@ -156,6 +156,8 @@ public class NamedEntityRecognizer extends AbstractWebService implements INamedE
                 for (Span span:partSpans){
                     JSONObject annotation = json.newAnnotationWithType(
                             capitalize(span.getType()), tokenObjs.get(span.getStart()));
+                    json.newContain(
+                            capitalize(span.getType()));
                 }
             }
             return DataFactory.json(json.toString());
@@ -170,6 +172,8 @@ public class NamedEntityRecognizer extends AbstractWebService implements INamedE
             Span[] spans = find(new String[]{text});
             for (Span span : spans) {
                 JSONObject annotation = json.newAnnotationWithType(
+                        capitalize(span.getType()));
+                json.newContain(
                         capitalize(span.getType()));
                 json.setWord(annotation, text);
                 json.setStart(annotation, 0);

@@ -17,5 +17,5 @@ import org.lappsgrid.discriminator.Types;
 public interface ISplitter extends SentenceDetector, WebService {
 	public static final String PROP_COMPNENT_MODEL = "Sentence-Detector";
 	public static final long [] TYPES_REQUIRES = new long[] { Types.TEXT, Types.JSON };
-	public static final long [] TYPES_PRODUCES = new long[] { Types.OPENNLP, Types.SENTENCE, Types.JSON };
+	public static final long [] TYPES_PRODUCES = new long[] { Types.SENTENCE, Types.JSON };
 }
