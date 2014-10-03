@@ -22,7 +22,10 @@ public abstract class AbstractWebService implements WebService , IVersion {
 
     public static final Container getContainer(Data input) throws LappsException
     {
-        long type = input.getDiscriminator();
+
+        String discriminatorstr = input.getDiscriminator();
+        long type = DiscriminatorRegistry.get(discriminatorstr);
+
         if (type == Types.ERROR) {
             // Data objects with an ERROR discriminator should not be
             // passed in.
@@ -36,7 +39,7 @@ public abstract class AbstractWebService implements WebService , IVersion {
         else if (type == Types.JSON) {
             return new Container(input.getPayload());
         }
-        String typeName = DiscriminatorRegistry.get(type);
+        String typeName = DiscriminatorRegistry.getUri(type);
         throw new LappsException("Unexpected Data object type: " + typeName);
     }
 

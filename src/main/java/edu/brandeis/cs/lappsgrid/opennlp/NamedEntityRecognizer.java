@@ -118,6 +118,11 @@ public class NamedEntityRecognizer extends AbstractWebService implements INamedE
 		return DataFactory.ok();
 	}
 
+    @Override
+    public Data getMetadata() {
+        return null;
+    }
+
 
     public static String capitalize(String s) {
         if (s == null || s.length() == 0) return s;
@@ -128,8 +133,8 @@ public class NamedEntityRecognizer extends AbstractWebService implements INamedE
     @Override
     public Data execute(Data data) {
         logger.info("execute(): Execute OpenNLP NamedEntityRecognizer ...");
-
-        long discriminator = data.getDiscriminator();
+        String discriminatorstr = data.getDiscriminator();
+        long discriminator = DiscriminatorRegistry.get(discriminatorstr);
         if (discriminator == Types.ERROR)
         {
             return data;
@@ -182,22 +187,21 @@ public class NamedEntityRecognizer extends AbstractWebService implements INamedE
             return DataFactory.json(json.toString());
 
         } else {
-            String name = DiscriminatorRegistry.get(discriminator);
-            String message = "Invalid input type. Expected JSON but found " + name;
+            String message = "Invalid input type. Expected JSON but found " + discriminatorstr;
             logger.warn(message);
             return DataFactory.error(message);
         }
     }
 
-	@Override
-	public long[] requires() {
-		return TYPES_REQUIRES;
-	}
-
-	@Override
-	public long[] produces() {
-		return TYPES_PRODUCES;
-	}
+//	@Override
+//	public long[] requires() {
+//		return TYPES_REQUIRES;
+//	}
+//
+//	@Override
+//	public long[] produces() {
+//		return TYPES_PRODUCES;
+//	}
 
 	@Override
 	public Span[] find(String[] tokens) {

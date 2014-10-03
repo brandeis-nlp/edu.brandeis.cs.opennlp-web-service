@@ -104,11 +104,16 @@ public class Parser extends AbstractWebService implements IParser {
 		return DataFactory.ok();
 	}
 
-	@Override
+    @Override
+    public Data getMetadata() {
+        return null;
+    }
+
+    @Override
 	public Data execute(Data data) {
 		logger.info("execute(): Execute OpenNLP Parser ...");
-
-        long discriminator = data.getDiscriminator();
+        String discriminatorstr = data.getDiscriminator();
+        long discriminator = DiscriminatorRegistry.get(discriminatorstr);
         if (discriminator == Types.ERROR)
         {
             return data;
@@ -154,15 +159,15 @@ public class Parser extends AbstractWebService implements IParser {
         }
 	}
 
-	@Override
-	public long[] requires() {
-		return TYPES_REQUIRES;
-	}
-
-	@Override
-	public long[] produces() {
-		return TYPES_PRODUCES;
-	}
+//	@Override
+//	public long[] requires() {
+//		return TYPES_REQUIRES;
+//	}
+//
+//	@Override
+//	public long[] produces() {
+//		return TYPES_PRODUCES;
+//	}
 
 	@Override
 	public String parse(String sentence) {

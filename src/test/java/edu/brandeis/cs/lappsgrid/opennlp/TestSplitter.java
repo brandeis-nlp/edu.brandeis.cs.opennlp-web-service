@@ -8,6 +8,7 @@ import opennlp.tools.util.Span;
 import org.junit.Assert;
 import org.junit.Test;
 import org.lappsgrid.api.Data;
+import org.lappsgrid.discriminator.DiscriminatorRegistry;
 import org.lappsgrid.discriminator.Types;
 
 /**
@@ -50,7 +51,7 @@ public class TestSplitter extends TestService {
     @Test
     public void testExecute(){
         data.setPayload("Hi. How are you? This is Mike.");
-        data.setDiscriminator(Types.TEXT);
+        data.setDiscriminator(DiscriminatorRegistry.getUri(Types.TEXT));
         Data res = splitter.execute(data);
         System.out.println(res.getPayload());
     }

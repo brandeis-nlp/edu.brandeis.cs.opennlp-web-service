@@ -93,12 +93,18 @@ public class Splitter  extends AbstractWebService implements ISplitter {
 		return DataFactory.ok();
 	}
 
+    @Override
+    public Data getMetadata() {
+        return null;
+    }
 
 
     @Override
     public Data execute(Data data) {
         logger.info("execute(): Execute OpenNLP SentenceDetector ...");
-        long discriminator = data.getDiscriminator();
+        String discriminatorstr = data.getDiscriminator();
+        long discriminator = DiscriminatorRegistry.get(discriminatorstr);
+
         if (discriminator == Types.ERROR)
         {
             return data;
@@ -138,18 +144,6 @@ public class Splitter  extends AbstractWebService implements ISplitter {
             return DataFactory.error(message);
         }
     }
-
-
-	@Override
-	public long[] requires() {
-		return TYPES_REQUIRES;
-	}
-
-	@Override
-	public long[] produces() {
-		return TYPES_PRODUCES;
-	}
-
 
 	@Override
 	public String[] sentDetect(String s) {

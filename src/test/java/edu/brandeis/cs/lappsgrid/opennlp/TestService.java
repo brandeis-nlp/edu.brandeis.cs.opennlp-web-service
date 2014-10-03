@@ -8,6 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.lappsgrid.api.Data;
 import org.lappsgrid.core.DataFactory;
+import org.lappsgrid.discriminator.DiscriminatorRegistry;
 import org.lappsgrid.discriminator.Types;
 
 import java.io.IOException;
@@ -36,7 +37,7 @@ public class TestService {
     public void test() {
 //        System.out.println(payload);
         Assert.assertEquals("", payload, data.getPayload());
-        Assert.assertEquals("", Types.JSON, data.getDiscriminator());
+        Assert.assertEquals("", DiscriminatorRegistry.getUri(Types.JSON), data.getDiscriminator());
 //        System.out.println(container.getText());
     }
 

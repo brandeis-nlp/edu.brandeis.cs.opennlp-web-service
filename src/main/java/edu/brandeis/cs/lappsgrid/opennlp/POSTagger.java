@@ -92,9 +92,15 @@ public class POSTagger extends AbstractWebService implements IPOSTagger  {
 		return DataFactory.ok();
 	}
 
-	@Override
+    @Override
+    public Data getMetadata() {
+        return null;
+    }
+
+    @Override
     public Data execute(Data  data) {
-        long discriminator = data.getDiscriminator();
+        String discriminatorstr = data.getDiscriminator();
+        long discriminator = DiscriminatorRegistry.get(discriminatorstr);
         if (discriminator == Types.ERROR)
         {
             return data;
@@ -146,15 +152,15 @@ public class POSTagger extends AbstractWebService implements IPOSTagger  {
         }
     }
 
-	@Override
-	public long[] requires() {
-		return TYPES_REQUIRES;
-	}
-
-	@Override
-	public long[] produces() {
-		return TYPES_PRODUCES;
-	}
+//	@Override
+//	public long[] requires() {
+//		return TYPES_REQUIRES;
+//	}
+//
+//	@Override
+//	public long[] produces() {
+//		return TYPES_PRODUCES;
+//	}
 
 
 	@Override

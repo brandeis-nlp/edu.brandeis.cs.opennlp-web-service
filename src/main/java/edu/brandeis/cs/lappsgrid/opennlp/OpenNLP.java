@@ -114,21 +114,26 @@ public class OpenNLP implements IOpenNLP , IVersion {
 		return DataFactory.ok();
 	}
 
-	@Override
+    @Override
+    public Data getMetadata() {
+        return null;
+    }
+
+    @Override
 	public Data execute(Data data) {
 		logger.info("execute(): Execute OpenNLP tokenizer ...");
 		return null;
 	}
 
-	@Override
-	public long[] requires() {
-		return TYPES_REQUIRES;
-	}
-
-	@Override
-	public long[] produces() {
-		return TYPES_PRODUCES;
-	}
+//	@Override
+//	public long[] requires() {
+//		return TYPES_REQUIRES;
+//	}
+//
+//	@Override
+//	public long[] produces() {
+//		return TYPES_PRODUCES;
+//	}
 
 	// one general loader.
 	protected static abstract class Loader<T> {
