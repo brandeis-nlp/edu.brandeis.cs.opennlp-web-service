@@ -35,7 +35,7 @@ import edu.brandeis.cs.lappsgrid.api.opennlp.INamedEntityRecognizer;
  *         Nov 20, 2013<br>
  * 
  */
-public class NamedEntityRecognizer extends AbstractWebService implements INamedEntityRecognizer  {
+public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements INamedEntityRecognizer  {
 	protected static final Logger logger = LoggerFactory
 			.getLogger(NamedEntityRecognizer.class);
 
@@ -118,9 +118,21 @@ public class NamedEntityRecognizer extends AbstractWebService implements INamedE
 		return DataFactory.ok();
 	}
 
-    @Override
+    static Data metadata = loadMetadata();
+
+    static private Data loadMetadata() {
+        Data metadata = null;
+        try {
+            String json = "";
+            metadata = DataFactory.meta(json);
+        } catch(Exception e){
+            metadata = DataFactory.error("Unable to load metadata", e);
+        }
+        return metadata;
+    }
+
     public Data getMetadata() {
-        return null;
+        return metadata;
     }
 
 

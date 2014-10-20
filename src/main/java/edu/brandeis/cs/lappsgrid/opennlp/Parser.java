@@ -34,7 +34,7 @@ import edu.brandeis.cs.lappsgrid.api.opennlp.IParser;
  *         Nov 20, 2013<br>
  * 
  */
-public class Parser extends AbstractWebService implements IParser {
+public class Parser extends OpenNLPAbstractWebService implements IParser {
 	protected static final Logger logger = LoggerFactory
 			.getLogger(Parser.class);
 
@@ -104,9 +104,21 @@ public class Parser extends AbstractWebService implements IParser {
 		return DataFactory.ok();
 	}
 
-    @Override
+    static Data metadata = loadMetadata();
+
+    static private Data loadMetadata() {
+        Data metadata = null;
+        try {
+            String json = "";
+            metadata = DataFactory.meta(json);
+        } catch(Exception e){
+            metadata = DataFactory.error("Unable to load metadata", e);
+        }
+        return metadata;
+    }
+
     public Data getMetadata() {
-        return null;
+        return metadata;
     }
 
     @Override

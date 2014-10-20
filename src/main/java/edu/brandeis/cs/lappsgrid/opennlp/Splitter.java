@@ -29,7 +29,7 @@ import edu.brandeis.cs.lappsgrid.api.opennlp.ISplitter;
  * @author Chunqi Shi ( <i>shicq@cs.brandeis.edu</i> )<br>Nov 20, 2013<br>
  * 
  */
-public class Splitter  extends AbstractWebService implements ISplitter {
+public class Splitter  extends OpenNLPAbstractWebService implements ISplitter {
     protected static final Logger logger = LoggerFactory.getLogger(Splitter.class);
     
     private static SentenceDetector sentenceDetector;
@@ -93,9 +93,21 @@ public class Splitter  extends AbstractWebService implements ISplitter {
 		return DataFactory.ok();
 	}
 
-    @Override
+    static Data metadata = loadMetadata();
+
+    static private Data loadMetadata() {
+        Data metadata = null;
+        try {
+            String json = "";
+            metadata = DataFactory.meta(json);
+        } catch(Exception e){
+            metadata = DataFactory.error("Unable to load metadata", e);
+        }
+        return metadata;
+    }
+
     public Data getMetadata() {
-        return null;
+        return metadata;
     }
 
 

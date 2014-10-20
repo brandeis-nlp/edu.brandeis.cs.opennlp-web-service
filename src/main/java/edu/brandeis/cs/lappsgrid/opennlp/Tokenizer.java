@@ -28,7 +28,7 @@ import edu.brandeis.cs.lappsgrid.api.opennlp.ITokenizer;
  * @author Chunqi Shi ( <i>shicq@cs.brandeis.edu</i> )<br>Nov 20, 2013<br>
  * 
  */
-public class Tokenizer extends AbstractWebService implements ITokenizer {
+public class Tokenizer extends OpenNLPAbstractWebService implements ITokenizer {
     protected static final Logger logger = LoggerFactory.getLogger(Tokenizer.class);
     
     private static opennlp.tools.tokenize.Tokenizer tokenizer;
@@ -92,9 +92,21 @@ public class Tokenizer extends AbstractWebService implements ITokenizer {
 		return DataFactory.ok();
 	}
 
-    @Override
+    static Data metadata = loadMetadata();
+
+    static private Data loadMetadata() {
+        Data metadata = null;
+        try {
+            String json = "";
+            metadata = DataFactory.meta(json);
+        } catch(Exception e){
+            metadata = DataFactory.error("Unable to load metadata", e);
+        }
+        return metadata;
+    }
+
     public Data getMetadata() {
-        return null;
+        return metadata;
     }
 
     @Override
