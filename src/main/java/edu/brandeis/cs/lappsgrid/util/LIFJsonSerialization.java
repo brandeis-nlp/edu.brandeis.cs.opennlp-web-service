@@ -1,4 +1,4 @@
-package edu.brandeis.cs.lappsgrid.opennlp;
+package edu.brandeis.cs.lappsgrid.util;
 
 import net.arnx.jsonic.JSON;
 import org.lappsgrid.serialization.json.JSONArray;

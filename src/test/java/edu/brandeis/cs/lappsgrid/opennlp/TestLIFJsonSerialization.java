@@ -1,6 +1,7 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
 
+import edu.brandeis.cs.lappsgrid.util.LIFJsonSerialization;
 import org.junit.Assert;
 import org.junit.Test;
 import org.lappsgrid.serialization.json.JSONArray;
