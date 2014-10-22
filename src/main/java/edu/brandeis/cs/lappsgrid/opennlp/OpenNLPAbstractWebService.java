@@ -182,6 +182,8 @@ public abstract class OpenNLPAbstractWebService implements WebService , IVersion
         return nameFinder;
     }
 
+    protected static final String [] NERTags = new String[]{"Person", "Date", "Location", "Organization"};
+
     protected Map<String, TokenNameFinder> loadTokenNameFinders(String modelName) throws  OpenNLPWebServiceException  {
         Map<String, TokenNameFinder> nameFinders = new HashMap<String,TokenNameFinder> ();
         String nerModels = prop.getProperty(modelName,
@@ -191,8 +193,16 @@ public abstract class OpenNLPAbstractWebService implements WebService , IVersion
             logger.info("init(): load " + nerModel + " ...");
             if (nerModel.trim().length() > 0) {
                 TokenNameFinder nameFinder = loadTokenNameFinder(nerModel);
-                if (nameFinder != null)
-                    nameFinders.put(nerModel,nameFinder);
+                if (nameFinder != null){
+                    String lowNerModel = nerModel.toLowerCase();
+                    String nerModelTag = "Unknown";
+                    for (String tag: NERTags) {
+                        if(lowNerModel.contains(tag.toLowerCase())) {
+                            nerModelTag = tag;
+                            nameFinders.put(nerModelTag,nameFinder);
+                        }
+                    }
+                }
             }
         }
         logger.info("init(): Creating OpenNLP NamedEntityRecognizer!");
@@ -246,10 +256,10 @@ public abstract class OpenNLPAbstractWebService implements WebService , IVersion
             throw new OpenNLPWebServiceException("Load wordnet 3.1 Error. ");
         }
         // default English
-        String linkerModel = prop.getProperty(modelName, "/coref");
+        String linkerModel = prop.getProperty(modelName, "coref");
         logger.info("init(): load opennlp-web-service.properties.");
         try {
-            linker = new DefaultLinker(this.getClass().getResource(linkerModel).getPath(), LinkerMode.TEST);
+            linker = new DefaultLinker(this.getClass().getResource("/" + linkerModel).getPath(), LinkerMode.TEST);
         } catch (IOException e) {
             logger.error("init(): fail to load Linker \"" + linkerModel
                     + "\".");
