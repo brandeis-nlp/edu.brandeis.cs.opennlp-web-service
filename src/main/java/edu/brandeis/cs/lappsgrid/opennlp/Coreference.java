@@ -84,31 +84,18 @@ public class Coreference extends OpenNLPAbstractWebService {
             return data;
         } else if (discriminator == Types.JSON) {
             String jsonstr = data.getPayload();
-            LIFJsonSerialization wlif = new LIFJsonSerialization(jsonstr);
-            wlif.setText("Sue sees herself");
-            JSONObject view = wlif.newView();
-            JSONObject contains = new JSONObject();
-            contains.put("Token", new JSONObject());
-            contains.put("Markable", new JSONObject());
-            contains.put("Coreference", new JSONObject());
-            wlif.newMetadata(view,"contains", contains);
-            wlif.newAnnotation(view, "Token","tok0", 0, 3);
-            wlif.newAnnotation(view, "Token","tok2", 9, 16 );
-            JSONObject ann = wlif.newAnnotation(view, "Markable","m0");
-            JSONArray targets = new JSONArray();
-            targets.put("tok0");
-            wlif.setFeature(ann, "targets", targets);
-            ann = wlif.newAnnotation(view, "Markable","m1");
-            targets = new JSONArray();
-            targets.put("tok2");
-            wlif.setFeature(ann, "targets", targets);
-            wlif.setFeature(ann, "ENTITY_MENTION_TYPE", "PRONOUN");
-            ann = wlif.newAnnotation(view, "Coreference","coref0");
-            JSONArray mentions = new JSONArray();
-            mentions.put("m0");
-            mentions.put("m1");
-            wlif.setFeature(ann, "mentions", mentions);
-            wlif.setFeature(ann,"representative", "m0");
+            LIFJsonSerialization rlif = new LIFJsonSerialization(jsonstr);
+            String text = rlif.getText();
+            Object wlif = null;
+            try {
+                wlif = coRef(text);
+            } catch (OpenNLPWebServiceException e) {
+                e.printStackTrace();
+                String name = DiscriminatorRegistry.get(discriminator);
+                String message = e.getMessage();
+                logger.warn(message);
+                return DataFactory.error(message);
+            }
             System.out.println(wlif);
             return DataFactory.json(wlif.toString());
         } else {
@@ -121,7 +108,7 @@ public class Coreference extends OpenNLPAbstractWebService {
 
 
 
-    public void coRef(String text)throws OpenNLPWebServiceException{
+    public Object coRef(String text)throws OpenNLPWebServiceException{
         // get modelling resources
         final SentenceDetectorME sentDetector = this.loadSentenceDetector("Sentence-Detector");
         final TokenizerME tokenizer = this.loadTokenizer("Tokenizer");
@@ -215,6 +202,35 @@ public class Coreference extends OpenNLPAbstractWebService {
             document.addAll(Arrays.asList(extents));
         }
 
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        LIFJsonSerialization wlif = new LIFJsonSerialization();
+        wlif.setText(text);
+        JSONObject view = wlif.newView();
+        JSONObject contains = new JSONObject();
+        contains.put("Token", new JSONObject());
+        contains.put("Markable", new JSONObject());
+        contains.put("Coreference", new JSONObject());
+        wlif.newMetadata(view,"contains", contains);
+        wlif.newAnnotation(view, "Token","tok0", 0, 3);
+        wlif.newAnnotation(view, "Token","tok2", 9, 16 );
+        JSONObject ann = wlif.newAnnotation(view, "Markable","m0");
+        JSONArray targets = new JSONArray();
+        targets.put("tok0");
+        wlif.setFeature(ann, "targets", targets);
+        ann = wlif.newAnnotation(view, "Markable","m1");
+        targets = new JSONArray();
+        targets.put("tok2");
+        wlif.setFeature(ann, "targets", targets);
+        wlif.setFeature(ann, "ENTITY_MENTION_TYPE", "PRONOUN");
+        ann = wlif.newAnnotation(view, "Coreference","coref0");
+        JSONArray mentions = new JSONArray();
+        mentions.put("m0");
+        mentions.put("m1");
+        wlif.setFeature(ann, "mentions", mentions);
+        wlif.setFeature(ann,"representative", "m0");
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
         if (document.size() > 0) {
             // this was for treebank linker, but I'm using DefaultLinker....
             DiscourseEntity[] entities = linker.getEntities(document.toArray(new Mention[document.size()]));
@@ -244,6 +260,6 @@ public class Coreference extends OpenNLPAbstractWebService {
                 }
             }
         }
-
+        return wlif;
     }
 }
