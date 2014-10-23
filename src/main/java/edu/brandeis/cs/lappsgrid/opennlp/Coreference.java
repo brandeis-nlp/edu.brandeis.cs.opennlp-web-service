@@ -34,7 +34,7 @@ import java.util.*;
  */
 public class Coreference extends OpenNLPAbstractWebService {
     protected static final Logger logger = LoggerFactory.getLogger(Coreference.class);
-
+    private static long id = 0;
     private static SentenceDetector sentenceDetector;
     private static Linker linker;
     private static TokenizerME tokenDetector;
@@ -84,8 +84,9 @@ public class Coreference extends OpenNLPAbstractWebService {
             return data;
         } else if (discriminator == Types.JSON) {
             String jsonstr = data.getPayload();
-            LIFJsonSerialization rlif = new LIFJsonSerialization(jsonstr);
-            String text = rlif.getText();
+//            LIFJsonSerialization rlif = new LIFJsonSerialization(jsonstr);
+//            String text = rlif.getText();
+            String text = "How are you today, Mike?";
             Object wlif = null;
             try {
                 wlif = coRef(text);
@@ -109,6 +110,16 @@ public class Coreference extends OpenNLPAbstractWebService {
 
 
     public Object coRef(String text)throws OpenNLPWebServiceException{
+        LIFJsonSerialization wlif = new LIFJsonSerialization();
+        wlif.setText(text);
+        JSONObject view = wlif.newView();
+        JSONObject contains = new JSONObject();
+        wlif.newMetadataContainType(view, "Token", "opennlp:token",
+                "edu.brandeis.cs.lappsgrid.opennlp.Coreference");
+        wlif.newMetadataContainType(view, "Markable", "opennlp:markable",
+                "edu.brandeis.cs.lappsgrid.opennlp.Coreference");
+        wlif.newMetadataContainType(view, "Coreference", "opennlp:coreference",
+                "edu.brandeis.cs.lappsgrid.opennlp.Coreference");
         // get modelling resources
         final SentenceDetectorME sentDetector = this.loadSentenceDetector("Sentence-Detector");
         final TokenizerME tokenizer = this.loadTokenizer("Tokenizer");
@@ -118,7 +129,7 @@ public class Coreference extends OpenNLPAbstractWebService {
        // get sentences
         Span[] sentSpans = sentDetector.sentPosDetect(text);
 
-        List<Mention> document = new ArrayList<Mention>();
+        List<Mention> documentmentions = new ArrayList<Mention>();
         List<Parse> parses = new ArrayList<Parse>();
 
         for(int sentNum = 0 ; sentNum < sentSpans.length ; sentNum++) {
@@ -139,6 +150,7 @@ public class Coreference extends OpenNLPAbstractWebService {
                 int start = span.getStart();
                 int end = span.getEnd();
                 tokens[i] = tagNodes[i].getText().substring(start, end);
+                wlif.newAnnotation(view, "Token","tok"+ start , start, end);
             }
             // Now pass the String[] of the input parse word tokens to the name finder
             for (String nerType:nameFinders.keySet())  {
@@ -187,66 +199,66 @@ public class Coreference extends OpenNLPAbstractWebService {
             DefaultParse sentParseInd = new DefaultParse(sentParse, sentNum);
 
             // get all mentions in the parsed sentence
-            Mention[] extents = linker.getMentionFinder().getMentions(sentParseInd);
+            Mention[] sentencementions = linker.getMentionFinder().getMentions(sentParseInd);
 
             // Copy & paste from TreebankLinker source code.. edited for var name changes
             //construct new parses for mentions which don't have constituents.
-            for (int ei=0,en=extents.length;ei<en;ei++) {
-                if (extents[ei].getParse() == null) {
-                    //not sure how to get head index, but its not used at this point.
-                    Parse snp = new Parse(sentParse.getText(),extents[ei].getSpan(),"NML",1.0,0);
+            for (int ei=0,en=sentencementions.length;ei<en;ei++) {
+                if (sentencementions[ei].getParse() == null) {
+//                    //not sure how to get head index, but its not used at this point.
+                    Parse snp = new Parse(sentParse.getText(),sentencementions[ei].getSpan(),"NML",1.0,0);
                     sentParse.insert(snp);
-                    extents[ei].setParse(new DefaultParse(snp, sentNum));
+                    sentencementions[ei].setParse(new DefaultParse(snp, sentNum));
                 }
+                int idx = sentencementions[ei].getParse().getSpan().getStart();
+                JSONObject ann = wlif.newAnnotation(view, "Markable","m"+idx);
+                JSONArray targets = new JSONArray();
+                targets.put("tok" + idx);
+                wlif.setFeature(ann, "targets", targets);
+                wlif.setFeature(ann, "ENTITY_MENTION_TYPE",  sentencementions[ei].getParse().getEntityType());
             }
-            document.addAll(Arrays.asList(extents));
+            documentmentions.addAll(Arrays.asList(sentencementions));
         }
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        LIFJsonSerialization wlif = new LIFJsonSerialization();
-        wlif.setText(text);
-        JSONObject view = wlif.newView();
-        JSONObject contains = new JSONObject();
-        contains.put("Token", new JSONObject());
-        contains.put("Markable", new JSONObject());
-        contains.put("Coreference", new JSONObject());
-        wlif.newMetadata(view,"contains", contains);
-        wlif.newAnnotation(view, "Token","tok0", 0, 3);
-        wlif.newAnnotation(view, "Token","tok2", 9, 16 );
-        JSONObject ann = wlif.newAnnotation(view, "Markable","m0");
-        JSONArray targets = new JSONArray();
-        targets.put("tok0");
-        wlif.setFeature(ann, "targets", targets);
-        ann = wlif.newAnnotation(view, "Markable","m1");
-        targets = new JSONArray();
-        targets.put("tok2");
-        wlif.setFeature(ann, "targets", targets);
-        wlif.setFeature(ann, "ENTITY_MENTION_TYPE", "PRONOUN");
-        ann = wlif.newAnnotation(view, "Coreference","coref0");
-        JSONArray mentions = new JSONArray();
-        mentions.put("m0");
-        mentions.put("m1");
-        wlif.setFeature(ann, "mentions", mentions);
-        wlif.setFeature(ann,"representative", "m0");
+//
+//        ann = wlif.newAnnotation(view, "Markable","m1");
+//        targets = new JSONArray();
+//        targets.put("tok2");
+//        wlif.setFeature(ann, "targets", targets);
+//        wlif.setFeature(ann, "ENTITY_MENTION_TYPE", "PRONOUN");
+//        ann = wlif.newAnnotation(view, "Coreference","coref0");
+//        JSONArray mentions = new JSONArray();
+//        mentions.put("m0");
+//        mentions.put("m1");
+//        wlif.setFeature(ann, "mentions", mentions);
+//        wlif.setFeature(ann, "representative", "m0");
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        if (document.size() > 0) {
+        System.out.println("+++++++++++++++++++++++++++++ " + documentmentions.size());
+
+        if (documentmentions.size() > 0) {
             // this was for treebank linker, but I'm using DefaultLinker....
-            DiscourseEntity[] entities = linker.getEntities(document.toArray(new Mention[document.size()]));
+            DiscourseEntity[] entities = linker.getEntities(documentmentions.toArray(new Mention[documentmentions.size()]));
             System.out.println("\nNow displaying all discourse entities::");
             for(DiscourseEntity ent : entities) {
                 Iterator<MentionContext> entMentions = ent.getMentions();
                 String mentionString = "";
+                JSONObject ann = null;
+                JSONArray mentions = new JSONArray();
                 while(entMentions.hasNext()) {
                     Mention men = entMentions.next();
+                    mentions.put("m" + men.getSpan().getStart());
                     if(mentionString.equals("")) {
                         mentionString = men.toString();
+                        ann = wlif.newAnnotation(view, "Coreference","coref" +men.getId());
                     } else {
                         mentionString = mentionString + " :: " + men.toString();
                     }
                 }
                 System.out.println("\tMention set:: [ " + mentionString + " ]");
+                ann.put("mentions", mentions);
             }
 
             System.out.println("\n\nNow printing out the named entities from mention sets::");

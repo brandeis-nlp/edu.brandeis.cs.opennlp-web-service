@@ -56,6 +56,18 @@ public class LIFJsonSerialization {
         return meta;
     }
 
+    public JSONObject newMetadataContainType(JSONObject view,String containName, String type, String producer){
+        JSONObject contains = view.getJSONObject("contains");
+        if (contains == null) {
+            contains = new JSONObject();
+            view.put("contains", contains);
+        }
+        JSONObject meta = new JSONObject();
+        meta.put("producer", producer);
+        meta.put("type",type);
+        contains.put(containName,meta);
+        return meta;
+    }
 
     public JSONObject newAnnotation(JSONObject view){
         JSONObject annotation = new JSONObject();
