@@ -236,8 +236,6 @@ public class Coreference extends OpenNLPAbstractWebService {
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        System.out.println("+++++++++++++++++++++++++++++ " + documentmentions.size());
-
         if (documentmentions.size() > 0) {
             // this was for treebank linker, but I'm using DefaultLinker....
             DiscourseEntity[] entities = linker.getEntities(documentmentions.toArray(new Mention[documentmentions.size()]));
@@ -258,7 +256,8 @@ public class Coreference extends OpenNLPAbstractWebService {
                     }
                 }
                 System.out.println("\tMention set:: [ " + mentionString + " ]");
-                ann.put("mentions", mentions);
+                if(mentions.length() > 1)
+                    ann.put("mentions", mentions);
             }
 
             System.out.println("\n\nNow printing out the named entities from mention sets::");
