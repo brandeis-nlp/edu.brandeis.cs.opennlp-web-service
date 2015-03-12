@@ -7,15 +7,11 @@ import opennlp.tools.coref.mention.DefaultParse;
 import opennlp.tools.coref.mention.Mention;
 import opennlp.tools.coref.mention.MentionContext;
 import opennlp.tools.namefind.TokenNameFinder;
-import opennlp.tools.parser.*;
+import opennlp.tools.parser.Parse;
 import opennlp.tools.sentdetect.SentenceDetector;
 import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.util.Span;
-import org.lappsgrid.api.Data;
-import org.lappsgrid.core.DataFactory;
-import org.lappsgrid.discriminator.DiscriminatorRegistry;
-import org.lappsgrid.discriminator.Types;
 import org.lappsgrid.serialization.json.JSONArray;
 import org.lappsgrid.serialization.json.JSONObject;
 import org.slf4j.Logger;
@@ -50,62 +46,62 @@ public class Coreference extends OpenNLPAbstractWebService {
         tokenDetector = super.loadTokenizer("Tokenizer");
 	}
 
-	@Override
-	public Data configure(Data data) {
-		return DataFactory.ok();
-	}
-
-    static Data metadata = loadMetadata();
-
-    static private Data loadMetadata() {
-        Data metadata = null;
-        try {
-            String json = "";
-            metadata = DataFactory.meta(json);
-        } catch(Exception e){
-            metadata = DataFactory.error("Unable to load metadata", e);
-        }
-        return metadata;
-    }
-
-    public Data getMetadata() {
-        return metadata;
-    }
-
-
-    @Override
-    public Data execute(Data data) {
-        logger.info("execute(): Execute OpenNLP SentenceDetector ...");
-        String discriminatorstr = data.getDiscriminator();
-        long discriminator = DiscriminatorRegistry.get(discriminatorstr);
-
-        if (discriminator == Types.ERROR)
-        {
-            return data;
-        } else if (discriminator == Types.JSON) {
-            String jsonstr = data.getPayload();
-//            LIFJsonSerialization rlif = new LIFJsonSerialization(jsonstr);
-//            String text = rlif.getText();
-            String text = "How are you today, Mike?";
-            Object wlif = null;
-            try {
-                wlif = coRef(text);
-            } catch (OpenNLPWebServiceException e) {
-                e.printStackTrace();
-                String name = DiscriminatorRegistry.get(discriminator);
-                String message = e.getMessage();
-                logger.warn(message);
-                return DataFactory.error(message);
-            }
-            System.out.println(wlif);
-            return DataFactory.json(wlif.toString());
-        } else {
-            String name = DiscriminatorRegistry.get(discriminator);
-            String message = "Invalid input type. Expected JSON but found " + name;
-            logger.warn(message);
-            return DataFactory.error(message);
-        }
-    }
+//	@Override
+//	public Data configure(Data data) {
+//		return DataFactory.ok();
+//	}
+//
+//    static Data metadata = loadMetadata();
+//
+//    static private Data loadMetadata() {
+//        Data metadata = null;
+//        try {
+//            String json = "";
+//            metadata = DataFactory.meta(json);
+//        } catch(Exception e){
+//            metadata = DataFactory.error("Unable to load metadata", e);
+//        }
+//        return metadata;
+//    }
+//
+//    public Data getMetadata() {
+//        return metadata;
+//    }
+//
+//
+//    @Override
+//    public Data execute(Data data) {
+//        logger.info("execute(): Execute OpenNLP SentenceDetector ...");
+//        String discriminatorstr = data.getDiscriminator();
+//        long discriminator = DiscriminatorRegistry.get(discriminatorstr);
+//
+//        if (discriminator == Types.ERROR)
+//        {
+//            return data;
+//        } else if (discriminator == Types.JSON) {
+//            String jsonstr = data.getPayload();
+////            LIFJsonSerialization rlif = new LIFJsonSerialization(jsonstr);
+////            String text = rlif.getText();
+//            String text = "How are you today, Mike?";
+//            Object wlif = null;
+//            try {
+//                wlif = coRef(text);
+//            } catch (OpenNLPWebServiceException e) {
+//                e.printStackTrace();
+//                String name = DiscriminatorRegistry.get(discriminator);
+//                String message = e.getMessage();
+//                logger.warn(message);
+//                return DataFactory.error(message);
+//            }
+//            System.out.println(wlif);
+//            return DataFactory.json(wlif.toString());
+//        } else {
+//            String name = DiscriminatorRegistry.get(discriminator);
+//            String message = "Invalid input type. Expected JSON but found " + name;
+//            logger.warn(message);
+//            return DataFactory.error(message);
+//        }
+//    }
 
 
 
@@ -272,5 +268,15 @@ public class Coreference extends OpenNLPAbstractWebService {
             }
         }
         return wlif;
+    }
+
+    @Override
+    public String execute(String s) {
+        return null;
+    }
+
+    @Override
+    public String getMetadata() {
+        return null;
     }
 }

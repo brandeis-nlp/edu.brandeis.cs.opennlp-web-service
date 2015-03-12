@@ -1,12 +1,10 @@
 package edu.brandeis.cs.lappsgrid.api.opennlp;
 
 
-import org.lappsgrid.api.WebService;
+import edu.brandeis.cs.lappsgrid.opennlp.OpenNLPWebServiceException;
+
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
-import org.lappsgrid.discriminator.Types;
-
-import edu.brandeis.cs.lappsgrid.opennlp.OpenNLPWebServiceException;
 
 /**
  * <i>IOpenNLP.java</i> Language Application Grids (<b>LAPPS</b>)
@@ -26,9 +24,7 @@ import edu.brandeis.cs.lappsgrid.opennlp.OpenNLPWebServiceException;
  * @author Chunqi Shi ( <i>shicq@cs.brandeis.edu</i> )<br>Nov 19, 2013<br>
  * 
  */
-public interface IOpenNLP extends WebService {
-	public static final long [] TYPES_REQUIRES = new long[] { Types.OPENNLP, Types.TEXT };
-	public static final long [] TYPES_PRODUCES = new long[] { Types.OPENNLP, Types.SENTENCE };
+public interface IOpenNLP {
 	public static final String FILE_PROPERTIES = "opennlp-web-service.properties";
 	
 	public static final String SPLITTER_LINE = "\n";

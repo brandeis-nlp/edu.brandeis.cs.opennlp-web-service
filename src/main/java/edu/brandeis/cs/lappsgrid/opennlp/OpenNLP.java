@@ -1,15 +1,9 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
-
+import edu.brandeis.cs.lappsgrid.api.opennlp.IOpenNLP;
 import edu.brandeis.cs.lappsgrid.api.opennlp.IVersion;
+import edu.brandeis.cs.lappsgrid.util.FileLoadUtil;
+import edu.brandeis.cs.lappsgrid.util.SplitMergeUtil;
 import opennlp.tools.chunker.ChunkSample;
 import opennlp.tools.chunker.Chunker;
 import opennlp.tools.chunker.ChunkerME;
@@ -34,16 +28,17 @@ import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.InvalidFormatException;
 import opennlp.tools.util.Span;
-
-import org.anc.resource.ResourceLoader;
-import org.lappsgrid.api.Data;
-import org.lappsgrid.core.DataFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.brandeis.cs.lappsgrid.api.opennlp.IOpenNLP;
-import edu.brandeis.cs.lappsgrid.util.FileLoadUtil;
-import edu.brandeis.cs.lappsgrid.util.SplitMergeUtil;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * <i>OpenNLP.java</i> Language Application Grids (<b>LAPPS</b>)
@@ -107,22 +102,6 @@ public class OpenNLP implements IOpenNLP , IVersion {
 
 		logger.info("init(): load " + FILE_PROPERTIES + ".");
 		logger.info("init(): Creating OpenNLP !");
-	}
-
-	@Override
-	public Data configure(Data data) {
-		return DataFactory.ok();
-	}
-
-    @Override
-    public Data getMetadata() {
-        return null;
-    }
-
-    @Override
-	public Data execute(Data data) {
-		logger.info("execute(): Execute OpenNLP tokenizer ...");
-		return null;
 	}
 
 //	@Override
@@ -424,7 +403,7 @@ public class OpenNLP implements IOpenNLP , IVersion {
 
 	@Override
 	public String[] parserArr(String[] lines) throws OpenNLPWebServiceException {
-		String nerModels = prop.getProperty(Parser.PROP_COMPNENT_MODEL,
+		String nerModels = prop.getProperty("Parser",
 				"en-parser-chunking.bin");
 		ArrayList<opennlp.tools.parser.Parser> parserArr = parserLoader
 				.loadAll(nerModels);
@@ -473,7 +452,7 @@ public class OpenNLP implements IOpenNLP , IVersion {
 	@Override
 	public String[] sentenceDetectorArr(String[] lines)
 			throws OpenNLPWebServiceException {
-		String models = prop.getProperty(Splitter.PROP_COMPNENT_MODEL,
+		String models = prop.getProperty("Sentence-Detector",
 				"en-sent.bin");
 		ArrayList<SentenceDetector> chunkers = sentDeteLoader.loadAll(models);
 
@@ -513,7 +492,7 @@ public class OpenNLP implements IOpenNLP , IVersion {
 
 	@Override
 	public String[] tokenizerMEArr(String[] lines) throws OpenNLPWebServiceException {
-		String models = prop.getProperty(Tokenizer.PROP_COMPNENT_MODEL,
+		String models = prop.getProperty("Tokenizer",
 				"en-token.bin");
 		ArrayList<opennlp.tools.tokenize.Tokenizer> meArr = tokenizerLoader.loadAll(models);
 
@@ -541,8 +520,7 @@ public class OpenNLP implements IOpenNLP , IVersion {
 	@Override
 	public String[] tokenNameFinderArr(String[] lines) throws OpenNLPWebServiceException {
 
-		String models = prop.getProperty(
-				NamedEntityRecognizer.PROP_COMPNENT_MODEL, "en-ner-person.bin");
+		String models = prop.getProperty("Name-Finder", "en-ner-person.bin");
 		ArrayList<TokenNameFinder> meArr = nameFinderLoader.loadAll(models);
 
 		String[] arr = new String[lines.length];

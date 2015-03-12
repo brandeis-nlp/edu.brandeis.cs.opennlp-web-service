@@ -1,9 +1,7 @@
 package edu.brandeis.cs.lappsgrid.api.opennlp;
 
 import opennlp.tools.util.Sequence;
-
 import org.lappsgrid.api.WebService;
-import org.lappsgrid.discriminator.Types;
 
 /**
  * <i>IPOSTagger.java</i> Language Application Grids (<b>LAPPS</b>)
@@ -17,10 +15,6 @@ import org.lappsgrid.discriminator.Types;
 public interface IPOSTagger extends WebService {
 	public static final String PROP_COMPNENT_MODEL__Maxent = "Part-of-Speech-Tagger";
 	public static final String PROP_COMPNENT_MODEL__Perceptron = "POS-Tagger";
-	
-	public static final long [] TYPES_REQUIRES = new long[] { Types.TOKEN, Types.JSON};
-	public static final long [] TYPES_PRODUCES = new long[] { Types.OPENNLP, Types.POS, Types.JSON };
-
 	  /**
 	   * Assigns the sentence of tokens pos tags.
 	   * @param sentence The sentece of tokens to be tagged.
