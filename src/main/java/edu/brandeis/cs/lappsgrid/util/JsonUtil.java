@@ -1,11 +1,5 @@
 package edu.brandeis.cs.lappsgrid.util;
 
-import org.anc.lapps.serialization.Container;
-import org.lappsgrid.api.Data;
-import org.lappsgrid.api.LappsException;
-import org.lappsgrid.discriminator.DiscriminatorRegistry;
-import org.lappsgrid.discriminator.Types;
-
 /**
  * @author Keith Suderman
  */

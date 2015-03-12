@@ -112,11 +112,11 @@ public class LIFJsonSerialization {
 //    }
 
     public void setLemma(JSONObject annotation, String lemma) {
-        setFeature(annotation, Features.LEMMA, lemma);
+        setFeature(annotation, Features.Token.LEMMA, lemma);
     }
 
     public void setWord(JSONObject annotation, String word) {
-        setFeature(annotation, Features.WORD, word);
+        setFeature(annotation, Features.Token.WORD, word);
     }
 
     public void setFeature(JSONObject annotation, String name,  Object value) {
