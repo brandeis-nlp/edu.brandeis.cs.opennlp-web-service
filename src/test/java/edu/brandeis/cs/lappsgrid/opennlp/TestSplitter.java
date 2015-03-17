@@ -1,15 +1,10 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
-import java.util.Arrays;
-
-import junit.framework.TestCase;
 import opennlp.tools.util.Span;
-
 import org.junit.Assert;
 import org.junit.Test;
-import org.lappsgrid.api.Data;
-import org.lappsgrid.discriminator.DiscriminatorRegistry;
-import org.lappsgrid.discriminator.Types;
+
+import java.util.Arrays;
 
 /**
  * <i>TestSplitter.java</i> Language Application Grids (<b>LAPPS</b>)
@@ -50,9 +45,6 @@ public class TestSplitter extends TestService {
 
     @Test
     public void testExecute(){
-        data.setPayload("Hi. How are you? This is Mike.");
-        data.setDiscriminator(DiscriminatorRegistry.getUri(Types.TEXT));
-        Data res = splitter.execute(data);
-        System.out.println(res.getPayload());
+
     }
 }

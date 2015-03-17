@@ -1,6 +1,6 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
-import edu.brandeis.cs.lappsgrid.util.LIFJsonSerialization;
+import org.lappsgrid.serialization.json.LIFJsonSerialization;
 import opennlp.tools.coref.DiscourseEntity;
 import opennlp.tools.coref.Linker;
 import opennlp.tools.coref.mention.DefaultParse;
@@ -12,8 +12,8 @@ import opennlp.tools.sentdetect.SentenceDetector;
 import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.util.Span;
-import org.lappsgrid.serialization.json.JSONArray;
-import org.lappsgrid.serialization.json.JSONObject;
+import org.lappsgrid.serialization.json.JsonArr;
+import org.lappsgrid.serialization.json.JsonObj;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -108,13 +108,13 @@ public class Coreference extends OpenNLPAbstractWebService {
     public Object coRef(String text)throws OpenNLPWebServiceException{
         LIFJsonSerialization wlif = new LIFJsonSerialization();
         wlif.setText(text);
-        JSONObject view = wlif.newView();
-        JSONObject contains = new JSONObject();
-        wlif.newMetadataContainType(view, "Token", "opennlp:token",
+        JsonObj view = wlif.newView();
+        JsonObj contains = new JsonObj();
+        wlif.newContains(view, "Token", "opennlp:token",
                 "edu.brandeis.cs.lappsgrid.opennlp.Coreference");
-        wlif.newMetadataContainType(view, "Markable", "opennlp:markable",
+        wlif.newContains(view, "Markable", "opennlp:markable",
                 "edu.brandeis.cs.lappsgrid.opennlp.Coreference");
-        wlif.newMetadataContainType(view, "Coreference", "opennlp:coreference",
+        wlif.newContains(view, "Coreference", "opennlp:coreference",
                 "edu.brandeis.cs.lappsgrid.opennlp.Coreference");
         // get modelling resources
         final SentenceDetectorME sentDetector = this.loadSentenceDetector("Sentence-Detector");
@@ -207,8 +207,8 @@ public class Coreference extends OpenNLPAbstractWebService {
                     sentencementions[ei].setParse(new DefaultParse(snp, sentNum));
                 }
                 int idx = sentencementions[ei].getParse().getSpan().getStart();
-                JSONObject ann = wlif.newAnnotation(view, "Markable","m"+idx);
-                JSONArray targets = new JSONArray();
+                JsonObj ann = wlif.newAnnotation(view, "Markable","m"+idx);
+                JsonArr targets = new JsonArr();
                 targets.put("tok" + idx);
                 wlif.setFeature(ann, "targets", targets);
                 wlif.setFeature(ann, "ENTITY_MENTION_TYPE",  sentencementions[ei].getParse().getEntityType());
@@ -239,8 +239,8 @@ public class Coreference extends OpenNLPAbstractWebService {
             for(DiscourseEntity ent : entities) {
                 Iterator<MentionContext> entMentions = ent.getMentions();
                 String mentionString = "";
-                JSONObject ann = null;
-                JSONArray mentions = new JSONArray();
+                JsonObj ann = null;
+                JsonArr mentions = new JsonArr();
                 while(entMentions.hasNext()) {
                     Mention men = entMentions.next();
                     mentions.put("m" + men.getSpan().getStart());

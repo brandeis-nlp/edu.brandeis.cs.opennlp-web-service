@@ -1,18 +1,13 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
-import java.io.IOException;
-import java.util.Arrays;
-
-import junit.framework.TestCase;
 import opennlp.tools.tokenize.WhitespaceTokenizer;
-
-import org.anc.lapps.serialization.Container;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.lappsgrid.api.Data;
-import org.lappsgrid.core.DataFactory;
+
+import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * <i>TestPOSTagger.java</i> Language Application Grids (<b>LAPPS</b>)
@@ -26,9 +21,6 @@ import org.lappsgrid.core.DataFactory;
 public class TestPOSTagger extends TestService {
 	
 	POSTagger postagger;
-
-    Data data2 = null;
-	
 	public TestPOSTagger() throws OpenNLPWebServiceException {
 		postagger = new POSTagger();
 	}
@@ -37,10 +29,8 @@ public class TestPOSTagger extends TestService {
     public void data() throws IOException {
         java.io.InputStream in =  this.getClass().getClassLoader().getResourceAsStream("tokens.json");
         payload = IOUtils.toString(in);
-        data = DataFactory.json(payload);
-
         in =  this.getClass().getClassLoader().getResourceAsStream("MASC3-0202-Tagger-in.json");
-        data2 = DataFactory.json(IOUtils.toString(in));
+
     }
 
     @Test
@@ -55,10 +45,7 @@ public class TestPOSTagger extends TestService {
 
     @Test
     public void testExecute(){
-        Data res = postagger.execute(data);
-        System.out.println(res.getPayload());
-        Data res2 = postagger.execute(data2);
-        System.out.println(res2.getPayload());
+
     }
 
 }

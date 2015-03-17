@@ -1,38 +1,89 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
 
-import edu.brandeis.cs.lappsgrid.util.LIFJsonSerialization;
+import org.lappsgrid.discriminator.Discriminators;
+import org.lappsgrid.serialization.json.LIFJsonSerialization;
 import org.junit.Assert;
 import org.junit.Test;
-import org.lappsgrid.serialization.json.JSONArray;
-import org.lappsgrid.serialization.json.JSONObject;
+import org.lappsgrid.serialization.json.JsonArr;
+import org.lappsgrid.serialization.json.JsonObj;
 
 public class TestLIFJsonSerialization {
     public static final String json = "{\n" +
-            "  \"text\": \"Sue sees herself\",\n" +
-            "  \"views\": [ \n" +
-            "    { \"metadata\": {\n" +
-            "        \"contains\": {\n" +
-            "          \"Token\": { },\n" +
-            "          \"Markable\": { },\n" +
-            "          \"Coreference\": { } }},\n" +
-            "      \"annotations\": [\n" +
-            "         { \"@type\": \"Token\", \"id\": \"tok0\", \"start\": 0, \"end\": 3 },\n" +
-            "         { \"@type\": \"Token\", \"id\": \"tok2\", \"start\": 9, \"end\": 16 },\n" +
-            "         { \"@type\": \"Markable\",\n" +
-            "           \"id\": \"m0\",\n" +
-            "           \"features\": {\n" +
-            "             \"targets\": [ \"tok0\" ] }},\n" +
-            "         { \"@type\": \"Markable\",\n" +
-            "           \"id\": \"m1\",\n" +
-            "           \"features\": {\n" +
-            "             \"targets\": [ \"tok2\" ],\n" +
-            "             \"ENTITY_MENTION_TYPE\": \"PRONOUN\" } },\n" +
-            "         { \"@type\": \"Coreference\", \n" +
-            "           \"id\": \"coref0\", \n" +
-            "           \"features\": {\n" +
-            "             \"mentions\": [ \"m0\", \"m1\" ],\n" +
-            "             \"representative\": \"m0\" }}]}]\n" +
+            "  \"discriminator\": \"http://vocab.lappsgrid.org/ns/media/jsonld\",\n" +
+            "  \"payload\": {\n" +
+            "  \"@context\": \"http://vocab.lappsgrid.org/context-1.0.0.jsonld\"," +
+            "    \"metadata\": {\n" +
+            "      \n" +
+            "    },\n" +
+            "    \"text\": {\n" +
+            "      \"@value\": \"Hello world\"\n" +
+            "    },\n" +
+            "    \"views\": [\n" +
+            "      {\n" +
+            "        \"metadata\": {\n" +
+            "          \"contains\": {\n" +
+            "            \"http://vocab.lappsgrid.org/Token\": {\n" +
+            "              \"producer\": \"org.anc.lapps.stanford.Tokenizer:2.0.0\",\n" +
+            "              \"type\": \"stanford\"\n" +
+            "            }\n" +
+            "          }\n" +
+            "        },\n" +
+            "        \"annotations\": [\n" +
+            "          {\n" +
+            "            \"id\": \"tok0\",\n" +
+            "            \"start\": 0,\n" +
+            "            \"end\": 5,\n" +
+            "            \"label\": \"http://vocab.lappsgrid.org/Token\",\n" +
+            "            \"features\": {\n" +
+            "              \"word\": \"Hello\"\n" +
+            "            }\n" +
+            "          },\n" +
+            "          {\n" +
+            "            \"id\": \"tok1\",\n" +
+            "            \"start\": 6,\n" +
+            "            \"end\": 11,\n" +
+            "            \"label\": \"http://vocab.lappsgrid.org/Token\",\n" +
+            "            \"features\": {\n" +
+            "              \"word\": \"world\"\n" +
+            "            }\n" +
+            "          }\n" +
+            "        ]\n" +
+            "      },\n" +
+            "      {\n" +
+            "        \"metadata\": {\n" +
+            "          \"contains\": {\n" +
+            "            \"http://vocab.lappsgrid.org/Token#pos\": {\n" +
+            "              \"producer\": \"org.anc.lapps.stanford.Tagger:2.0.0\",\n" +
+            "              \"type\": \"tagset:penn\"\n" +
+            "            }\n" +
+            "          }\n" +
+            "        },\n" +
+            "        \"annotations\": [\n" +
+            "          {\n" +
+            "            \"id\": \"tok0\",\n" +
+            "            \"start\": 0,\n" +
+            "            \"end\": 5,\n" +
+            "            \"label\": \"http://vocab.lappsgrid.org/Token\",\n" +
+            "            \"features\": {\n" +
+            "              \"pos\": \"UH\",\n" +
+            "              \"word\": \"Hello\"\n" +
+            "            }\n" +
+            "          },\n" +
+            "          {\n" +
+            "            \"id\": \"tok1\",\n" +
+            "            \"start\": 6,\n" +
+            "            \"end\": 11,\n" +
+            "            \"label\": \"http://vocab.lappsgrid.org/Token\",\n" +
+            "            \"features\": {\n" +
+            "              \"pos\": \"NN\",\n" +
+            "              \"word\": \"world\"\n" +
+            "            }\n" +
+            "          }\n" +
+            "        ]\n" +
+            "      }\n" +
+            "    ]\n" +
+            "  }\n" +
             "}";
 
 
@@ -40,31 +91,25 @@ public class TestLIFJsonSerialization {
     public void test(){
         LIFJsonSerialization rlif = new LIFJsonSerialization(json);
         LIFJsonSerialization wlif = new LIFJsonSerialization();
-        wlif.setText("Sue sees herself");
-        JSONObject view = wlif.newView();
-        JSONObject contains = new JSONObject();
-        contains.put("Token", new JSONObject());
-        contains.put("Markable", new JSONObject());
-        contains.put("Coreference", new JSONObject());
-        wlif.newMetadata(view,"contains", contains);
-        wlif.newAnnotation(view, "Token","tok0", 0, 3);
-        wlif.newAnnotation(view, "Token","tok2", 9, 16 );
-        JSONObject ann = wlif.newAnnotation(view, "Markable","m0");
-        JSONArray targets = new JSONArray();
-        targets.put("tok0");
-        wlif.setFeature(ann, "targets", targets);
-        ann = wlif.newAnnotation(view, "Markable","m1");
-        targets = new JSONArray();
-        targets.put("tok2");
-        wlif.setFeature(ann, "targets", targets);
-        wlif.setFeature(ann, "ENTITY_MENTION_TYPE", "PRONOUN");
-        ann = wlif.newAnnotation(view, "Coreference","coref0");
-        JSONArray mentions = new JSONArray();
-        mentions.put("m0");
-        mentions.put("m1");
-        wlif.setFeature(ann, "mentions", mentions);
-        wlif.setFeature(ann,"representative", "m0");
+        wlif.setText("Hello world");
+        JsonObj view = wlif.newView();
+        wlif.newContains(view, Discriminators.Uri.TOKEN, "stanford", "org.anc.lapps.stanford.Tokenizer:2.0.0");
+        JsonObj ann = wlif.newAnnotation(view, Discriminators.Uri.TOKEN,"tok0", 0, 5);
+        wlif.setWord(ann, "Hello");
+        ann = wlif.newAnnotation(view, Discriminators.Uri.TOKEN,"tok1", 6, 11);
+        wlif.setWord(ann, "world");
+
+        view = wlif.newView();
+        wlif.newContains(view, Discriminators.Uri.POS, "tagset:penn", "org.anc.lapps.stanford.Tagger:2.0.0");
+        ann = wlif.newAnnotation(view, Discriminators.Uri.TOKEN,"tok0", 0, 5);
+        wlif.setWord(ann, "Hello");
+        wlif.setPOSTag(ann, "UH");
+
+        ann = wlif.newAnnotation(view, Discriminators.Uri.TOKEN,"tok1", 6, 11);
+        wlif.setWord(ann, "world");
+        wlif.setPOSTag(ann, "NN");
         System.out.println(wlif);
-        Assert.assertEquals(rlif.toString(), wlif.toString());
+        System.out.println(rlif);
+        Assert.assertTrue(rlif.equals(wlif));
     }
 }

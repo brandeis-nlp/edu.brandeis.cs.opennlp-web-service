@@ -1,15 +1,9 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
 
-import junit.framework.Assert;
-import org.anc.lapps.serialization.Container;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
-import org.lappsgrid.api.Data;
-import org.lappsgrid.core.DataFactory;
-import org.lappsgrid.discriminator.DiscriminatorRegistry;
-import org.lappsgrid.discriminator.Types;
 
 import java.io.IOException;
 
@@ -21,24 +15,15 @@ public class TestService {
     public static final String PAYLOAD_RESOURCE = "payload.txt";
 
     protected java.lang.String payload = null;
-    protected Data data = null;
-    protected Data ret = null;
-    protected Container container = null;
 
     @Before
     public void data() throws IOException {
         java.io.InputStream in =  this.getClass().getClassLoader().getResourceAsStream(PAYLOAD_RESOURCE);
         payload = IOUtils.toString(in);
-        data = DataFactory.json(payload);
-        container = new Container(payload);
     }
 
     @Test
     public void test() {
-//        System.out.println(payload);
-        Assert.assertEquals("", payload, data.getPayload());
-        Assert.assertEquals("", DiscriminatorRegistry.getUri(Types.JSON), data.getDiscriminator());
-//        System.out.println(container.getText());
     }
 
 }
