@@ -45,7 +45,8 @@ public class LIFJsonSerialization {
         json = new JsonObj(textjson);
         discriminator = json.getString("discriminator").trim();
         if (discriminator.equals(Discriminators.Uri.TEXT)) {
-            this.text.put("@value", json.getString("payload"));
+            text = new JsonObj();
+            text.put("@value", json.getString("payload"));
         } else if(discriminator.equals(Discriminators.Uri.JSON_LD)) {
             payload = json.getJsonObj("payload");
             text = payload.getJsonObj("text");
@@ -152,7 +153,7 @@ public class LIFJsonSerialization {
     public String toString(){
         json.put("discriminator" ,discriminator);
         if (discriminator.equals(Discriminators.Uri.TEXT)) {
-            json.put("payload" ,text);
+            json.put("payload" ,text.getString("@value"));
         } else if (discriminator.equals(Discriminators.Uri.JSON_LD)) {
             json.put("payload" ,payload);
             payload.put("@context",context);

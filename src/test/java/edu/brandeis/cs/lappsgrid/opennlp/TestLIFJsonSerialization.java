@@ -86,6 +86,10 @@ public class TestLIFJsonSerialization {
             "  }\n" +
             "}";
 
+    public static String jsontxt = "{\n" +
+            "\"discriminator\" : \"http://vocab.lappsgrid.org/ns/media/text\",\n" +
+            "\"payload\" : \"Hello world\"\n" +
+            "}";
 
     @Test
     public void test(){
@@ -111,5 +115,10 @@ public class TestLIFJsonSerialization {
         System.out.println(wlif);
         System.out.println(rlif);
         Assert.assertTrue(rlif.equals(wlif));
+        LIFJsonSerialization txtlif = new LIFJsonSerialization();
+        txtlif.setText("Hello world");
+        txtlif.setDiscriminator(Discriminators.Uri.TEXT);
+        Assert.assertTrue(txtlif.equals(new LIFJsonSerialization(jsontxt)));
+        System.out.println(new LIFJsonSerialization(jsontxt).toString());
     }
 }
