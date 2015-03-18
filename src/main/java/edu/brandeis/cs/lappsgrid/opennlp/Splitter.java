@@ -3,6 +3,9 @@ package edu.brandeis.cs.lappsgrid.opennlp;
 import edu.brandeis.cs.lappsgrid.api.opennlp.ISplitter;
 import opennlp.tools.sentdetect.SentenceDetector;
 import opennlp.tools.util.Span;
+import org.lappsgrid.discriminator.Discriminators;
+import org.lappsgrid.serialization.json.JsonObj;
+import org.lappsgrid.serialization.json.LIFJsonSerialization;
 
 /**
  * <i>AbstractOpenNLPWebService.java</i> Language Application Grids (<b>LAPPS</b>)
@@ -21,52 +24,6 @@ public class Splitter  extends OpenNLPAbstractWebService implements ISplitter {
             sentenceDetector = loadSentenceDetector(registModelMap.get(this.getClass()));
         }
 	}
-
-//    @Override
-//    public Data execute(Data data) {
-//        logger.info("execute(): Execute OpenNLP SentenceDetector ...");
-//        String discriminatorstr = data.getDiscriminator();
-//        long discriminator = DiscriminatorRegistry.get(discriminatorstr);
-//
-//        if (discriminator == Types.ERROR)
-//        {
-//            return data;
-//        } else if (discriminator == Types.JSON) {
-//            String jsonstr = data.getPayload();
-//            JsonSplitterSerialization json = new JsonSplitterSerialization(jsonstr);
-//            json.setProducer(this.getClass().getName() + ":" + VERSION);
-//            json.setType("splitter:opennlp");
-//            Span[] spans = sentPosDetect(json.getTextValue());
-//            for (Span span : spans) {
-//                JSONObject annotation = json.newAnnotation();
-//                json.setStart(annotation, span.getStart());
-//                json.setEnd(annotation, span.getEnd());
-//            }
-//            return DataFactory.json(json.toString());
-//
-//        } else if (discriminator == Types.TEXT)
-//        {
-//            String text = data.getPayload();
-//            JsonSplitterSerialization json = new JsonSplitterSerialization();
-//            json.setTextValue(text);
-//            json.setProducer(this.getClass().getName() + ":" + VERSION);
-//            json.setType("splitter:opennlp");
-//
-//            Span[] spans = sentPosDetect(text);
-//            for (Span span : spans) {
-//                JSONObject ann = json.newAnnotation();
-//                json.setStart(ann, span.getStart());
-//                json.setEnd(ann, span.getEnd());
-//            }
-//            return DataFactory.json(json.toString());
-//        }
-//        else {
-//            String name = DiscriminatorRegistry.get(discriminator);
-//            String message = "Invalid input type. Expected JSON but found " + name;
-//            logger.warn(message);
-//            return DataFactory.error(message);
-//        }
-//    }
 
 	@Override
 	public String[] sentDetect(String s) {
@@ -96,8 +53,22 @@ public class Splitter  extends OpenNLPAbstractWebService implements ISplitter {
 	}
 
     @Override
-    public String execute(String s) {
-        return null;
+    public String execute(LIFJsonSerialization json) throws OpenNLPWebServiceException {
+        logger.info("execute(): Execute OpenNLP SentenceDetector ...");
+        String txt = json.getText();
+        JsonObj view = json.newView();
+        json.newContains(view, Discriminators.Uri.SENTENCE,
+                "splitter:opennlp", this.getClass().getName() + ":" + VERSION);
+
+        json.setIdHeader("tok");
+        Span[] spans = sentPosDetect(txt);
+        for (Span span : spans) {
+            int start = span.getStart();
+            int end = span.getEnd();
+            JsonObj ann = json.newAnnotation(view, Discriminators.Uri.TOKEN, start, end);
+            json.setSentence(ann, txt.substring(start, end));
+        }
+        return json.toString();
     }
 
     @Override

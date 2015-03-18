@@ -20,12 +20,12 @@ import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.Span;
 import opennlp.tools.util.model.BaseModel;
 import org.lappsgrid.api.WebService;
+import org.lappsgrid.discriminator.Discriminators;
+import org.lappsgrid.serialization.json.LIFJsonSerialization;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -46,6 +46,7 @@ public abstract class OpenNLPAbstractWebService implements WebService , IVersion
         registModelMap.put(NamedEntityRecognizer.class, "Name-Finder");
         registModelMap.put(Parser.class, "Parser");
         registModelMap.put(Coreference.class, "Coreference");
+        registModelMap.put(POSTagger.class, "Part-of-Speech-Tagger");
     }
 
     protected void init() throws OpenNLPWebServiceException {
@@ -227,13 +228,15 @@ public abstract class OpenNLPAbstractWebService implements WebService , IVersion
 
     protected POSTaggerME loadPOSTagger(String modelName) throws OpenNLPWebServiceException {
         POSTaggerME postagger;
-        InputStream stream = this.getClass().getResourceAsStream("/" + modelName);
+
+        String taggerModel = prop.getProperty(modelName);
+        InputStream stream = this.getClass().getResourceAsStream("/" + taggerModel);
         if (stream == null) {
-            logger.error("init(): fail to open POSTAGGER MODEl \""+modelName+"\".");
-            throw new OpenNLPWebServiceException("init(): fail to open POSTAGGER MODEl \""+modelName+"\".");
+            logger.error("init(): fail to open POSTAGGER MODEl \""+taggerModel+"\".");
+            throw new OpenNLPWebServiceException("init(): fail to open POSTAGGER MODEl \""+taggerModel+"\".");
         }
 
-        logger.info("init(): load POSTAGGER MODEl \""+modelName+"\"");
+        logger.info("init(): load POSTAGGER MODEl \""+taggerModel+"\"");
 
         try {
             try {
@@ -311,4 +314,31 @@ public abstract class OpenNLPAbstractWebService implements WebService , IVersion
         return linker;
     }
 
+
+    @Override
+    public String execute(String s) {
+        LIFJsonSerialization json = null;
+        try{
+            s = s.trim();
+            if (s.startsWith("{") && s.endsWith("}")) {
+                json = new LIFJsonSerialization();
+                json.setDiscriminator(s);
+                json.setDiscriminator(Discriminators.Uri.TEXT);
+            } else {
+                json = new LIFJsonSerialization(s);
+                if (json.getDiscriminator().equals(Discriminators.Uri.ERROR)) {
+                    return json.toString();
+                }
+            }
+            return execute(json);
+        }catch(Throwable th) {
+            json = new LIFJsonSerialization();
+            StringWriter sw = new StringWriter();
+            th.printStackTrace( new PrintWriter(sw));
+            json.setError(th.getMessage(), sw.toString());
+            return json.toString();
+        }
+    }
+
+    public abstract String execute(LIFJsonSerialization in) throws OpenNLPWebServiceException;
 }

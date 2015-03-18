@@ -4,6 +4,9 @@ import org.lappsgrid.discriminator.Constants;
 import org.lappsgrid.discriminator.Discriminators;
 import org.lappsgrid.vocabulary.Features;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by lapps on 10/22/2014.
  * REF:  http://lapps.github.io/interchange/index.html
@@ -14,11 +17,20 @@ public class LIFJsonSerialization {
     String discriminator = null;
     JsonObj payload = null;
     JsonObj text = null;
+    JsonObj error = null;
     String context =  "http://vocab.lappsgrid.org/context-1.0.0.jsonld";
 
     JsonObj metadata = null;
     JsonArr views = null;
     JsonObj json = null;
+
+    String idHeader = "";
+    static int id = 0;
+
+    public void setIdHeader(String idh) {
+        idHeader = idh;
+        id = 0; // reset.
+    }
 
     public String getText() {
         return text.getString("@value");
@@ -35,10 +47,15 @@ public class LIFJsonSerialization {
         views =  new JsonArr();
         metadata = new JsonObj();
         json = new JsonObj();
+        error = new JsonObj();
     }
 
     public void setDiscriminator(String s) {
         this.discriminator = s;
+    }
+
+    public String getDiscriminator() {
+        return discriminator;
     }
 
     public LIFJsonSerialization(String textjson) {
@@ -100,12 +117,31 @@ public class LIFJsonSerialization {
         return annotation;
     }
 
+    public JsonObj newAnnotation(JsonObj view, JsonObj copyfrom) {
+        JsonObj annotation = new JsonObj(copyfrom.toString());
+        JsonArr annotations = view.getJsonArr("annotations");
+        if (annotations == null) {
+            annotations = new JsonArr();
+            view.put("annotations", annotations);
+        }
+        annotations.put(annotation);
+        return annotation;
+    }
+
     public JsonObj newAnnotation(JsonObj view, String label, String id) {
         JsonObj ann = this.newAnnotation(view);
         ann.put("label", label);
         ann.put("id", id);
         return ann;
     }
+
+    public JsonObj newAnnotation(JsonObj view, String label) {
+        JsonObj ann = this.newAnnotation(view);
+        ann.put("label", label);
+        ann.put("id", idHeader+id++);
+        return ann;
+    }
+
     public JsonObj newAnnotation(JsonObj view, String label, String id, int start, int end) {
         JsonObj ann = this.newAnnotation(view);
         ann.put("label", label);
@@ -114,6 +150,18 @@ public class LIFJsonSerialization {
         ann.put("end", end);
         return ann;
     }
+
+
+
+    public JsonObj newAnnotation(JsonObj view, String label,  int start, int end) {
+        JsonObj ann = this.newAnnotation(view);
+        ann.put("label", label);
+        ann.put("id", idHeader+id++);
+        ann.put("start", start);
+        ann.put("end", end);
+        return ann;
+    }
+
 
     public JsonObj newView() {
         JsonObj view = new JsonObj();
@@ -124,6 +172,14 @@ public class LIFJsonSerialization {
         return view;
     }
 
+    public void setStart(JsonObj annotation, int start) {
+        annotation.put("start", start);
+    }
+
+    public void setEnd(JsonObj annotation, int end) {
+        annotation.put("end", end);
+    }
+
     public void setLemma(JsonObj annotation, String lemma) {
         setFeature(annotation, Features.Token.LEMMA, lemma);
     }
@@ -131,9 +187,57 @@ public class LIFJsonSerialization {
     public void setWord(JsonObj annotation, String word) {
         setFeature(annotation, "word", word);
     }
+    public List<JsonObj> findLastAnnotations() {
+        ArrayList<JsonObj> lastAnnotations = null;
+        if(views.length() > 0) {
+            for(int i = views.length() - 1; i >= 0; i--) {
+                JsonObj lastView =  views.getJsonObj(i);
+                JsonObj lastViewMeta = lastView.getJsonObj("metadata");
+                JsonArr lastViewAnnotations = lastView.getJsonArr("annotations");
+                JsonObj lastViewContains = lastViewMeta.getJsonObj("contains");
+                if (lastViewContains.has(Discriminators.Uri.TOKEN)) {
+                    // contains sentence
+                    lastAnnotations = new ArrayList<JsonObj>(lastViewAnnotations.length());
+                    for(int j = 0; j < lastViewAnnotations.length(); j++) {
+                        JsonObj lastStepAnnotation = lastViewAnnotations.getJsonObj(j);
+                        lastAnnotations.add(lastStepAnnotation);
+                    }
+                    break;
+                }
+            }
+        }
+        return lastAnnotations;
+    }
+
+    public int getStart(JsonObj annotation) {
+        return annotation.getInt("start");
+    }
+
+    public int getEnd(JsonObj annotation) {
+        return annotation.getInt("end");
+    }
+
+    public String getAnnotationText(JsonObj annotation) {
+        int start = getStart(annotation);
+        int end = getEnd(annotation);
+        return getText().substring(start, end);
+    }
+
+    public void setSentence(JsonObj annotation, String sent) {
+        setFeature(annotation, "sentence", sent);
+    }
 
     public void setPOSTag(JsonObj annotation, String posTag) {
         setFeature(annotation, "pos", posTag);
+    }
+    public void setNamedEntity(JsonObj annotation, String ne) {
+        setFeature(annotation, "ne", ne);
+    }
+
+    public void setError(String msg, String stacktrace) {
+        this.setDiscriminator(Discriminators.Uri.ERROR);
+        error.put("message", msg );
+        error.put("stacktrace", stacktrace);
     }
 
     public void setFeature(JsonObj annotation, String name,  Object value) {
@@ -160,6 +264,8 @@ public class LIFJsonSerialization {
             payload.put("metadata", metadata);
             payload.put("text", text);
             payload.put("views", views);
+        } else if(discriminator.equals(Discriminators.Uri.ERROR)) {
+            json.put("payload" ,error);
         }
         return json.toString();
     }

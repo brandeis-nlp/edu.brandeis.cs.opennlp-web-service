@@ -1,12 +1,11 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
 
-import org.lappsgrid.discriminator.Discriminators;
-import org.lappsgrid.serialization.json.LIFJsonSerialization;
 import org.junit.Assert;
 import org.junit.Test;
-import org.lappsgrid.serialization.json.JsonArr;
+import org.lappsgrid.discriminator.Discriminators;
 import org.lappsgrid.serialization.json.JsonObj;
+import org.lappsgrid.serialization.json.LIFJsonSerialization;
 
 public class TestLIFJsonSerialization {
     public static final String json = "{\n" +

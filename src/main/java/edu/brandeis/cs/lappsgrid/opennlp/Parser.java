@@ -3,8 +3,12 @@ package edu.brandeis.cs.lappsgrid.opennlp;
 import edu.brandeis.cs.lappsgrid.api.opennlp.IParser;
 import opennlp.tools.cmdline.parser.ParserTool;
 import opennlp.tools.parser.Parse;
+import org.lappsgrid.serialization.json.JsonObj;
+import org.lappsgrid.serialization.json.LIFJsonSerialization;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * <i>Parser.java</i> Language Application Grids
@@ -168,9 +172,21 @@ public class Parser extends OpenNLPAbstractWebService implements IParser {
 		return builder.toString();
 	}
 
+
     @Override
-    public String execute(String s) {
-        return null;
+    public String execute(LIFJsonSerialization json) throws OpenNLPWebServiceException {
+        String txt = json.getText();
+        JsonObj view = json.newView();
+
+
+        json.newContains(view, "Parse", "parser:opennlp", this.getClass().getName() + ":" + VERSION);
+        List<JsonObj> annotationObjs = json.findLastAnnotations();
+        for(int i = 0; i < annotationObjs.size(); i++ ) {
+            String s = json.getAnnotationText(annotationObjs.get(i));
+            JsonObj annotation = json.newAnnotation(view, annotationObjs.get(i));
+            json.setFeature(annotation, "pattern", parse(s));
+        }
+        return json.toString();
     }
 
     @Override

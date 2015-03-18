@@ -1,11 +1,10 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
-import java.util.Arrays;
-
 import junit.framework.TestCase;
-
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.Arrays;
 
 /**
  * <i>TestOpenNLP.java</i> Language Application Grids (<b>LAPPS</b>)

@@ -45,7 +45,7 @@ public class TestNamedEntityRecognizer extends TestService {
 		System.out.println(Arrays.toString(tokens));
 		Span[] spans = ner.find(tokens);
 		System.out.println(Arrays.toString(spans));
-		Span[] goldSpans = { new Span(0, 1, "person"), new Span(2, 3, "person"), new Span(11,12,"location") };
+		Span[] goldSpans = { new Span(11,12,"location") , new Span(0, 1, "person"), new Span(2, 3, "person")};
 		Assert.assertArrayEquals("NamedEntityRecognizer Failure.", spans,
 				goldSpans);
 	}

@@ -2,6 +2,10 @@ package edu.brandeis.cs.lappsgrid.opennlp;
 
 import edu.brandeis.cs.lappsgrid.api.opennlp.IPOSTagger;
 import opennlp.tools.util.Sequence;
+import opennlp.tools.util.Span;
+import org.lappsgrid.discriminator.Discriminators;
+import org.lappsgrid.serialization.json.JsonObj;
+import org.lappsgrid.serialization.json.LIFJsonSerialization;
 
 /**
  * <i>POSTagger.java</i> Language Application Grids (<b>LAPPS</b>)
@@ -109,8 +113,23 @@ public class POSTagger extends OpenNLPAbstractWebService implements IPOSTagger  
 	}
 
     @Override
-    public String execute(String s) {
-        return null;
+    public String execute(LIFJsonSerialization json) throws OpenNLPWebServiceException {
+        logger.info("execute(): Execute OpenNLP tokenizer ...");
+        String txt = json.getText();
+        JsonObj view = json.newView();
+
+        json.newContains(view, Discriminators.Uri.TOKEN,
+                "tagger:opennlp", this.getClass().getName() + ":" + VERSION);
+        json.setIdHeader("tok");
+        String [] tags = tag(new String[]{txt});
+
+        for(int i = 0; i < tags.length; i++) {
+            JsonObj annotation =  json.newAnnotation(view, Discriminators.Uri.POS);
+            json.setStart(annotation, 0);
+            json.setEnd(annotation, txt.length());
+            json.setPOSTag(annotation, tags[i]);
+        }
+        return json.toString();
     }
 
     @Override

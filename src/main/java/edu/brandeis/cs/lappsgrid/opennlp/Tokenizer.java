@@ -2,6 +2,9 @@ package edu.brandeis.cs.lappsgrid.opennlp;
 
 import edu.brandeis.cs.lappsgrid.api.opennlp.ITokenizer;
 import opennlp.tools.util.Span;
+import org.lappsgrid.discriminator.Discriminators;
+import org.lappsgrid.serialization.json.JsonObj;
+import org.lappsgrid.serialization.json.LIFJsonSerialization;
 
 /**
  * <i>Tokenizer.java</i> Language Application Grids (<b>LAPPS</b>)
@@ -22,7 +25,7 @@ public class Tokenizer extends OpenNLPAbstractWebService implements ITokenizer {
         }
 	}
 
-//
+
 //
 //    @Override
 //    public Data execute(Data data) {
@@ -84,8 +87,21 @@ public class Tokenizer extends OpenNLPAbstractWebService implements ITokenizer {
 	}
 
     @Override
-    public String execute(String s) {
-        return null;
+    public String execute(LIFJsonSerialization json) throws OpenNLPWebServiceException {
+        logger.info("execute(): Execute OpenNLP tokenizer ...");
+        String txt = json.getText();
+        JsonObj view = json.newView();
+        json.newContains(view, Discriminators.Uri.TOKEN,
+                "tokenizer:opennlp", this.getClass().getName() + ":" + VERSION);
+        json.setIdHeader("tok");
+        Span[] spans = tokenizePos(txt);
+        for (Span span : spans) {
+            int start = span.getStart();
+            int end = span.getEnd();
+            JsonObj ann = json.newAnnotation(view, Discriminators.Uri.TOKEN, start, end);
+            json.setWord(ann, txt.substring(start, end));
+        }
+        return json.toString();
     }
 
     @Override
