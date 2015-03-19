@@ -1,7 +1,6 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
 import edu.brandeis.cs.lappsgrid.api.opennlp.IOpenNLP;
-import edu.brandeis.cs.lappsgrid.api.opennlp.IVersion;
 import edu.brandeis.cs.lappsgrid.util.FileLoadUtil;
 import edu.brandeis.cs.lappsgrid.util.SplitMergeUtil;
 import opennlp.tools.chunker.ChunkSample;
@@ -70,7 +69,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Chunqi Shi ( <i>shicq@cs.brandeis.edu</i> )<br>Nov 21, 2013<br>
  * 
  */
-public class OpenNLP implements IOpenNLP , IVersion {
+public class OpenNLP implements IOpenNLP {
 	protected static final Logger logger = LoggerFactory
 			.getLogger(OpenNLP.class);
 

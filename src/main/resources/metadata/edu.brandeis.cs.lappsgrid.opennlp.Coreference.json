@@ -9,11 +9,11 @@
   "requires" : {
     "language" : [ "en" ],
     "format" : [ "http://vocab.lappsgrid.org/ns/media/jsonld#lif" ],
-    "annotations" : [ "http://vocab.lappsgrid.org/Markable#coref" ]
+    "annotations" : [ "http://vocab.lappsgrid.org/Coreference" ]
   },
   "produces" : {
     "language" : [ "en" ],
     "format" : [ "http://vocab.lappsgrid.org/ns/media/jsonld#lif" ],
-    "annotations" : [ "http://vocab.lappsgrid.org/Markable#coref" ]
+    "annotations" : [ "http://vocab.lappsgrid.org/Coreference" ]
   }
 }
