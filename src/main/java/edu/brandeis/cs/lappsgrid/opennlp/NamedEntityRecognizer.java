@@ -240,10 +240,4 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
         }
         return json.toString();
     }
-
-
-    @Override
-    public String getMetadata() {
-        return null;
-    }
 }

@@ -417,9 +417,4 @@ public class Coreference extends OpenNLPAbstractWebService {
         }
         return json.toString();
     }
-
-    @Override
-    public String getMetadata() {
-        return null;
-    }
 }

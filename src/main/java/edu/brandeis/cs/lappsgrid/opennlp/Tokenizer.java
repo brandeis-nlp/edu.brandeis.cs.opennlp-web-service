@@ -103,9 +103,4 @@ public class Tokenizer extends OpenNLPAbstractWebService implements ITokenizer {
         }
         return json.toString();
     }
-
-    @Override
-    public String getMetadata() {
-        return null;
-    }
 }

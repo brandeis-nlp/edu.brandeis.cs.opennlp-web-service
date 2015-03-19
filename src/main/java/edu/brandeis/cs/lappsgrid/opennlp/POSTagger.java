@@ -131,9 +131,4 @@ public class POSTagger extends OpenNLPAbstractWebService implements IPOSTagger  
         }
         return json.toString();
     }
-
-    @Override
-    public String getMetadata() {
-        return null;
-    }
 }

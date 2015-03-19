@@ -188,9 +188,4 @@ public class Parser extends OpenNLPAbstractWebService implements IParser {
         }
         return json.toString();
     }
-
-    @Override
-    public String getMetadata() {
-        return null;
-    }
 }

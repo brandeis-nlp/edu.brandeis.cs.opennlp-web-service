@@ -70,9 +70,4 @@ public class Splitter  extends OpenNLPAbstractWebService implements ISplitter {
         }
         return json.toString();
     }
-
-    @Override
-    public String getMetadata() {
-        return null;
-    }
 }

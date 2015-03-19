@@ -19,8 +19,10 @@ import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.Span;
 import opennlp.tools.util.model.BaseModel;
+import org.apache.commons.io.IOUtils;
 import org.lappsgrid.api.WebService;
 import org.lappsgrid.discriminator.Discriminators;
+import org.lappsgrid.serialization.json.JsonObj;
 import org.lappsgrid.serialization.json.LIFJsonSerialization;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +35,7 @@ import java.util.Properties;
 /**
  * Created by shicq on 3/6/14.
  */
+
 public abstract class OpenNLPAbstractWebService implements WebService , IVersion {
     protected static final Map<Class, String> registModelMap = new HashMap<Class, String>();
     protected static final Map<String, BaseModel> models = new HashMap<String, BaseModel>();
@@ -336,6 +339,37 @@ public abstract class OpenNLPAbstractWebService implements WebService , IVersion
             StringWriter sw = new StringWriter();
             th.printStackTrace( new PrintWriter(sw));
             json.setError(th.getMessage(), sw.toString());
+            return json.toString();
+        }
+    }
+
+
+
+    @Override
+    public String getMetadata() {
+        // get caller name using reflection
+        String name = this.getClass().getName();
+        //
+        String resName = "/metadata/"+ name +".json";
+//        System.out.println("load resources:" + resName);
+        logger.info("load resources:" + resName);
+        try {
+            String meta = IOUtils.toString(this.getClass().getResourceAsStream(resName));
+            JsonObj json = new JsonObj();
+            json.put("discriminator", Discriminators.Uri.META);
+            json.put("payload", new JsonObj(meta));
+            return json.toString();
+        }catch (Throwable th) {
+            JsonObj json = new JsonObj();
+            json.put("discriminator", Discriminators.Uri.ERROR);
+            JsonObj error = new JsonObj();
+            error.put("class", name);
+            error.put("error", "NOT EXIST: "+resName);
+            error.put("message", th.getMessage());
+            StringWriter sw = new StringWriter();
+            th.printStackTrace( new PrintWriter(sw));
+            error.put("stacktrace", sw.toString());
+            json.put("payload", error);
             return json.toString();
         }
     }
