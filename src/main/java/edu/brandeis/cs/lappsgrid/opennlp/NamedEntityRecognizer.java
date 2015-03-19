@@ -1,5 +1,6 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
+import edu.brandeis.cs.lappsgrid.Version;
 import edu.brandeis.cs.lappsgrid.api.opennlp.INamedEntityRecognizer;
 import opennlp.tools.namefind.TokenNameFinder;
 import opennlp.tools.util.Span;
@@ -222,7 +223,7 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
         JsonObj view = json.newView();
 
         json.newContains(view, Discriminators.Uri.TOKEN,
-                "ner:opennlp", this.getClass().getName() + ":" + VERSION);
+                "ner:opennlp", this.getClass().getName() + ":" + Version.getVersion());
         json.setIdHeader("tok");
         List<JsonObj> tokenObjs = json.findLastAnnotations();
         String[] tokens = new String[tokenObjs.size()];

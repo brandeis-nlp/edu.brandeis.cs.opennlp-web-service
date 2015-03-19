@@ -9,11 +9,11 @@
   "requires" : {
     "language" : [ "en" ],
     "format" : [ "http://vocab.lappsgrid.org/ns/media/jsonld#lif" ],
-    "annotations" : [ "http://vocab.lappsgrid.org/Token#ne" ]
+    "annotations" : [ "http://vocab.lappsgrid.org/NamedEntity" ]
   },
   "produces" : {
     "language" : [ "en" ],
     "format" : [ "http://vocab.lappsgrid.org/ns/media/jsonld#lif" ],
-    "annotations" : [ "http://vocab.lappsgrid.org/Token#ne" ]
+    "annotations" : [ "http://vocab.lappsgrid.org/NamedEntity" ]
   }
 }

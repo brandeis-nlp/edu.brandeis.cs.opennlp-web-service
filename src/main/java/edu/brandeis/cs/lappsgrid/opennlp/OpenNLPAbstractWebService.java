@@ -1,6 +1,5 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
-import edu.brandeis.cs.lappsgrid.api.opennlp.IVersion;
 import opennlp.tools.coref.DefaultLinker;
 import opennlp.tools.coref.Linker;
 import opennlp.tools.coref.LinkerMode;
@@ -36,7 +35,7 @@ import java.util.Properties;
  * Created by shicq on 3/6/14.
  */
 
-public abstract class OpenNLPAbstractWebService implements WebService , IVersion {
+public abstract class OpenNLPAbstractWebService implements WebService {
     protected static final Map<Class, String> registModelMap = new HashMap<Class, String>();
     protected static final Map<String, BaseModel> models = new HashMap<String, BaseModel>();
     protected static final Properties prop = new Properties();

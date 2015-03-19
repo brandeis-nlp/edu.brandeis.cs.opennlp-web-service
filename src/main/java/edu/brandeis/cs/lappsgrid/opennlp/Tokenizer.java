@@ -1,5 +1,6 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
+import edu.brandeis.cs.lappsgrid.Version;
 import edu.brandeis.cs.lappsgrid.api.opennlp.ITokenizer;
 import opennlp.tools.util.Span;
 import org.lappsgrid.discriminator.Discriminators;
@@ -92,7 +93,7 @@ public class Tokenizer extends OpenNLPAbstractWebService implements ITokenizer {
         String txt = json.getText();
         JsonObj view = json.newView();
         json.newContains(view, Discriminators.Uri.TOKEN,
-                "tokenizer:opennlp", this.getClass().getName() + ":" + VERSION);
+                "tokenizer:opennlp", this.getClass().getName() + ":" + Version.getVersion());
         json.setIdHeader("tok");
         Span[] spans = tokenizePos(txt);
         for (Span span : spans) {

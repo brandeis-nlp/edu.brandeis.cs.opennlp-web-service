@@ -1,5 +1,6 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
+import edu.brandeis.cs.lappsgrid.Version;
 import edu.brandeis.cs.lappsgrid.api.opennlp.ISplitter;
 import opennlp.tools.sentdetect.SentenceDetector;
 import opennlp.tools.util.Span;
@@ -58,7 +59,7 @@ public class Splitter  extends OpenNLPAbstractWebService implements ISplitter {
         String txt = json.getText();
         JsonObj view = json.newView();
         json.newContains(view, Discriminators.Uri.SENTENCE,
-                "splitter:opennlp", this.getClass().getName() + ":" + VERSION);
+                "splitter:opennlp", this.getClass().getName() + ":" + Version.getVersion());
 
         json.setIdHeader("tok");
         Span[] spans = sentPosDetect(txt);

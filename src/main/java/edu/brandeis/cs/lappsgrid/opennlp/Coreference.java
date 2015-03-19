@@ -1,5 +1,6 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
+import edu.brandeis.cs.lappsgrid.Version;
 import org.lappsgrid.serialization.json.LIFJsonSerialization;
 import opennlp.tools.coref.DiscourseEntity;
 import opennlp.tools.coref.Linker;
@@ -110,11 +111,11 @@ public class Coreference extends OpenNLPAbstractWebService {
         wlif.setText(text);
         JsonObj view = wlif.newView();
         wlif.newContains(view, "Token", "opennlp:token",
-                "edu.brandeis.cs.lappsgrid.opennlp.Coreference");
+                this.getClass().getName() + ":" + Version.getVersion());
         wlif.newContains(view, "Markable", "opennlp:markable",
-                "edu.brandeis.cs.lappsgrid.opennlp.Coreference");
+                this.getClass().getName() + ":" + Version.getVersion());
         wlif.newContains(view, "Coreference", "opennlp:coreference",
-                "edu.brandeis.cs.lappsgrid.opennlp.Coreference");
+                this.getClass().getName() + ":" + Version.getVersion());
         // get modelling resources
         final SentenceDetectorME sentDetector = this.loadSentenceDetector("Sentence-Detector");
         final TokenizerME tokenizer = this.loadTokenizer("Tokenizer");

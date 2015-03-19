@@ -1,5 +1,6 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
+import edu.brandeis.cs.lappsgrid.Version;
 import edu.brandeis.cs.lappsgrid.api.opennlp.IPOSTagger;
 import opennlp.tools.util.Sequence;
 import opennlp.tools.util.Span;
@@ -119,7 +120,7 @@ public class POSTagger extends OpenNLPAbstractWebService implements IPOSTagger  
         JsonObj view = json.newView();
 
         json.newContains(view, Discriminators.Uri.TOKEN,
-                "tagger:opennlp", this.getClass().getName() + ":" + VERSION);
+                "tagger:opennlp", this.getClass().getName() + ":" + Version.getVersion());
         json.setIdHeader("tok");
         String [] tags = tag(new String[]{txt});
 
