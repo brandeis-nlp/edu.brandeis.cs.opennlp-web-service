@@ -305,8 +305,10 @@ public abstract class OpenNLPAbstractWebService implements WebService {
         String linkerModel = prop.getProperty(modelName, "coref");
         logger.info("init(): load opennlp-web-service.properties.");
         try {
-            linker = new DefaultLinker(this.getClass().getResource("/" + linkerModel).getPath(), LinkerMode.TEST);
-        } catch (IOException e) {
+            linker = new DefaultLinker( new File(
+                    this.getClass().getResource("/" + linkerModel).toURI()).getAbsolutePath(),
+                    LinkerMode.TEST);
+        } catch (Exception e) {
             logger.error("init(): fail to load Linker \"" + linkerModel
                     + "\".");
             throw new OpenNLPWebServiceException(
