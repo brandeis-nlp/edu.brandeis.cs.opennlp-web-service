@@ -64,11 +64,20 @@ public class LIFJsonSerialization {
         if (discriminator.equals(Discriminators.Uri.TEXT)) {
             text = new JsonObj();
             text.put("@value", json.getString("payload"));
+            // reinitialize other parts.
+            discriminator = Discriminators.Uri.JSON_LD;
+            payload = new JsonObj();
+            metadata =  new JsonObj();
+            views = new JsonArr();
         } else if(discriminator.equals(Discriminators.Uri.JSON_LD)) {
             payload = json.getJsonObj("payload");
             text = payload.getJsonObj("text");
             metadata = payload.getJsonObj("metadata");
+            if (metadata == null)
+                metadata = new JsonObj();
             views =  payload.getJsonArr("views");
+            if (views == null)
+                views = new JsonArr();
         }
     }
 
@@ -236,8 +245,10 @@ public class LIFJsonSerialization {
 
     public void setError(String msg, String stacktrace) {
         this.setDiscriminator(Discriminators.Uri.ERROR);
-        error.put("message", msg );
-        error.put("stacktrace", stacktrace);
+        JsonObj val = new JsonObj();
+        val.put("@value", msg);
+        val.put("stacktrace", stacktrace);
+        error.put("text",  val);
     }
 
     public void setFeature(JsonObj annotation, String name,  Object value) {

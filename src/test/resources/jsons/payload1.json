@@ -1,0 +1,4 @@
+{
+  "discriminator": "http://vocab.lappsgrid.org/ns/media/text",
+  "payload": "Hello world"
+}

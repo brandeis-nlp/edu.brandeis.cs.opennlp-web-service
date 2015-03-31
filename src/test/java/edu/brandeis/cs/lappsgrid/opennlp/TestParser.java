@@ -23,8 +23,6 @@ public class TestParser extends TestService {
 
     @Before
     public void data() throws IOException {
-        java.io.InputStream in =  this.getClass().getClassLoader().getResourceAsStream("splitter.json");
-        payload = IOUtils.toString(in);
 
     }
 

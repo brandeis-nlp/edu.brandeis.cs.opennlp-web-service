@@ -34,8 +34,6 @@ public class TestNamedEntityRecognizer extends TestService {
 
     @Before
     public void data() throws IOException {
-        java.io.InputStream in =  this.getClass().getClassLoader().getResourceAsStream("tokens.json");
-        payload = IOUtils.toString(in);
 
     }
 	@Test

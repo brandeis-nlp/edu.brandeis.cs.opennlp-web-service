@@ -5,9 +5,13 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.lappsgrid.serialization.Data;
+import org.lappsgrid.serialization.Serializer;
+import org.lappsgrid.serialization.lif.Container;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Map;
 
 /**
  * <i>TestTokenizer.java</i> Language Application Grids (<b>LAPPS</b>)
@@ -29,8 +33,6 @@ public class TestTokenizer extends TestService {
 
     @Before
     public void data() throws IOException {
-        java.io.InputStream in =  this.getClass().getClassLoader().getResourceAsStream("splitter.json");
-        payload = IOUtils.toString(in);
 
     }
 	
@@ -54,6 +56,24 @@ public class TestTokenizer extends TestService {
 
     @Test
     public void testExecute(){
+        System.out.println("/-----------------------------------\\");
+        String json = tokenizer.execute(jsons.get("payload1.json"));
+        System.out.println(json);
 
+        Container container = new Container((Map)Serializer.parse(json, Data.class).getPayload());
+
+        json = tokenizer.execute(jsons.get("payload2.json"));
+        System.out.println(json);
+        container = new Container((Map) Serializer.parse(json, Data.class).getPayload());
+
+        json = tokenizer.execute(jsons.get("payload3.json"));
+        System.out.println(json);
+        container = new Container((Map) Serializer.parse(json, Data.class).getPayload());
+
+        json = tokenizer.execute(jsons.get("splitter.json"));
+        System.out.println(json);
+        container = new Container((Map) Serializer.parse(json, Data.class).getPayload());
+
+        System.out.println("\\-----------------------------------/\n");
     }
 }

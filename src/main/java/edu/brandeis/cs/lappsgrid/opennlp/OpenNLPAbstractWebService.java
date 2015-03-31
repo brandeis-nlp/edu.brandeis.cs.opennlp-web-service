@@ -325,21 +325,22 @@ public abstract class OpenNLPAbstractWebService implements WebService {
         try{
             s = s.trim();
             if (s.startsWith("{") && s.endsWith("}")) {
-                json = new LIFJsonSerialization();
-                json.setDiscriminator(s);
-                json.setDiscriminator(Discriminators.Uri.TEXT);
-            } else {
                 json = new LIFJsonSerialization(s);
                 if (json.getDiscriminator().equals(Discriminators.Uri.ERROR)) {
                     return json.toString();
                 }
+            } else {
+                json = new LIFJsonSerialization();
+                json.setText(s);
+                json.setDiscriminator(Discriminators.Uri.TEXT);
             }
             return execute(json);
         }catch(Throwable th) {
             json = new LIFJsonSerialization();
             StringWriter sw = new StringWriter();
             th.printStackTrace( new PrintWriter(sw));
-            json.setError(th.getMessage(), sw.toString());
+            json.setError(th.toString(), sw.toString());
+            System.err.println(sw.toString());
             return json.toString();
         }
     }
