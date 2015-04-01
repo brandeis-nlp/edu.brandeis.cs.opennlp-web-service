@@ -229,8 +229,6 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
 
         if (tokenObjs == null || tokenObjs.size() == 0)  {
             // is word.
-            System.err.println(tokenObjs);
-            System.err.println("Hello World".matches("[a-zA-Z]+"));
             if (txt.matches("[a-zA-Z]+")) {
                 for (TokenNameFinder nameFinder : nameFinders) {
                     Span [] partSpans = nameFinder.find(new String[]{txt});
