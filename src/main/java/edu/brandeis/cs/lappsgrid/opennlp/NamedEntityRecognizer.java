@@ -220,15 +220,17 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
     public String execute(LIFJsonSerialization json) throws OpenNLPWebServiceException {
         logger.info("execute(): Execute OpenNLP ner ...");
         String txt = json.getText();
-        JsonObj view = json.newView();
+        List<JsonObj> tokenObjs = json.getLastViewAnnotations();
 
+        JsonObj view = json.newView();
         json.newContains(view, Discriminators.Uri.TOKEN,
                 "ner:opennlp", this.getClass().getName() + ":" + Version.getVersion());
         json.setIdHeader("tok");
 
-        List<JsonObj> tokenObjs = json.getLastViewAnnotations();
-        if (tokenObjs == null) {
+        if (tokenObjs == null || tokenObjs.size() == 0)  {
             // is word.
+            System.err.println(tokenObjs);
+            System.err.println("Hello World".matches("[a-zA-Z]+"));
             if (txt.matches("[a-zA-Z]+")) {
                 for (TokenNameFinder nameFinder : nameFinders) {
                     Span [] partSpans = nameFinder.find(new String[]{txt});
@@ -237,7 +239,8 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
                         json.setStart(annotation, 0);
                         json.setEnd(annotation, txt.length());
                         json.setLabel(annotation, Discriminators.Uri.NE);
-                        json.setFeature(annotation, "category", span.getType());
+                        json.setWord(annotation,txt);
+                        json.setCategory(annotation, span.getType());
                     }
                 }
             } else {
@@ -255,7 +258,8 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
                     JsonObj org = tokenObjs.get(span.getStart());
                     JsonObj annotation = json.newAnnotation(view, org);
                     json.setLabel(annotation, Discriminators.Uri.NE);
-                    json.setFeature(annotation, "category", span.getType());
+                    json.setWord(annotation, json.getAnnotationText(annotation));
+                    json.setCategory(annotation, span.getType());
                 }
             }
         }

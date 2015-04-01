@@ -196,6 +196,11 @@ public class LIFJsonSerialization {
     public void setWord(JsonObj annotation, String word) {
         setFeature(annotation, "word", word);
     }
+
+    public void setCategory(JsonObj annotation, String word) {
+        setFeature(annotation, "category", word);
+    }
+
     public List<JsonObj> getLastViewAnnotations() {
         ArrayList<JsonObj> lastAnnotations = null;
         if(views.length() > 0) {

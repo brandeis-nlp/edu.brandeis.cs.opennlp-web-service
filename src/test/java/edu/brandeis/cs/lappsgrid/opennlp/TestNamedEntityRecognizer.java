@@ -61,6 +61,10 @@ public class TestNamedEntityRecognizer extends TestService {
         System.out.println(json);
         Container container = new Container((Map) Serializer.parse(json, Data.class).getPayload());
 
+        json = ner.execute("Hello Mike");
+        System.out.println(json);
+        container = new Container((Map) Serializer.parse(json, Data.class).getPayload());
+
         json = ner.execute(jsons.get("payload1.json"));
         System.out.println(json);
         container = new Container((Map) Serializer.parse(json, Data.class).getPayload());

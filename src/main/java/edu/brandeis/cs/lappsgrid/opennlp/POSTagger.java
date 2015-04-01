@@ -119,13 +119,14 @@ public class POSTagger extends OpenNLPAbstractWebService implements IPOSTagger  
     public String execute(LIFJsonSerialization json) throws OpenNLPWebServiceException {
         logger.info("execute(): Execute OpenNLP tokenizer ...");
         String txt = json.getText();
+        List<JsonObj> tokenAnns = json.getLastViewAnnotations();
+
         JsonObj view = json.newView();
         json.newContains(view, Discriminators.Uri.POS,
                 "tagger:opennlp", this.getClass().getName() + ":" + Version.getVersion());
         json.setIdHeader("tok");
 
-        List<JsonObj> tokenAnns = json.getLastViewAnnotations();
-        if (tokenAnns == null) {
+        if (tokenAnns == null || tokenAnns.size() == 0) {
             // is word.
             if (txt.matches("[a-zA-Z]+")) {
                 String [] tags = tag(new String []{txt});
