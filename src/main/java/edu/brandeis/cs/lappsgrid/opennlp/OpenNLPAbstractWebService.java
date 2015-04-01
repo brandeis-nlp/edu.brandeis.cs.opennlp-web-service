@@ -332,7 +332,6 @@ public abstract class OpenNLPAbstractWebService implements WebService {
             } else {
                 json = new LIFJsonSerialization();
                 json.setText(s);
-                json.setDiscriminator(Discriminators.Uri.TEXT);
             }
             return execute(json);
         }catch(Throwable th) {

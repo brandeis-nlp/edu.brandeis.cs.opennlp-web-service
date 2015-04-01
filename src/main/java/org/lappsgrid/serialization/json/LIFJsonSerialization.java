@@ -25,7 +25,7 @@ public class LIFJsonSerialization {
     JsonObj json = null;
 
     String idHeader = "";
-    static int id = 0;
+    int id = 0;
 
     public void setIdHeader(String idh) {
         idHeader = idh;
@@ -196,7 +196,7 @@ public class LIFJsonSerialization {
     public void setWord(JsonObj annotation, String word) {
         setFeature(annotation, "word", word);
     }
-    public List<JsonObj> findLastAnnotations() {
+    public List<JsonObj> getLastViewAnnotations() {
         ArrayList<JsonObj> lastAnnotations = null;
         if(views.length() > 0) {
             for(int i = views.length() - 1; i >= 0; i--) {
@@ -236,6 +236,23 @@ public class LIFJsonSerialization {
         setFeature(annotation, "sentence", sent);
     }
 
+
+    public String getLabel(JsonObj annotation) {
+        return annotation.getString("label");
+    }
+
+    public String getId(JsonObj annotation) {
+        return annotation.getString("id");
+    }
+
+    public void setLabel(JsonObj annotation, String label) {
+        annotation.put("label", label);
+    }
+
+    public void setId(JsonObj annotation, String id) {
+        annotation.put("id", id);
+    }
+
     public void setPOSTag(JsonObj annotation, String posTag) {
         setFeature(annotation, "pos", posTag);
     }
@@ -250,6 +267,28 @@ public class LIFJsonSerialization {
         val.put("stacktrace", stacktrace);
         error.put("text",  val);
     }
+
+//    public List<JsonObj> getLastViewAnnotations(String lastAnnotationType) {
+//        ArrayList<JsonObj> lastAnnotations = null;
+//        if(views.length() > 0) {
+//            for(int i = views.length() - 1; i >= 0; i--) {
+//                JsonObj lastView = views.getJsonObj(i);
+//                JsonObj lastViewMeta = lastView.getJsonObj("metadata");
+//                JsonArr lastViewAnnotations = lastView.getJsonArr("annotations");
+//                JsonObj lastViewContains = lastViewMeta.getJsonObj("contains");
+//                if (lastViewContains.has(lastAnnotationType)) {
+//                    lastAnnotations = new ArrayList<JsonObj>(lastViewAnnotations.length());
+//                    for(int j = 0; j < lastViewAnnotations.length(); j++) {
+//                        JsonObj lastStepAnnotation = lastViewAnnotations.getJsonObj(j);
+//                        lastAnnotations.add(lastStepAnnotation);
+//                    }
+//                    break;
+//                }
+//            }
+//        }
+//        return lastAnnotations;
+//    }
+
 
     public void setFeature(JsonObj annotation, String name,  Object value) {
         JsonObj features = annotation.getJsonObj("features");

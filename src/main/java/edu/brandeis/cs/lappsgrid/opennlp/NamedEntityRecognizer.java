@@ -225,7 +225,8 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
         json.newContains(view, Discriminators.Uri.TOKEN,
                 "ner:opennlp", this.getClass().getName() + ":" + Version.getVersion());
         json.setIdHeader("tok");
-        List<JsonObj> tokenObjs = json.findLastAnnotations();
+
+        List<JsonObj> tokenObjs = json.getLastViewAnnotations();
         String[] tokens = new String[tokenObjs.size()];
         for(int i = 0; i < tokens.length; i++ ) {
             tokens[i] = json.getAnnotationText(tokenObjs.get(i));
@@ -235,7 +236,7 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
             Span [] partSpans = nameFinder.find(tokens);
             for (Span span:partSpans){
                 JsonObj org = tokenObjs.get(span.getStart());
-                JsonObj annotation = json.newAnnotation(view,org);
+                JsonObj annotation = json.newAnnotation(view, org);
                 json.setFeature(annotation, "category", span.getType());
             }
         }

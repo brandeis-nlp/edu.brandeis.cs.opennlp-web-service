@@ -8,6 +8,8 @@ import org.lappsgrid.discriminator.Discriminators;
 import org.lappsgrid.serialization.json.JsonObj;
 import org.lappsgrid.serialization.json.LIFJsonSerialization;
 
+import java.util.List;
+
 /**
  * <i>POSTagger.java</i> Language Application Grids (<b>LAPPS</b>)
  * <p> 
@@ -118,17 +120,36 @@ public class POSTagger extends OpenNLPAbstractWebService implements IPOSTagger  
         logger.info("execute(): Execute OpenNLP tokenizer ...");
         String txt = json.getText();
         JsonObj view = json.newView();
-
-        json.newContains(view, Discriminators.Uri.TOKEN,
+        json.newContains(view, Discriminators.Uri.POS,
                 "tagger:opennlp", this.getClass().getName() + ":" + Version.getVersion());
         json.setIdHeader("tok");
-        String [] tags = tag(new String[]{txt});
 
-        for(int i = 0; i < tags.length; i++) {
-            JsonObj annotation =  json.newAnnotation(view, Discriminators.Uri.POS);
-            json.setStart(annotation, 0);
-            json.setEnd(annotation, txt.length());
-            json.setPOSTag(annotation, tags[i]);
+        List<JsonObj> tokenAnns = json.getLastViewAnnotations();
+        if (tokenAnns == null) {
+            // is word.
+            if (txt.matches("[a-zA-Z]+")) {
+                String [] tags = tag(new String []{txt});
+                for(int i = 0; i < tags.length; i++) {
+                    JsonObj annotation =  json.newAnnotation(view);
+                    json.setStart(annotation, 0);
+                    json.setEnd(annotation, txt.length());
+                    json.setLabel(annotation, Discriminators.Uri.POS);
+                    json.setPOSTag(annotation, tags[i]);
+                }
+            } else {
+                throw new OpenNLPWebServiceException("Wrong Input: CANNOT find " + Discriminators.Uri.TOKEN);
+            }
+        } else {
+            String [] tokens = new String [tokenAnns.size()];
+            for (int i = 0; i < tokenAnns.size(); i ++) {
+                tokens[i] = json.getAnnotationText(tokenAnns.get(i));
+            }
+            String [] tags = tag(tokens);
+            for(int i = 0; i < tags.length; i++) {
+                JsonObj annotation =  json.newAnnotation(view, tokenAnns.get(i));
+                json.setLabel(annotation, Discriminators.Uri.POS);
+                json.setPOSTag(annotation, tags[i]);
+            }
         }
         return json.toString();
     }

@@ -48,10 +48,19 @@ public class TestPOSTagger extends TestService {
     public void testExecute(){
 
         System.out.println("/-----------------------------------\\");
-        String json = postagger.execute(jsons.get("payload1.json"));
-        System.out.println(json);
 
+        String json = postagger.execute("Good");
+        System.out.println(json);
         Container container = new Container((Map) Serializer.parse(json, Data.class).getPayload());
+
+
+        json = postagger.execute("Good Morning");
+        System.out.println(json);
+        container = new Container((Map) Serializer.parse(json, Data.class).getPayload());
+
+        json = postagger.execute(jsons.get("payload1.json"));
+        System.out.println(json);
+        container = new Container((Map) Serializer.parse(json, Data.class).getPayload());
 
         json = postagger.execute(jsons.get("payload2.json"));
         System.out.println(json);
@@ -64,6 +73,7 @@ public class TestPOSTagger extends TestService {
         json = postagger.execute(jsons.get("tokens.json"));
         System.out.println(json);
         container = new Container((Map) Serializer.parse(json, Data.class).getPayload());
+
 
         System.out.println("\\-----------------------------------/\n");
     }

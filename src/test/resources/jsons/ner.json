@@ -1,166 +1,88 @@
 {
-    "text": {
-        "@value": "Hi. How are you? This is Mike."
+  "discriminator": "http://vocab.lappsgrid.org/ns/media/jsonld",
+  "payload": {
+    "metadata": {
+
     },
-    "steps": [
-        {
-            "annotations": [
-                {
-                    "id": "s0",
-                    "start": 0,
-                    "@type": "Sentence",
-                    "end": 16
-                },
-                {
-                    "id": "s1",
-                    "start": 17,
-                    "@type": "Sentence",
-                    "end": 30
-                }
-            ],
-            "metadata": {
-                "contains": {
-                    "Sentence": {
-                        "producer": "edu.brandeis.cs.lappsgrid.opennlp.Splitter:0.0.4",
-                        "type": "splitter:opennlp"
-                    }
-                }
+    "text": {
+      "@value": "Hello world"
+    },
+    "views": [
+      {
+        "metadata": {
+          "contains": {
+            "http://vocab.lappsgrid.org/Token": {
+              "producer": "org.anc.lapps.stanford.Tokenizer:2.0.0",
+              "type": "stanford"
             }
+          }
         },
-        {
-            "annotations": [
-                {
-                    "id": "tok0",
-                    "start": 0,
-                    "@type": "Token",
-                    "features": {
-                        "word": "Hi"
-                    },
-                    "end": 2
-                },
-                {
-                    "id": "tok1",
-                    "start": 2,
-                    "@type": "Token",
-                    "features": {
-                        "word": "."
-                    },
-                    "end": 3
-                },
-                {
-                    "id": "tok2",
-                    "start": 4,
-                    "@type": "Token",
-                    "features": {
-                        "word": "How"
-                    },
-                    "end": 7
-                },
-                {
-                    "id": "tok3",
-                    "start": 8,
-                    "@type": "Token",
-                    "features": {
-                        "word": "are"
-                    },
-                    "end": 11
-                },
-                {
-                    "id": "tok4",
-                    "start": 12,
-                    "@type": "Token",
-                    "features": {
-                        "word": "you"
-                    },
-                    "end": 15
-                },
-                {
-                    "id": "tok5",
-                    "start": 15,
-                    "@type": "Token",
-                    "features": {
-                        "word": "?"
-                    },
-                    "end": 16
-                },
-                {
-                    "id": "tok6",
-                    "start": 17,
-                    "@type": "Token",
-                    "features": {
-                        "word": "This"
-                    },
-                    "end": 21
-                },
-                {
-                    "id": "tok7",
-                    "start": 22,
-                    "@type": "Token",
-                    "features": {
-                        "word": "is"
-                    },
-                    "end": 24
-                },
-                {
-                    "id": "tok8",
-                    "start": 25,
-                    "@type": "Token",
-                    "features": {
-                        "word": "Mike"
-                    },
-                    "end": 29
-                },
-                {
-                    "id": "tok9",
-                    "start": 29,
-                    "@type": "Token",
-                    "features": {
-                        "word": "."
-                    },
-                    "end": 30
-                }
-            ],
-            "metadata": {
-                "contains": {
-                    "Token": {
-                        "producer": "edu.brandeis.cs.lappsgrid.opennlp.Tokenizer:0.0.4",
-                        "type": "tokenizer:opennlp"
-                    }
-                }
+        "annotations": [
+          {
+            "id": "tok0",
+            "start": 0,
+            "end": 5,
+            "label": "http://vocab.lappsgrid.org/Token",
+            "features": {
+              "word": "Hello"
             }
+          },
+          {
+            "id": "tok1",
+            "start": 6,
+            "end": 11,
+            "label": "http://vocab.lappsgrid.org/Token",
+            "features": {
+              "word": "world"
+            }
+          }
+        ]
+      },
+      {
+        "metadata": {
+          "contains": {
+            "http://vocab.lappsgrid.org/Token#pos": {
+              "producer": "org.anc.lapps.stanford.Tagger:2.0.0",
+              "type": "tagset:penn"
+            }
+          }
         },
-        {
-            "annotations": [
-                {
-                    "id": "ner0",
-                    "start": 0,
-                    "@type": "Token",
-                    "features": {
-                        "ner": "location",
-                        "word": "Hi"
-                    },
-                    "end": 2
-                },
-                {
-                    "id": "ner8",
-                    "start": 25,
-                    "@type": "Token",
-                    "features": {
-                        "ner": "person",
-                        "word": "Mike"
-                    },
-                    "end": 29
-                }
-            ],
-            "metadata": {
-                "contains": {
-                    "Token": {
-                        "producer": "edu.brandeis.cs.lappsgrid.opennlp.NamedEntityRecognizer:0.0.4",
-                        "type": "ner:opennlp"
-                    }
-                }
+        "annotations": [
+          {
+            "id": "tok0",
+            "start": 0,
+            "end": 5,
+            "label": "http://vocab.lappsgrid.org/Token",
+            "features": {
+              "pos": "UH",
+              "word": "Hello"
             }
-        }
-    ],
-    "metadata": {}
+          },
+          {
+            "id": "tok1",
+            "start": 6,
+            "end": 11,
+            "label": "http://vocab.lappsgrid.org/Token",
+            "features": {
+              "pos": "NN",
+              "word": "world"
+            }
+          }
+        ]
+      },
+      {
+        "metadata": {
+          "contains": {
+            "http://vocab.lappsgrid.org/NamedEntity": {
+              "producer": "org.anc.lapps.stanford.NamedEntityRecognizer:2.0.0",
+              "type": "ner:stanford"
+            }
+          }
+        },
+        "annotations": [
+
+        ]
+      }
+    ]
+  }
 }
