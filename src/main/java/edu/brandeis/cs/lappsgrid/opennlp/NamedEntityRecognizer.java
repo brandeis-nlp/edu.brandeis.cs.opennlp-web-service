@@ -227,17 +227,36 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
         json.setIdHeader("tok");
 
         List<JsonObj> tokenObjs = json.getLastViewAnnotations();
-        String[] tokens = new String[tokenObjs.size()];
-        for(int i = 0; i < tokens.length; i++ ) {
-            tokens[i] = json.getAnnotationText(tokenObjs.get(i));
-        }
+        if (tokenObjs == null) {
+            // is word.
+            if (txt.matches("[a-zA-Z]+")) {
+                for (TokenNameFinder nameFinder : nameFinders) {
+                    Span [] partSpans = nameFinder.find(new String[]{txt});
+                    for (Span span:partSpans){
+                        JsonObj annotation =  json.newAnnotation(view);
+                        json.setStart(annotation, 0);
+                        json.setEnd(annotation, txt.length());
+                        json.setLabel(annotation, Discriminators.Uri.NE);
+                        json.setFeature(annotation, "category", span.getType());
+                    }
+                }
+            } else {
+                throw new OpenNLPWebServiceException("Wrong Input: CANNOT find " + Discriminators.Uri.TOKEN);
+            }
+        } else {
+            String[] tokens = new String[tokenObjs.size()];
+            for(int i = 0; i < tokens.length; i++ ) {
+                tokens[i] = json.getAnnotationText(tokenObjs.get(i));
+            }
 
-        for (TokenNameFinder nameFinder : nameFinders) {
-            Span [] partSpans = nameFinder.find(tokens);
-            for (Span span:partSpans){
-                JsonObj org = tokenObjs.get(span.getStart());
-                JsonObj annotation = json.newAnnotation(view, org);
-                json.setFeature(annotation, "category", span.getType());
+            for (TokenNameFinder nameFinder : nameFinders) {
+                Span [] partSpans = nameFinder.find(tokens);
+                for (Span span:partSpans){
+                    JsonObj org = tokenObjs.get(span.getStart());
+                    JsonObj annotation = json.newAnnotation(view, org);
+                    json.setLabel(annotation, Discriminators.Uri.NE);
+                    json.setFeature(annotation, "category", span.getType());
+                }
             }
         }
         return json.toString();

@@ -179,7 +179,7 @@ public class Parser extends OpenNLPAbstractWebService implements IParser {
         String txt = json.getText();
         JsonObj view = json.newView();
         json.newContains(view, "Parse", "parser:opennlp", this.getClass().getName() + ":" + Version.getVersion());
-        List<JsonObj> annotationObjs = json.findLastAnnotations();
+        List<JsonObj> annotationObjs = json.getLastViewAnnotations();
         for(int i = 0; i < annotationObjs.size(); i++ ) {
             String s = json.getAnnotationText(annotationObjs.get(i));
             JsonObj annotation = json.newAnnotation(view, annotationObjs.get(i));
