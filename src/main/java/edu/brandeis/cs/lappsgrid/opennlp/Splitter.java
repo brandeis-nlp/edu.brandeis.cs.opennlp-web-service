@@ -66,7 +66,7 @@ public class Splitter  extends OpenNLPAbstractWebService implements ISplitter {
         for (Span span : spans) {
             int start = span.getStart();
             int end = span.getEnd();
-            JsonObj ann = json.newAnnotation(view, Discriminators.Uri.TOKEN, start, end);
+            JsonObj ann = json.newAnnotation(view, Discriminators.Uri.SENTENCE, start, end);
             json.setSentence(ann, txt.substring(start, end));
         }
         return json.toString();
