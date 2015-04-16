@@ -223,7 +223,7 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
         List<JsonObj> tokenObjs = json.getLastViewAnnotations();
 
         JsonObj view = json.newView();
-        json.newContains(view, Discriminators.Uri.TOKEN,
+        json.newContains(view, Discriminators.Uri.NE,
                 "ner:opennlp", this.getClass().getName() + ":" + Version.getVersion());
         json.setIdHeader("tok");
 
