@@ -87,7 +87,7 @@ public class Parser extends OpenNLPAbstractWebService implements IParser {
         String id = "cs" +sentId+"_"+constituents.length();
         constituent.put("id", id);
         constituent.put("type", "http://vocab.lappsgrid.org/Constituent");
-        System.out.println("parse.getLabel() = " + parse.getLabel());
+//        System.out.println("parse.getLabel() = " + parse.getLabel());
         if (!parse.getType().equals(AbstractBottomUpParser.TOK_NODE)) {
             constituent.put("label", parse.getType());
         } else {
