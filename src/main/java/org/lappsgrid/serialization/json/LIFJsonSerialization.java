@@ -202,6 +202,10 @@ public class LIFJsonSerialization {
     }
 
     public List<JsonObj> getLastViewAnnotations() {
+        return getLastViewAnnotations(Discriminators.Uri.TOKEN);
+    }
+
+    public List<JsonObj> getLastViewAnnotations(String annType) {
         ArrayList<JsonObj> lastAnnotations = null;
         if(views.length() > 0) {
             for(int i = views.length() - 1; i >= 0; i--) {
@@ -209,7 +213,7 @@ public class LIFJsonSerialization {
                 JsonObj lastViewMeta = lastView.getJsonObj("metadata");
                 JsonArr lastViewAnnotations = lastView.getJsonArr("annotations");
                 JsonObj lastViewContains = lastViewMeta.getJsonObj("contains");
-                if (lastViewContains.has(Discriminators.Uri.TOKEN)) {
+                if (lastViewContains.has(annType)) {
                     // contains sentence
                     lastAnnotations = new ArrayList<JsonObj>(lastViewAnnotations.length());
                     for(int j = 0; j < lastViewAnnotations.length(); j++) {
@@ -253,7 +257,9 @@ public class LIFJsonSerialization {
     public void setLabel(JsonObj annotation, String label) {
         annotation.put("label", label);
     }
-
+    public void setType(JsonObj annotation, String id) {
+        annotation.put("type", id);
+    }
     public void setId(JsonObj annotation, String id) {
         annotation.put("id", id);
     }

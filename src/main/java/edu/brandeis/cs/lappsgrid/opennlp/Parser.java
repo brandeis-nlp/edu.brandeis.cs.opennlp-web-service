@@ -3,7 +3,10 @@ package edu.brandeis.cs.lappsgrid.opennlp;
 import edu.brandeis.cs.lappsgrid.Version;
 import edu.brandeis.cs.lappsgrid.api.opennlp.IParser;
 import opennlp.tools.cmdline.parser.ParserTool;
+import opennlp.tools.parser.AbstractBottomUpParser;
 import opennlp.tools.parser.Parse;
+import org.lappsgrid.discriminator.Discriminators;
+import org.lappsgrid.serialization.json.JsonArr;
 import org.lappsgrid.serialization.json.JsonObj;
 import org.lappsgrid.serialization.json.LIFJsonSerialization;
 import org.slf4j.Logger;
@@ -37,135 +40,10 @@ public class Parser extends OpenNLPAbstractWebService implements IParser {
         }
 	}
 
-//	protected void init() throws OpenNLPWebServiceException {
-//		logger.info("init(): Creating OpenNLP Parser ...");
-//
-//		Properties prop = new Properties();
-//
-//		InputStream stream = this.getClass().getResourceAsStream("/" + "opennlp-web-service.properties");
-//		if (stream == null) {
-//			logger.error("init(): fail to open \"opennlp-web-service.properties\".");
-//			throw new OpenNLPWebServiceException(
-//					"init(): fail to open \"opennlp-web-service.properties\".");
-//		}
-//		try {
-//			prop.load(stream);
-//			stream.close();
-//		} catch (IOException e) {
-//			logger.error("init(): fail to load \"opennlp-web-service.properties\".");
-//			throw new OpenNLPWebServiceException(
-//					"init(): fail to load \"opennlp-web-service.properties\".");
-//		}
-//
-//		// default English
-//		String parserModel = prop.getProperty(PROP_COMPNENT_MODEL,
-//				"en-parser-chunking.bin");
-//
-//		logger.info("init(): load opennlp-web-service.properties.");
-//
-////		stream = ResourceLoader.open(parserModel);
-//        stream = this.getClass().getResourceAsStream("/" + parserModel);
-//		if (stream == null) {
-//			logger.error("init(): fail to open PARSER MODEl \"" + parserModel
-//					+ "\".");
-//			throw new OpenNLPWebServiceException(
-//					"init(): fail to open PARSER MODEl \"" + parserModel + "\".");
-//		}
-//
-//		logger.info("init(): load PARSER MODEl \"" + parserModel + "\"");
-//
-//		try {
-//			try {
-//				ParserModel model = new ParserModel(stream);
-//				parser = ParserFactory.create(model);
-//			} finally {
-//				stream.close();
-//			}
-//		} catch (IOException e) {
-//			logger.error("init(): fail to load PARSER MODEl \"" + parserModel
-//					+ "\".");
-//			throw new OpenNLPWebServiceException(
-//					"init(): fail to load PARSER MODEl \"" + parserModel + "\".");
-//		}
-//
-//		logger.info("init(): Creating OpenNLP Parser!");
-//	}
-
-//	@Override
-//	public Data configure(Data data) {
-//		return DataFactory.ok();
-//	}
-//
-//    static Data metadata = loadMetadata();
-//
-//    static private Data loadMetadata() {
-//        Data metadata = null;
-//        try {
-//            String json = "";
-//            metadata = DataFactory.meta(json);
-//        } catch(Exception e){
-//            metadata = DataFactory.error("Unable to load metadata", e);
-//        }
-//        return metadata;
-//    }
-//
-//    public Data getMetadata() {
-//        return metadata;
-//    }
-//
-//    @Override
-//	public Data execute(Data data) {
-//		logger.info("execute(): Execute OpenNLP Parser ...");
-//        String discriminatorstr = data.getDiscriminator();
-//        long discriminator = DiscriminatorRegistry.get(discriminatorstr);
-//        if (discriminator == Types.ERROR)
-//        {
-//            return data;
-//        } else if (discriminator == Types.JSON) {
-//            String jsonstr = data.getPayload();
-//            JsonTaggerSerialization json = new JsonTaggerSerialization(jsonstr);
-//            json.setProducer(this.getClass().getName() + ":" + VERSION);
-//            json.setType("parser:opennlp");
-//            List<JSONObject> annotationObjs = json.findLastAnnotations();
-//            if (annotationObjs == null) {
-//                String message = "Invalid JSON input. Expected annotation type: " + json.getLastAnnotationType();
-//                logger.warn(message);
-//                return DataFactory.error(message);
-//            }
-//
-//            for(int i = 0; i < annotationObjs.size(); i++ ) {
-//                String s = json.getAnnotationTextValue(annotationObjs.get(i));
-//                JSONObject annotation = json.newAnnotation(annotationObjs.get(i));
-//                json.setPattern(annotation, parse(s));
-//            }
-//            return DataFactory.json(json.toString());
-//        } else if (discriminator == Types.TEXT) {
-//
-//            String textvalue = data.getPayload();
-//            JsonTaggerSerialization json = new JsonTaggerSerialization();
-//            json.setProducer(this.getClass().getName() + ":" + VERSION);
-//            json.setType("parser:opennlp");
-//            json.setTextValue(textvalue);
-//
-//            String pattern = parse(textvalue);
-//
-//            JSONObject annotation = json.newAnnotation();
-//
-//            json.setStart(annotation, 0);
-//            json.setEnd(annotation, textvalue.length());
-//            json.setPattern(annotation, pattern);
-//            return DataFactory.json(json.toString());
-//        } else {
-//            String name = DiscriminatorRegistry.get(discriminator);
-//            String message = "Invalid input type. Expected JSON but found " + name;
-//            logger.warn(message);
-//            return DataFactory.error(message);
-//        }
-//	}
-
 	public String parse(String sentence) {
 		StringBuffer builder = new StringBuffer();
 		Parse parses[] = ParserTool.parseLine(sentence, parser, 1);
+        System.out.println(" parses.length = " + parses.length);
 		for (int pi = 0, pn = parses.length; pi < pn; pi++) {
 			parses[pi].show(builder);
 			builder.append("\n");
@@ -177,14 +55,52 @@ public class Parser extends OpenNLPAbstractWebService implements IParser {
     @Override
     public String execute(LIFJsonSerialization json) throws OpenNLPWebServiceException {
         String txt = json.getText();
+        List<JsonObj> annotationObjs = json.getLastViewAnnotations(Discriminators.Uri.SENTENCE);
+
+
         JsonObj view = json.newView();
         json.newContains(view, "Parse", "parser:opennlp", this.getClass().getName() + ":" + Version.getVersion());
-        List<JsonObj> annotationObjs = json.getLastViewAnnotations();
         for(int i = 0; i < annotationObjs.size(); i++ ) {
-            String s = json.getAnnotationText(annotationObjs.get(i));
-            JsonObj annotation = json.newAnnotation(view, annotationObjs.get(i));
-            json.setFeature(annotation, "pattern", parse(s));
+            // for each sentence
+            String sent = json.getAnnotationText(annotationObjs.get(i));
+            JsonObj ann = json.newAnnotation(view);
+            json.setId(ann, "ps" + i);
+            json.setType(ann, "http://vocab.lappsgrid.org/PhraseStructure");
+            json.setStart(ann, annotationObjs.get(i).getInt("start"));
+            json.setEnd(ann, annotationObjs.get(i).getInt("end"));
+            json.setSentence(ann, sent);
+            json.setFeature(ann, "penntree", parse(sent));
+            JsonArr constituents = new JsonArr();
+            json.setFeature(ann, "constituents", constituents);
+            Parse parses[] = ParserTool.parseLine(sent, parser, 1);
+            for (int pi = 0, pn = parses.length; pi < pn; pi++) {
+                fillParseAnnotation(parses[pi], constituents, i);
+            }
         }
         return json.toString();
+    }
+
+
+    protected String fillParseAnnotation(Parse parse, JsonArr constituents, int sentId) {
+        JsonObj constituent = new JsonObj();
+        constituents.put(constituent);
+        String id = "cs" +sentId+"_"+constituents.length();
+        constituent.put("id", id);
+        constituent.put("type", "http://vocab.lappsgrid.org/Constituent");
+        System.out.println("parse.getLabel() = " + parse.getLabel());
+        if (!parse.getType().equals(AbstractBottomUpParser.TOK_NODE)) {
+            constituent.put("label", parse.getType());
+        } else {
+            constituent.put("label", parse.getCoveredText());
+        }
+        if(parse.getChildren().length > 0 ) {
+            JsonArr children = new JsonArr();
+            constituent.put("children", children);
+            for (Parse child : parse.getChildren()) {
+                String childId = fillParseAnnotation(child, constituents, sentId);
+                children.put(childId);
+            }
+        }
+        return id;
     }
 }
