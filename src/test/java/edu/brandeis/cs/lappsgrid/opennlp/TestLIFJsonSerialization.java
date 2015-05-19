@@ -33,7 +33,7 @@ public class TestLIFJsonSerialization {
             "            \"id\": \"tok0\",\n" +
             "            \"start\": 0,\n" +
             "            \"end\": 5,\n" +
-            "            \"label\": \"http://vocab.lappsgrid.org/Token\",\n" +
+            "            \"type\": \"http://vocab.lappsgrid.org/Token\",\n" +
             "            \"features\": {\n" +
             "              \"word\": \"Hello\"\n" +
             "            }\n" +
@@ -42,7 +42,7 @@ public class TestLIFJsonSerialization {
             "            \"id\": \"tok1\",\n" +
             "            \"start\": 6,\n" +
             "            \"end\": 11,\n" +
-            "            \"label\": \"http://vocab.lappsgrid.org/Token\",\n" +
+            "            \"type\": \"http://vocab.lappsgrid.org/Token\",\n" +
             "            \"features\": {\n" +
             "              \"word\": \"world\"\n" +
             "            }\n" +
@@ -63,7 +63,7 @@ public class TestLIFJsonSerialization {
             "            \"id\": \"tok0\",\n" +
             "            \"start\": 0,\n" +
             "            \"end\": 5,\n" +
-            "            \"label\": \"http://vocab.lappsgrid.org/Token\",\n" +
+            "            \"type\": \"http://vocab.lappsgrid.org/Token\",\n" +
             "            \"features\": {\n" +
             "              \"pos\": \"UH\",\n" +
             "              \"word\": \"Hello\"\n" +
@@ -73,7 +73,7 @@ public class TestLIFJsonSerialization {
             "            \"id\": \"tok1\",\n" +
             "            \"start\": 6,\n" +
             "            \"end\": 11,\n" +
-            "            \"label\": \"http://vocab.lappsgrid.org/Token\",\n" +
+            "            \"type\": \"http://vocab.lappsgrid.org/Token\",\n" +
             "            \"features\": {\n" +
             "              \"pos\": \"NN\",\n" +
             "              \"word\": \"world\"\n" +

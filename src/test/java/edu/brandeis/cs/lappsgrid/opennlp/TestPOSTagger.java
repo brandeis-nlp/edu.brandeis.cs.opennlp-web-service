@@ -53,23 +53,6 @@ public class TestPOSTagger extends TestService {
         System.out.println(json);
         Container container = new Container((Map) Serializer.parse(json, Data.class).getPayload());
 
-
-        json = postagger.execute("Good Morning");
-        System.out.println(json);
-        container = new Container((Map) Serializer.parse(json, Data.class).getPayload());
-
-        json = postagger.execute(jsons.get("payload1.json"));
-        System.out.println(json);
-        container = new Container((Map) Serializer.parse(json, Data.class).getPayload());
-
-        json = postagger.execute(jsons.get("payload2.json"));
-        System.out.println(json);
-        container = new Container((Map) Serializer.parse(json, Data.class).getPayload());
-
-        json = postagger.execute(jsons.get("payload3.json"));
-        System.out.println(json);
-        container = new Container((Map) Serializer.parse(json, Data.class).getPayload());
-
         json = postagger.execute(jsons.get("tokens.json"));
         System.out.println(json);
         container = new Container((Map) Serializer.parse(json, Data.class).getPayload());
