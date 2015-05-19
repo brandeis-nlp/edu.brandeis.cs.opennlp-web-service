@@ -252,6 +252,7 @@ public class Coreference extends OpenNLPAbstractWebService {
                 tokens[i] = tagNodes[i].getText().substring(start, end);
                 String id = "tok_"+sentIdx+"_"+ start;
                 JsonObj tokAnn = json.newAnnotation(view, Discriminators.Uri.TOKEN, id, sentStart+start, sentStart+end);
+                json.setFeature(tokAnn,"pos", tagNodes[i].getType());
                 json.setWord(tokAnn, tokens[i]);
             }
             // Now pass the String[] of the input parse word tokens to the name finder
@@ -316,7 +317,7 @@ public class Coreference extends OpenNLPAbstractWebService {
                 JsonObj ann = json.newAnnotation(view);
 //                String id = "m_"+start+"_"+end;
                 men.setId(cntMention++);
-                json.setId(ann,"m"+men.getId());
+                json.setId(ann, "m" + men.getId());
                 json.setType(ann, "http://vocab.lappsgrid.org/Markable");
                 json.setStart(ann, start);
                 json.setEnd(ann,  end);
