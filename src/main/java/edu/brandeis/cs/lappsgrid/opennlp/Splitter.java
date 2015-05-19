@@ -60,8 +60,7 @@ public class Splitter  extends OpenNLPAbstractWebService implements ISplitter {
         JsonObj view = json.newView();
         json.newContains(view, Discriminators.Uri.SENTENCE,
                 "splitter:opennlp", this.getClass().getName() + ":" + Version.getVersion());
-
-        json.setIdHeader("tok");
+        json.setIdHeader("sent");
         Span[] spans = sentPosDetect(txt);
         for (Span span : spans) {
             int start = span.getStart();

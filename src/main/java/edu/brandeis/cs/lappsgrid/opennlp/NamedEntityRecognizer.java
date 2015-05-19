@@ -226,7 +226,7 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
         json.newContains(view, Discriminators.Uri.NE,
                 "ner:opennlp", this.getClass().getName() + ":" + Version.getVersion());
         json.setIdHeader("tok");
-
+        int cnt = 0;
         if (tokenObjs == null || tokenObjs.size() == 0)  {
             // is word.
             if (txt.matches("[a-zA-Z]+")) {
@@ -234,9 +234,10 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
                     Span [] partSpans = nameFinder.find(new String[]{txt});
                     for (Span span:partSpans){
                         JsonObj annotation =  json.newAnnotation(view);
+                        json.setId(annotation, "ne"+cnt++);
+                        json.setType(annotation, Discriminators.Uri.NE);
                         json.setStart(annotation, 0);
                         json.setEnd(annotation, txt.length());
-                        json.setLabel(annotation, Discriminators.Uri.NE);
                         json.setWord(annotation,txt);
                         json.setCategory(annotation, span.getType());
                     }

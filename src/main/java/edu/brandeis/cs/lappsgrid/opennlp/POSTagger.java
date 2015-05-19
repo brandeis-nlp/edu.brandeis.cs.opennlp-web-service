@@ -124,17 +124,17 @@ public class POSTagger extends OpenNLPAbstractWebService implements IPOSTagger  
         JsonObj view = json.newView();
         json.newContains(view, Discriminators.Uri.POS,
                 "tagger:opennlp", this.getClass().getName() + ":" + Version.getVersion());
-        json.setIdHeader("tok");
-
+        int cnt = 0;
         if (tokenAnns == null || tokenAnns.size() == 0) {
             // is word.
             if (txt.matches("[a-zA-Z]+")) {
                 String [] tags = tag(new String []{txt});
                 for(int i = 0; i < tags.length; i++) {
                     JsonObj annotation =  json.newAnnotation(view);
+                    json.setId(annotation, "pos"+cnt++);
+                    json.setType(annotation, Discriminators.Uri.POS);
                     json.setStart(annotation, 0);
                     json.setEnd(annotation, txt.length());
-                    json.setLabel(annotation, Discriminators.Uri.POS);
                     json.setPOSTag(annotation, tags[i]);
                 }
             } else {
