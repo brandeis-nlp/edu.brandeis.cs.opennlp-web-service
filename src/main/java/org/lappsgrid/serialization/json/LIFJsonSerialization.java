@@ -139,22 +139,22 @@ public class LIFJsonSerialization {
 
     public JsonObj newAnnotation(JsonObj view, String type, String id) {
         JsonObj ann = this.newAnnotation(view);
-        ann.put("type", type);
         ann.put("id", id);
+        setType(ann, type);
         return ann;
     }
 
     public JsonObj newAnnotation(JsonObj view, String type) {
         JsonObj ann = this.newAnnotation(view);
-        ann.put("type", type);
-        ann.put("id", idHeader+id++);
+        ann.put("id", idHeader + id++);
+        setType(ann, type);
         return ann;
     }
 
     public JsonObj newAnnotation(JsonObj view, String type, String id, int start, int end) {
         JsonObj ann = this.newAnnotation(view);
-        ann.put("type", type);
         ann.put("id", id);
+        setType(ann, type);
         ann.put("start", start);
         ann.put("end", end);
         return ann;
@@ -164,8 +164,8 @@ public class LIFJsonSerialization {
 
     public JsonObj newAnnotation(JsonObj view, String type,  int start, int end) {
         JsonObj ann = this.newAnnotation(view);
-        ann.put("type", type);
         ann.put("id", idHeader+id++);
+        setType(ann, type);
         ann.put("start", start);
         ann.put("end", end);
         return ann;
@@ -255,10 +255,10 @@ public class LIFJsonSerialization {
     }
 
     public void setLabel(JsonObj annotation, String type) {
-        annotation.put("type", type);
+        annotation.put("label", type);
     }
     public void setType(JsonObj annotation, String id) {
-        annotation.put("type", id);
+        annotation.put("@type", id);
     }
     public void setId(JsonObj annotation, String id) {
         annotation.put("id", id);
