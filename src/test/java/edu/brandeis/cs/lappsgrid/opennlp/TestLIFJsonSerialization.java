@@ -73,7 +73,7 @@ public class TestLIFJsonSerialization {
             "            \"id\": \"tok1\",\n" +
             "            \"start\": 6,\n" +
             "            \"end\": 11,\n" +
-            "            \"type\": \"http://vocab.lappsgrid.org/Token\",\n" +
+            "            \"@type\": \"http://vocab.lappsgrid.org/Token\",\n" +
             "            \"features\": {\n" +
             "              \"pos\": \"NN\",\n" +
             "              \"word\": \"world\"\n" +
