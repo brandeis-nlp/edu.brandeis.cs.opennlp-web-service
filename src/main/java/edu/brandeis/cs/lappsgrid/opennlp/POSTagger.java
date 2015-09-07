@@ -91,7 +91,7 @@ public class POSTagger extends OpenNLPAbstractWebService implements IPOSTagger  
             String [] tags = tag(tokens);
             for(int i = 0; i < tags.length; i++) {
                 JsonObj annotation =  json.newAnnotation(view, tokenAnns.get(i));
-                json.setLabel(annotation, Discriminators.Uri.POS);
+                json.setType(annotation, Discriminators.Uri.POS);
                 json.setPOSTag(annotation, tags[i]);
             }
         }

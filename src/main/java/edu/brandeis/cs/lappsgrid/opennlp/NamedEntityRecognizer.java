@@ -102,7 +102,7 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
                 for (Span span:partSpans){
                     JsonObj org = tokenObjs.get(span.getStart());
                     JsonObj annotation = json.newAnnotation(view, org);
-                    json.setLabel(annotation, Discriminators.Uri.NE);
+                    json.setType(annotation, Discriminators.Uri.NE);
                     json.setWord(annotation, json.getAnnotationText(annotation));
                     json.setCategory(annotation, span.getType());
                 }
