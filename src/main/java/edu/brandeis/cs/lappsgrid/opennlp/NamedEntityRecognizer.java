@@ -66,7 +66,7 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
     public String execute(LIFJsonSerialization json) throws OpenNLPWebServiceException {
         logger.info("execute(): Execute OpenNLP ner ...");
         String txt = json.getText();
-        List<JsonObj> tokenObjs = json.getLastViewAnnotations();
+        List<JsonObj> tokenObjs = json.getLastViewAnnotations(Discriminators.Uri.TOKEN);
 
         JsonObj view = json.newView();
         json.newContains(view, Discriminators.Uri.NE,
@@ -89,7 +89,9 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
                     }
                 }
             } else {
-                throw new OpenNLPWebServiceException("Wrong Input: CANNOT find " + Discriminators.Uri.TOKEN);
+                throw new OpenNLPWebServiceException(String.format(
+                        "Wrong Input: CANNOT find %s within previous annotations",
+                        Discriminators.Uri.TOKEN));
             }
         } else {
             String[] tokens = new String[tokenObjs.size()];

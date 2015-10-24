@@ -62,7 +62,7 @@ public class POSTagger extends OpenNLPAbstractWebService implements IPOSTagger  
     public String execute(LIFJsonSerialization json) throws OpenNLPWebServiceException {
         logger.info("execute(): Execute OpenNLP tokenizer ...");
         String txt = json.getText();
-        List<JsonObj> tokenAnns = json.getLastViewAnnotations();
+        List<JsonObj> tokenAnns = json.getLastViewAnnotations(Discriminators.Uri.TOKEN);
 
         JsonObj view = json.newView();
         json.newContains(view, Discriminators.Uri.POS,
@@ -81,7 +81,9 @@ public class POSTagger extends OpenNLPAbstractWebService implements IPOSTagger  
                     json.setPOSTag(annotation, tags[i]);
                 }
             } else {
-                throw new OpenNLPWebServiceException("Wrong Input: CANNOT find " + Discriminators.Uri.TOKEN);
+                throw new OpenNLPWebServiceException(String.format(
+                        "Wrong Input: CANNOT find %s within previous annotations",
+                        Discriminators.Uri.TOKEN));
             }
         } else {
             String [] tokens = new String [tokenAnns.size()];
