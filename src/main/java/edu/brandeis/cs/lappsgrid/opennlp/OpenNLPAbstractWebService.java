@@ -18,6 +18,7 @@ import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.Span;
 import opennlp.tools.util.model.BaseModel;
+import org.anc.io.UTF8Reader;
 import org.apache.commons.io.IOUtils;
 import org.lappsgrid.api.WebService;
 import org.lappsgrid.discriminator.Discriminators;
@@ -30,6 +31,7 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Scanner;
 
 /**
  * Created by shicq on 3/6/14.
@@ -355,7 +357,11 @@ public abstract class OpenNLPAbstractWebService implements WebService {
 //        System.out.println("load resources:" + resName);
         logger.info("load resources:" + resName);
         try {
-            String meta = IOUtils.toString(this.getClass().getResourceAsStream(resName));
+            InputStream inputStream = this.getClass().getResourceAsStream(resName);
+            UTF8Reader reader = new UTF8Reader(inputStream);
+            Scanner s = new Scanner(reader).useDelimiter("\\A");
+            String meta= s.hasNext() ? s.next() : "";
+//            String meta = IOUtils.toString(this.getClass().getResourceAsStream(resName));
             JsonObj json = new JsonObj();
             json.put("discriminator", Discriminators.Uri.META);
             json.put("payload", new JsonObj(meta));

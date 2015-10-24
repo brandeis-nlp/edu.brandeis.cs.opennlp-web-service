@@ -1,7 +1,6 @@
 package org.lappsgrid.serialization.json;
 
-import org.lappsgrid.discriminator.Constants;
-import org.lappsgrid.discriminator.Discriminators;
+import org.lappsgrid.discriminator.Discriminators.Uri;
 import org.lappsgrid.vocabulary.Features;
 
 import java.util.ArrayList;
@@ -41,7 +40,7 @@ public class LIFJsonSerialization {
     }
 
     public LIFJsonSerialization() {
-        discriminator = Discriminators.Uri.JSON_LD;
+        discriminator = Uri.LIF;
         payload= new JsonObj();
         text = new JsonObj();
         views =  new JsonArr();
@@ -61,15 +60,15 @@ public class LIFJsonSerialization {
     public LIFJsonSerialization(String textjson) {
         json = new JsonObj(textjson);
         discriminator = json.getString("discriminator").trim();
-        if (discriminator.equals(Discriminators.Uri.TEXT)) {
+        if (discriminator.equals(Uri.TEXT)) {
             text = new JsonObj();
             text.put("@value", json.getString("payload"));
             // reinitialize other parts.
-            discriminator = Discriminators.Uri.JSON_LD;
+            discriminator = Uri.LIF;
             payload = new JsonObj();
             metadata =  new JsonObj();
             views = new JsonArr();
-        } else if(discriminator.equals(Discriminators.Uri.JSON_LD)) {
+        } else if(Uri.LIF.startsWith(discriminator)) {
             payload = json.getJsonObj("payload");
             text = payload.getJsonObj("text");
             metadata = payload.getJsonObj("metadata");
@@ -198,10 +197,10 @@ public class LIFJsonSerialization {
     }
 
     protected static String [] Categories = new String [] {
-            Discriminators.Uri.PERSON,
-            Discriminators.Uri.DATE,
-            Discriminators.Uri.ORGANIZATION,
-            Discriminators.Uri.LOCATION
+            Uri.PERSON,
+            Uri.DATE,
+            Uri.ORGANIZATION,
+            Uri.LOCATION
     };
 
     public void setCategory(JsonObj annotation, String word) {
@@ -214,7 +213,7 @@ public class LIFJsonSerialization {
     }
 
     public List<JsonObj> getLastViewAnnotations() {
-        return getLastViewAnnotations(Discriminators.Uri.TOKEN);
+        return getLastViewAnnotations(Uri.TOKEN);
     }
 
     public List<JsonObj> getLastViewAnnotations(String annType) {
@@ -284,7 +283,7 @@ public class LIFJsonSerialization {
     }
 
     public void setError(String msg, String stacktrace) {
-        this.setDiscriminator(Discriminators.Uri.ERROR);
+        this.setDiscriminator(Uri.ERROR);
         JsonObj val = new JsonObj();
         val.put("@value", msg);
         val.put("stacktrace", stacktrace);
@@ -329,15 +328,15 @@ public class LIFJsonSerialization {
 
     public String toString(){
         json.put("discriminator" ,discriminator);
-        if (discriminator.equals(Discriminators.Uri.TEXT)) {
+        if (discriminator.equals(Uri.TEXT)) {
             json.put("payload" ,text.getString("@value"));
-        } else if (discriminator.equals(Discriminators.Uri.JSON_LD)) {
+        } else if (discriminator.equals(Uri.LIF)) {
             json.put("payload" ,payload);
             payload.put("@context",context);
             payload.put("metadata", metadata);
             payload.put("text", text);
             payload.put("views", views);
-        } else if(discriminator.equals(Discriminators.Uri.ERROR)) {
+        } else if(discriminator.equals(Uri.ERROR)) {
             json.put("payload" ,error);
         }
         return json.toString();

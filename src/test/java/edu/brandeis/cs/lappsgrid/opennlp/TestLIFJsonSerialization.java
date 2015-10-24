@@ -9,7 +9,7 @@ import org.lappsgrid.serialization.json.LIFJsonSerialization;
 
 public class TestLIFJsonSerialization {
     public static final String json = "{\n" +
-            "  \"discriminator\": \"http://vocab.lappsgrid.org/ns/media/jsonld\",\n" +
+            "  \"discriminator\": \"http://vocab.lappsgrid.org/ns/media/jsonld#lif\",\n" +
             "  \"payload\": {\n" +
             "  \"@context\": \"http://vocab.lappsgrid.org/context-1.0.0.jsonld\"," +
             "    \"metadata\": {\n" +
