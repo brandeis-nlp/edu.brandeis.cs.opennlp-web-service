@@ -3,32 +3,60 @@
 	<modelVersion>4.0.0</modelVersion>
 	<!--parent> <groupId>org.apache.opennlp</groupId> <artifactId>opennlp</artifactId> 
 		<version>1.5.3</version> </parent -->
-    <parent>
-		<groupId>org.lappsgrid.maven</groupId>
-		<artifactId>war-parent-pom</artifactId>
-		<version>2.0.0</version>
-    </parent>
 	<groupId>edu.brandeis.cs.lapps</groupId>
 	<artifactId>opennlp-web-service</artifactId>
-	<version>2.0.0</version>
+	<version>2.0.1-SNAPSHOT</version>
 	<packaging>war</packaging>
 	<name>Web Services wrapping opennlp</name>
 	<description>
 	Publish API for the LAPPS exchange data structure (LEDS), the thing that will be serialized to from JSON-LD.
 	Provide converter for the OpenNLP one-per-line format to LEDS.
 	</description>
+	<parent>
+		<groupId>org.lappsgrid.maven</groupId>
+		<artifactId>war-parent-pom</artifactId>
+		<version>2.0.4</version>
+	</parent>
 
 
     <properties>
-        <lapps.version>2.0.0</lapps.version>
-        <lapps.core.version>2.0.0</lapps.core.version>
-        <lapps.discriminator>2.0.1</lapps.discriminator>
-        <lapps.util>1.0.0</lapps.util>
-        <vocabulary.version>1.0.0</vocabulary.version>
-        <serialization.version>2.0.0</serialization.version>
-        <anc.common>3.4.0</anc.common>
+        <lapps.all>2.0.4</lapps.all>
+        <!--<lapps.core.version>2.0.0</lapps.core.version>-->
+        <lapps.discriminator>2.1.0-SNAPSHOT</lapps.discriminator>
+        <!--<lapps.util>1.0.0</lapps.util>-->
+        <!--<vocabulary.version>1.0.0</vocabulary.version>-->
+        <!--<serialization.version>2.0.0</serialization.version>-->
+        <!--<anc.common>3.4.0</anc.common>-->
         <opennlp.version>1.5.3</opennlp.version>
     </properties>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>the Maven central repository</id>
+			<url>http://repo.maven.apache.org/maven2/</url>
+		</pluginRepository>
+		<pluginRepository>
+			<id>anc-releases</id>
+			<url>http://www.anc.org:8080/nexus/content/repositories/releases/</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</pluginRepository>
+		<pluginRepository>
+			<id>anc-snapshots</id>
+			<url>http://www.anc.org:8080/nexus/content/repositories/snapshots/</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+			</snapshots>
+		</pluginRepository>
+	</pluginRepositories>
 
 	<dependencies>
 		<dependency>
@@ -56,34 +84,14 @@
 		<!-- LappsGrid dependencies -->
 		<dependency>
 			<groupId>org.lappsgrid</groupId>
-			<artifactId>api</artifactId>
-			<version>${lapps.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.lappsgrid</groupId>
-			<artifactId>core</artifactId>
-			<version>${lapps.core.version}</version>
+			<artifactId>all</artifactId>
+			<version>${lapps.all}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.lappsgrid</groupId>
 			<artifactId>discriminator</artifactId>
 			<version>${lapps.discriminator}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.anc.lapps</groupId>
-			<artifactId>util</artifactId>
-			<version>${lapps.util}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.lappsgrid</groupId>
-			<artifactId>serialization</artifactId>
-			<version>${serialization.version}</version>
-		</dependency>
-        <dependency>
-            <groupId>org.lappsgrid</groupId>
-            <artifactId>vocabulary</artifactId>
-            <version>${vocabulary.version}</version>
-        </dependency>
 		<dependency>
 			<groupId>org.lappsgrid</groupId>
 			<artifactId>service-grid-libs</artifactId>
