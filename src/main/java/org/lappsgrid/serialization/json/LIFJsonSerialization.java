@@ -68,7 +68,7 @@ public class LIFJsonSerialization {
             payload = new JsonObj();
             metadata =  new JsonObj();
             views = new JsonArr();
-        } else if(discriminator.equals(Uri.LIF)) {
+        } else if(Uri.LIF.contains(discriminator)) {
             payload = json.getJsonObj("payload");
             text = payload.getJsonObj("text");
             metadata = payload.getJsonObj("metadata");
