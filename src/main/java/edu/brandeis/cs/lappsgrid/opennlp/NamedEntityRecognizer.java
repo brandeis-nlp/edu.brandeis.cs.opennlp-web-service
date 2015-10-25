@@ -81,11 +81,31 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
                     for (Span span:partSpans){
                         JsonObj annotation =  json.newAnnotation(view);
                         json.setId(annotation, "ne"+cnt++);
-                        json.setType(annotation, Discriminators.Uri.NE);
+//                        json.setType(annotation, Discriminators.Uri.NE);
                         json.setStart(annotation, 0);
                         json.setEnd(annotation, txt.length());
-                        json.setWord(annotation,txt);
-                        json.setCategory(annotation, span.getType());
+//                        json.setWord(annotation,txt);
+//                        json.setCategory(annotation, span.getType());
+                        String atType = null;
+                        switch (span.getType().toLowerCase()) {
+                            case "location":
+                                atType = Discriminators.Uri.LOCATION;
+                                break;
+                            case "organizatoin":
+                                atType = Discriminators.Uri.ORGANIZATION;
+                                break;
+                            case "date":
+                                atType = Discriminators.Uri.DATE;
+                                break;
+                            case "person":
+                                atType = Discriminators.Uri.PERSON;
+                                break;
+                            default:
+                                System.out.println("++++++++++++++++++++++++++++++");
+                                System.out.println(span.getType());
+                                System.out.println("++++++++++++++++++++++++++++++");
+                        }
+                        json.setType(annotation, atType);
                     }
                 }
             } else {
