@@ -20,14 +20,16 @@
 
 
     <properties>
-        <lapps.all>2.0.4</lapps.all>
+        <lapps.all>2.2.0</lapps.all>
+        <lapps.discriminator>2.2.0</lapps.discriminator>
+        <lapps.serialization>2.1.0</lapps.serialization>
+        <opennlp.version>1.5.3</opennlp.version>
+
         <!--<lapps.core.version>2.0.0</lapps.core.version>-->
-        <lapps.discriminator>2.1.0-SNAPSHOT</lapps.discriminator>
         <!--<lapps.util>1.0.0</lapps.util>-->
         <!--<vocabulary.version>1.0.0</vocabulary.version>-->
-        <!--<serialization.version>2.0.0</serialization.version>-->
         <!--<anc.common>3.4.0</anc.common>-->
-        <opennlp.version>1.5.3</opennlp.version>
+
     </properties>
 
     <pluginRepositories>
@@ -91,6 +93,12 @@
             <groupId>org.lappsgrid</groupId>
             <artifactId>discriminator</artifactId>
             <version>${lapps.discriminator}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.lappsgrid</groupId>
+            <artifactId>serialization</artifactId>
+            <version>${lapps.serialization}</version>
         </dependency>
         <dependency>
             <groupId>org.lappsgrid</groupId>
