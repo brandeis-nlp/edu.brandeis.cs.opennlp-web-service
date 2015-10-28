@@ -59,7 +59,10 @@ public class Parser extends OpenNLPAbstractWebService implements IParser {
 
 
         JsonObj view = json.newView();
-        json.newContains(view, "Parse", "parser:opennlp", this.getClass().getName() + ":" + Version.getVersion());
+        //json.newContains(view, Discriminators.Uri.TOKEN, "parser:opennlp", this.getClass().getName() + ":" + Version.getVersion());
+        json.newContains(view, Discriminators.Uri.CONSTITUENT, "parser:opennlp", this.getClass().getName() + ":" + Version.getVersion());
+        json.newContains(view, Discriminators.Uri.PHRASE_STRUCTURE, "parser:opennlp", this.getClass().getName() + ":" + Version.getVersion());
+
         for(int i = 0; i < annotationObjs.size(); i++ ) {
             // for each sentence
             String sent = json.getAnnotationText(annotationObjs.get(i));
@@ -71,33 +74,35 @@ public class Parser extends OpenNLPAbstractWebService implements IParser {
             json.setSentence(ann, sent);
             json.setFeature(ann, "penntree", parse(sent));
             JsonArr constituents = new JsonArr();
-            json.setFeature(ann, "constituents", constituents);
             Parse parses[] = ParserTool.parseLine(sent, parser, 1);
             for (int pi = 0, pn = parses.length; pi < pn; pi++) {
-                fillParseAnnotation(parses[pi], constituents, i);
+                fillParseAnnotation(parses[pi], constituents, i, json ,view);
             }
+            json.setFeature(ann, "constituents", constituents);
         }
         return json.toString();
     }
 
 
-    protected String fillParseAnnotation(Parse parse, JsonArr constituents, int sentId) {
-        JsonObj constituent = new JsonObj();
-        constituents.put(constituent);
+    protected String fillParseAnnotation(Parse parse, JsonArr constituents, int sentId, LIFJsonSerialization json, JsonObj view) {
+        JsonObj constituentAnn = json.newAnnotation(view);
         String id = "cs" +sentId+"_"+constituents.length();
-        constituent.put("id", id);
-        constituent.put("@type", "http://vocab.lappsgrid.org/Constituent");
+        constituentAnn.put("id", id);
+        constituents.put(id);
+        constituentAnn.put("@type", "http://vocab.lappsgrid.org/Constituent");
 //        System.out.println("parse.getLabel() = " + parse.getLabel());
         if (!parse.getType().equals(AbstractBottomUpParser.TOK_NODE)) {
-            constituent.put("label", parse.getType());
+            constituentAnn.put("label", parse.getType());
         } else {
-            constituent.put("label", parse.getCoveredText());
+            constituentAnn.put("label", parse.getCoveredText());
         }
         if(parse.getChildren().length > 0 ) {
+            JsonObj features = new JsonObj();
             JsonArr children = new JsonArr();
-            constituent.put("children", children);
+            constituentAnn.put("features", features);
+            features.put("children", children);
             for (Parse child : parse.getChildren()) {
-                String childId = fillParseAnnotation(child, constituents, sentId);
+                String childId = fillParseAnnotation(child, constituents, sentId, json, view);
                 children.put(childId);
             }
         }

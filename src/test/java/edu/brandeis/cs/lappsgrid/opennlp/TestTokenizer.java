@@ -5,6 +5,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.lappsgrid.discriminator.Discriminators;
 import org.lappsgrid.serialization.Data;
 import org.lappsgrid.serialization.Serializer;
 import org.lappsgrid.serialization.lif.Container;
@@ -23,11 +24,13 @@ import java.util.Map;
  * 
  */
 public class TestTokenizer extends TestService {
-	
-	Tokenizer tokenizer;
+
+    String testSent = "If possible, we would appreciate comments no later than 3:00 PM EST on Sunday, August 26.  Comments can be faxed to my attention at 202/338-2416 or emailed to cfr@vnf.com or gdb@vnf.com (Gary GaryBachman).\n\nThank you.";
+
+//    Tokenizer tokenizer;
 	
 	public TestTokenizer() throws OpenNLPWebServiceException {
-		tokenizer = new Tokenizer();
+		service = new Tokenizer();
 	}
 
 
@@ -37,16 +40,16 @@ public class TestTokenizer extends TestService {
     }
 	
 	@Test
-	public void testTokenize() {
-		String [] tokens = tokenizer.tokenize("Hi. How are you? This is Mike.");
+	public void testTokenize() throws OpenNLPWebServiceException{
+		String [] tokens = new Tokenizer().tokenize("Hi. How are you? This is Mike.");
 		System.out.println(Arrays.toString(tokens));
 		String [] goldTokens = {"Hi",".","How","are","you","?","This","is","Mike","."};
 		Assert.assertArrayEquals("Tokenize Failure.", goldTokens, tokens);
 	}
 	
 	@Test
-	public void testTokenizePos() {
-		Span[] boundaries = tokenizer
+	public void testTokenizePos() throws OpenNLPWebServiceException {
+		Span[] boundaries = new Tokenizer()
 				.tokenizePos("Hi. How are you? This is Mike.");
 		Assert.assertEquals(
 				"Tokenize Failure.",
@@ -56,21 +59,38 @@ public class TestTokenizer extends TestService {
 
     @Test
     public void testExecute(){
+
+
+
+        String result0 = service.execute(testSent);
+        String input = new Data<>(Discriminators.Uri.LIF, wrapContainer(testSent)).asJson();
+        String result = service.execute(input);
+        junit.framework.Assert.assertEquals(result0, result);
+
+
+        System.out.println("<------------------------------------------------------------------------------");
+        System.out.println(String.format("      %s         ", this.getClass().getName()));
+        System.out.println("-------------------------------------------------------------------------------");
+        System.out.println(result);
+        System.out.println("------------------------------------------------------------------------------>");
+
+
+
         System.out.println("/-----------------------------------\\");
-        String json = tokenizer.execute(jsons.get("payload1.json"));
+        String json = service.execute(jsons.get("payload1.json"));
         System.out.println(json);
 
         Container container = new Container((Map)Serializer.parse(json, Data.class).getPayload());
 
-        json = tokenizer.execute(jsons.get("payload2.json"));
+        json = service.execute(jsons.get("payload2.json"));
         System.out.println(json);
         container = new Container((Map) Serializer.parse(json, Data.class).getPayload());
 
-        json = tokenizer.execute(jsons.get("payload3.json"));
+        json = service.execute(jsons.get("payload3.json"));
         System.out.println(json);
         container = new Container((Map) Serializer.parse(json, Data.class).getPayload());
 
-        json = tokenizer.execute(jsons.get("splitter.json"));
+        json = service.execute(jsons.get("splitter.json"));
         System.out.println(json);
         container = new Container((Map) Serializer.parse(json, Data.class).getPayload());
 
