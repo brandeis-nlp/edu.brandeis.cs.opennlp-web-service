@@ -25,7 +25,16 @@ import java.util.Map;
  */
 public class TestCoreference extends TestService {
 
-//	@Test
+
+    String sentText = "Mike, Smith is a good person and he is from Boston. John and Mary went to the store. They bought some milk.";
+
+    public TestCoreference() throws OpenNLPWebServiceException {
+        service = new Coreference();
+    }
+
+
+
+    //	@Test
 	public void testFind() throws OpenNLPWebServiceException {
 //        String text = "Mike, Smith is a good person and he is from Boston.";
 //        String text = "Carol told Bob to attend the party. They arrived together.";
@@ -48,6 +57,20 @@ public class TestCoreference extends TestService {
 
     @Test
     public void testExecute()throws OpenNLPWebServiceException {
+
+
+
+        String result = service.execute(sentText);
+        System.out.println("<------------------------------------------------------------------------------");
+        System.out.println(String.format("      %s         ", this.getClass().getName()));
+        System.out.println("-------------------------------------------------------------------------------");
+        System.out.println(result);
+        System.out.println("------------------------------------------------------------------------------>");
+
+
+
+
+
 //        String text = "Mike, Smith is a good person and he is from Boston. John and Mary went to the store. They bought some milk.";
         String text = "Pierre Vinken, 61 years old, will join the board as a nonexecutive director Nov. 29. Mr. Vinken is chairman of Elsevier N.V., the Dutch publishing group. Rudolph Agnew, 55 years old and former chairman of Consolidated Gold Fields PLC, was named a director of this British industrial conglomerate.";
         Coreference cor = new Coreference();

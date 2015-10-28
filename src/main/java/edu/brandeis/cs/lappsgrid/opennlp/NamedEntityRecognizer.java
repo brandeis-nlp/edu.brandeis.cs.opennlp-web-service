@@ -84,7 +84,7 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
 //                        json.setType(annotation, Discriminators.Uri.NE);
                         json.setStart(annotation, 0);
                         json.setEnd(annotation, txt.length());
-//                        json.setWord(annotation,txt);
+                        json.setWord(annotation,txt);
 //                        json.setCategory(annotation, span.getType());
                         String atType = null;
                         switch (span.getType().toLowerCase()) {
@@ -118,15 +118,25 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
             for(int i = 0; i < tokens.length; i++ ) {
                 tokens[i] = json.getAnnotationText(tokenObjs.get(i));
             }
-
             for (TokenNameFinder nameFinder : nameFinders) {
                 Span [] partSpans = nameFinder.find(tokens);
                 for (Span span:partSpans){
                     JsonObj org = tokenObjs.get(span.getStart());
                     JsonObj annotation = json.newAnnotation(view, org);
-                    json.setType(annotation, Discriminators.Uri.NE);
+                    String atType = null;
+                    switch (span.getType().toLowerCase()) {
+                        case "person": atType = Discriminators.Uri.PERSON;
+                            break;
+                        case "location": atType = Discriminators.Uri.LOCATION;
+                            break;
+                        case "date": atType = Discriminators.Uri.DATE;
+                            break;
+                        case "organization": atType = Discriminators.Uri.ORGANIZATION;
+                            break;
+                    }
+                    json.setType(annotation, atType);
                     json.setWord(annotation, json.getAnnotationText(annotation));
-                    json.setCategory(annotation, span.getType());
+//                    json.setCategory(annotation, span.getType());
                 }
             }
         }
