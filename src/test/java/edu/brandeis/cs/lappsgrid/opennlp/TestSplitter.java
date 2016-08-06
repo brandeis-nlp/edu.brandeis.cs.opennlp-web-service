@@ -3,6 +3,7 @@ package edu.brandeis.cs.lappsgrid.opennlp;
 import opennlp.tools.util.Span;
 import org.junit.Assert;
 import org.junit.Test;
+import org.lappsgrid.discriminator.Discriminators;
 import org.lappsgrid.serialization.Data;
 import org.lappsgrid.serialization.Serializer;
 import org.lappsgrid.serialization.lif.Container;
@@ -20,24 +21,23 @@ import java.util.Map;
  * 
  */
 public class TestSplitter extends TestService {
-	
-	Splitter splitter;
-	
+	String testSent = "If possible, we would appreciate comments no later than 3:00 PM EST on Sunday, August 26.  Comments can be faxed to my attention at 202/338-2416 or emailed to cfr@vnf.com or gdb@vnf.com (Gary GaryBachman).\n\nThank you.";
+
 	public TestSplitter() throws OpenNLPWebServiceException {
-		splitter = new Splitter();
+		service = new Splitter();
 	}
 	
 	@Test
-	public void testSentDetect() {
-		String [] sents = splitter.sentDetect("Hi. How are you? This is Mike.");
+	public void testSentDetect() throws OpenNLPWebServiceException {
+		String [] sents = new Splitter().sentDetect("Hi. How are you? This is Mike.");
 		System.out.println(Arrays.toString(sents));
 		String [] goldSents = {"Hi. How are you?","This is Mike."};
 		Assert.assertArrayEquals("Splitter Failure.", goldSents, sents);
 	}
 	
 	@Test
-	public void testSentDetectPos() {
-		Span[] offsets = splitter
+	public void testSentDetectPos()  throws OpenNLPWebServiceException {
+		Span[] offsets = new Splitter()
 				.sentPosDetect("Hi. How are you? This is Mike.");
 		System.out.println(Arrays.toString(offsets));
 		Assert.assertEquals(
@@ -49,16 +49,31 @@ public class TestSplitter extends TestService {
 
     @Test
     public void testExecute(){
+
+		String result0 = service.execute(testSent);
+		String input = new Data<>(Discriminators.Uri.LIF, wrapContainer(testSent)).asJson();
+		String result = service.execute(input);
+		junit.framework.Assert.assertEquals(result0, result);
+
+
+		System.out.println("<------------------------------------------------------------------------------");
+		System.out.println(String.format("      %s         ", this.getClass().getName()));
+		System.out.println("-------------------------------------------------------------------------------");
+		System.out.println(result);
+		System.out.println("------------------------------------------------------------------------------>");
+
+
+
         System.out.println("/-----------------------------------\\");
-        String json = splitter.execute(jsons.get("payload1.json"));
+        String json = service.execute(jsons.get("payload1.json"));
         System.out.println(json);
         Container container = new Container((Map) Serializer.parse(json, Data.class).getPayload());
 
-        json = splitter.execute(jsons.get("payload2.json"));
+        json = service.execute(jsons.get("payload2.json"));
         System.out.println(json);
         container = new Container((Map) Serializer.parse(json, Data.class).getPayload());
 
-        json = splitter.execute(jsons.get("payload3.json"));
+        json = service.execute(jsons.get("payload3.json"));
         System.out.println(json);
         container = new Container((Map) Serializer.parse(json, Data.class).getPayload());
         System.out.println("\\-----------------------------------/\n");

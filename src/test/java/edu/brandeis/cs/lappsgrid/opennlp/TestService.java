@@ -4,6 +4,9 @@ package edu.brandeis.cs.lappsgrid.opennlp;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.*;
+import org.lappsgrid.serialization.Data;
+import org.lappsgrid.serialization.Serializer;
+import org.lappsgrid.serialization.lif.Container;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,6 +23,7 @@ public class TestService {
 
     protected HashMap<String,String> jsons = new HashMap<String,String>();
 
+    OpenNLPAbstractWebService service;
     public static String getResource(String name) throws IOException{
         java.io.InputStream in =  TestService.class.getClassLoader().getResourceAsStream(name);
         return IOUtils.toString(in);
@@ -39,6 +43,15 @@ public class TestService {
         payload2 = jsons.get("payload2.json");
     }
 
+    protected Container wrapContainer(String plainText) {
+        Data data = Serializer.parse(service.getMetadata(), Data.class);
+        Container container = new Container();
+//        container.setLanguage("en");
+        container.setText(plainText);
+        // return empty metadata for process result (for now)
+//        container.setMetadata((Map) data.getPayload());
+        return container;
+    }
 
     @Test
     public void test() {

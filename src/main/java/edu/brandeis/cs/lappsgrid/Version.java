@@ -6,7 +6,7 @@ package edu.brandeis.cs.lappsgrid;
  */
 public final class Version
 {
-	private static final String version = "2.0.0-SNAPSHOT";
+	private static final String version = "2.0.1-SNAPSHOT";
 
 	public static String getVersion() { return version; }
 }

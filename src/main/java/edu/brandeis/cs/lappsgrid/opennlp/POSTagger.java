@@ -30,63 +30,6 @@ public class POSTagger extends OpenNLPAbstractWebService implements IPOSTagger  
             postagger = loadPOSTagger(registModelMap.get(this.getClass()));
         }
 	}
-//
-//
-//    @Override
-//    public Data execute(Data  data) {
-//        String discriminatorstr = data.getDiscriminator();
-//        long discriminator = DiscriminatorRegistry.get(discriminatorstr);
-//        if (discriminator == Types.ERROR)
-//        {
-//            return data;
-//        } else if (discriminator == Types.JSON) {
-//            String jsonstr = data.getPayload();
-//            JsonTaggerSerialization json = new JsonTaggerSerialization(jsonstr);
-//            json.setProducer(this.getClass().getName() + ":" + VERSION);
-//            json.setType("tagger:opennlp");
-//            List<JSONObject> tokenObjs = json.findLastAnnotations();
-//            if (tokenObjs == null) {
-//                String message = "Invalid JSON input. Expected annotation type: " + json.getLastAnnotationType();
-//                logger.warn(message);
-//                return DataFactory.error(message);
-//            }
-//
-//            String[] tokens = new String[tokenObjs.size()];
-//            for(int i = 0; i < tokens.length; i++ ) {
-//                tokens[i] = json.getAnnotationTextValue(tokenObjs.get(i));
-//            }
-//
-//            String[] tags = postagger.tag(tokens);
-//
-//            for(int i = 0; i < tokenObjs.size(); i++) {
-//                JSONObject annotation = json.newAnnotation(tokenObjs.get(i));
-//                json.setCategory(annotation, tags[i]);
-//            }
-//            return DataFactory.json(json.toString());
-//        } else  if (discriminator == Types.TEXT) {
-//            String textvalue = data.getPayload();
-//            JsonTaggerSerialization json = new JsonTaggerSerialization();
-//            json.setProducer(this.getClass().getName() + ":" + VERSION);
-//            json.setType("tagger:opennlp");
-//            json.setTextValue(textvalue);
-//
-//            String [] tags = tag(new String[]{textvalue});
-//            for(int i = 0; i < tags.length; i++) {
-//                JSONObject annotation =  json.newAnnotation();
-//                json.setStart(annotation, 0);
-//                json.setEnd(annotation, textvalue.length());
-//                json.setCategory(annotation, tags[i]);
-//            }
-//            return DataFactory.json(json.toString());
-//
-//        } else {
-//            String name = DiscriminatorRegistry.get(discriminator);
-//            String message = "Invalid input type. Expected JSON but found " + name;
-//            logger.warn(message);
-//            return DataFactory.error(message);
-//        }
-//    }
-
 
 	@Override
 	public String[] tag(String[] sentence) {
@@ -119,26 +62,28 @@ public class POSTagger extends OpenNLPAbstractWebService implements IPOSTagger  
     public String execute(LIFJsonSerialization json) throws OpenNLPWebServiceException {
         logger.info("execute(): Execute OpenNLP tokenizer ...");
         String txt = json.getText();
-        List<JsonObj> tokenAnns = json.getLastViewAnnotations();
+        List<JsonObj> tokenAnns = json.getLastViewAnnotations(Discriminators.Uri.TOKEN);
 
         JsonObj view = json.newView();
         json.newContains(view, Discriminators.Uri.POS,
                 "tagger:opennlp", this.getClass().getName() + ":" + Version.getVersion());
-        json.setIdHeader("tok");
-
+        int cnt = 0;
         if (tokenAnns == null || tokenAnns.size() == 0) {
             // is word.
             if (txt.matches("[a-zA-Z]+")) {
                 String [] tags = tag(new String []{txt});
                 for(int i = 0; i < tags.length; i++) {
                     JsonObj annotation =  json.newAnnotation(view);
+                    json.setId(annotation, "pos"+cnt++);
+                    json.setType(annotation, Discriminators.Uri.POS);
                     json.setStart(annotation, 0);
                     json.setEnd(annotation, txt.length());
-                    json.setLabel(annotation, Discriminators.Uri.POS);
                     json.setPOSTag(annotation, tags[i]);
                 }
             } else {
-                throw new OpenNLPWebServiceException("Wrong Input: CANNOT find " + Discriminators.Uri.TOKEN);
+                throw new OpenNLPWebServiceException(String.format(
+                        "Wrong Input: CANNOT find %s within previous annotations",
+                        Discriminators.Uri.TOKEN));
             }
         } else {
             String [] tokens = new String [tokenAnns.size()];
@@ -148,7 +93,7 @@ public class POSTagger extends OpenNLPAbstractWebService implements IPOSTagger  
             String [] tags = tag(tokens);
             for(int i = 0; i < tags.length; i++) {
                 JsonObj annotation =  json.newAnnotation(view, tokenAnns.get(i));
-                json.setLabel(annotation, Discriminators.Uri.POS);
+                json.setType(annotation, Discriminators.Uri.POS);
                 json.setPOSTag(annotation, tags[i]);
             }
         }

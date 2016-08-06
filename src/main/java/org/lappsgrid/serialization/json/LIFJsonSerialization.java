@@ -1,7 +1,6 @@
 package org.lappsgrid.serialization.json;
 
-import org.lappsgrid.discriminator.Constants;
-import org.lappsgrid.discriminator.Discriminators;
+import org.lappsgrid.discriminator.Discriminators.Uri;
 import org.lappsgrid.vocabulary.Features;
 
 import java.util.ArrayList;
@@ -41,7 +40,7 @@ public class LIFJsonSerialization {
     }
 
     public LIFJsonSerialization() {
-        discriminator = Discriminators.Uri.JSON_LD;
+        discriminator = Uri.LIF;
         payload= new JsonObj();
         text = new JsonObj();
         views =  new JsonArr();
@@ -61,15 +60,15 @@ public class LIFJsonSerialization {
     public LIFJsonSerialization(String textjson) {
         json = new JsonObj(textjson);
         discriminator = json.getString("discriminator").trim();
-        if (discriminator.equals(Discriminators.Uri.TEXT)) {
+        if (discriminator.equals(Uri.TEXT)) {
             text = new JsonObj();
             text.put("@value", json.getString("payload"));
             // reinitialize other parts.
-            discriminator = Discriminators.Uri.JSON_LD;
+            discriminator = Uri.LIF;
             payload = new JsonObj();
             metadata =  new JsonObj();
             views = new JsonArr();
-        } else if(discriminator.equals(Discriminators.Uri.JSON_LD)) {
+        } else if(Uri.LIF.startsWith(discriminator)) {
             payload = json.getJsonObj("payload");
             text = payload.getJsonObj("text");
             metadata = payload.getJsonObj("metadata");
@@ -137,24 +136,24 @@ public class LIFJsonSerialization {
         return annotation;
     }
 
-    public JsonObj newAnnotation(JsonObj view, String label, String id) {
+    public JsonObj newAnnotation(JsonObj view, String type, String id) {
         JsonObj ann = this.newAnnotation(view);
-        ann.put("label", label);
         ann.put("id", id);
+        setType(ann, type);
         return ann;
     }
 
-    public JsonObj newAnnotation(JsonObj view, String label) {
+    public JsonObj newAnnotation(JsonObj view, String type) {
         JsonObj ann = this.newAnnotation(view);
-        ann.put("label", label);
-        ann.put("id", idHeader+id++);
+        ann.put("id", idHeader + id++);
+        setType(ann, type);
         return ann;
     }
 
-    public JsonObj newAnnotation(JsonObj view, String label, String id, int start, int end) {
+    public JsonObj newAnnotation(JsonObj view, String type, String id, int start, int end) {
         JsonObj ann = this.newAnnotation(view);
-        ann.put("label", label);
         ann.put("id", id);
+        setType(ann, type);
         ann.put("start", start);
         ann.put("end", end);
         return ann;
@@ -162,10 +161,10 @@ public class LIFJsonSerialization {
 
 
 
-    public JsonObj newAnnotation(JsonObj view, String label,  int start, int end) {
+    public JsonObj newAnnotation(JsonObj view, String type,  int start, int end) {
         JsonObj ann = this.newAnnotation(view);
-        ann.put("label", label);
         ann.put("id", idHeader+id++);
+        setType(ann, type);
         ann.put("start", start);
         ann.put("end", end);
         return ann;
@@ -197,11 +196,27 @@ public class LIFJsonSerialization {
         setFeature(annotation, "word", word);
     }
 
+    protected static String [] Categories = new String [] {
+            Uri.PERSON,
+            Uri.DATE,
+            Uri.ORGANIZATION,
+            Uri.LOCATION
+    };
+
     public void setCategory(JsonObj annotation, String word) {
         setFeature(annotation, "category", word);
+        for (String cat : Categories) {
+            if(cat.toLowerCase().contains(word.toLowerCase() )) {
+                setFeature(annotation, "category", cat);
+            }
+        }
     }
 
     public List<JsonObj> getLastViewAnnotations() {
+        return getLastViewAnnotations(Uri.TOKEN);
+    }
+
+    public List<JsonObj> getLastViewAnnotations(String annType) {
         ArrayList<JsonObj> lastAnnotations = null;
         if(views.length() > 0) {
             for(int i = views.length() - 1; i >= 0; i--) {
@@ -209,7 +224,7 @@ public class LIFJsonSerialization {
                 JsonObj lastViewMeta = lastView.getJsonObj("metadata");
                 JsonArr lastViewAnnotations = lastView.getJsonArr("annotations");
                 JsonObj lastViewContains = lastViewMeta.getJsonObj("contains");
-                if (lastViewContains.has(Discriminators.Uri.TOKEN)) {
+                if (lastViewContains.has(annType)) {
                     // contains sentence
                     lastAnnotations = new ArrayList<JsonObj>(lastViewAnnotations.length());
                     for(int j = 0; j < lastViewAnnotations.length(); j++) {
@@ -250,10 +265,12 @@ public class LIFJsonSerialization {
         return annotation.getString("id");
     }
 
-    public void setLabel(JsonObj annotation, String label) {
-        annotation.put("label", label);
+    public void setLabel(JsonObj annotation, String type) {
+        annotation.put("label", type);
     }
-
+    public void setType(JsonObj annotation, String id) {
+        annotation.put("@type", id);
+    }
     public void setId(JsonObj annotation, String id) {
         annotation.put("id", id);
     }
@@ -266,7 +283,7 @@ public class LIFJsonSerialization {
     }
 
     public void setError(String msg, String stacktrace) {
-        this.setDiscriminator(Discriminators.Uri.ERROR);
+        this.setDiscriminator(Uri.ERROR);
         JsonObj val = new JsonObj();
         val.put("@value", msg);
         val.put("stacktrace", stacktrace);
@@ -311,15 +328,15 @@ public class LIFJsonSerialization {
 
     public String toString(){
         json.put("discriminator" ,discriminator);
-        if (discriminator.equals(Discriminators.Uri.TEXT)) {
+        if (discriminator.equals(Uri.TEXT)) {
             json.put("payload" ,text.getString("@value"));
-        } else if (discriminator.equals(Discriminators.Uri.JSON_LD)) {
+        } else if (discriminator.equals(Uri.LIF)) {
             json.put("payload" ,payload);
             payload.put("@context",context);
             payload.put("metadata", metadata);
             payload.put("text", text);
             payload.put("views", views);
-        } else if(discriminator.equals(Discriminators.Uri.ERROR)) {
+        } else if(discriminator.equals(Uri.ERROR)) {
             json.put("payload" ,error);
         }
         return json.toString();
