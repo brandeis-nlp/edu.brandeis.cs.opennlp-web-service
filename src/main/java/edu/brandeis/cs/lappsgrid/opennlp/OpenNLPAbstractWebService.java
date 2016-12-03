@@ -19,11 +19,13 @@ import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.Span;
 import opennlp.tools.util.model.BaseModel;
 import org.anc.io.UTF8Reader;
-import org.apache.commons.io.IOUtils;
+import edu.brandeis.cs.lappsgrid.Version;
 import org.lappsgrid.api.WebService;
 import org.lappsgrid.discriminator.Discriminators;
-import org.lappsgrid.serialization.json.JsonObj;
-import org.lappsgrid.serialization.json.LIFJsonSerialization;
+import org.lappsgrid.metadata.ServiceMetadata;
+import org.lappsgrid.serialization.Data;
+import org.lappsgrid.serialization.Serializer;
+import org.lappsgrid.serialization.lif.Container;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +53,10 @@ public abstract class OpenNLPAbstractWebService implements WebService {
         registModelMap.put(Parser.class, "Parser");
         registModelMap.put(Coreference.class, "Coreference");
         registModelMap.put(POSTagger.class, "Part-of-Speech-Tagger");
+    }
+
+    public String getVersion() {
+        return Version.getVersion();
     }
 
     protected void init() throws OpenNLPWebServiceException {
@@ -322,64 +328,83 @@ public abstract class OpenNLPAbstractWebService implements WebService {
 
 
     @Override
-    public String execute(String s) {
-        LIFJsonSerialization json = null;
-        try{
-            s = s.trim();
-            if (s.startsWith("{") && s.endsWith("}")) {
-                json = new LIFJsonSerialization(s);
-                if (json.getDiscriminator().equals(Discriminators.Uri.ERROR)) {
-                    return json.toString();
-                }
-            } else {
-                json = new LIFJsonSerialization();
-                json.setText(s);
-            }
-            return execute(json);
-        }catch(Throwable th) {
-            json = new LIFJsonSerialization();
-            StringWriter sw = new StringWriter();
-            th.printStackTrace( new PrintWriter(sw));
-            json.setError(th.toString(), sw.toString());
-            System.err.println(sw.toString());
-            return json.toString();
+    public String execute(String input) {
+
+        if (input == null) return null;
+
+        input = input.trim();
+        // in case of Json
+        Data data = Serializer.parse(input, Data.class);
+        if (data == null) {
+            // when json parse failed
+            data = new Data();
+            data.setDiscriminator(Discriminators.Uri.TEXT);
+            data.setPayload(input);
+        }
+
+        final String discriminator = data.getDiscriminator();
+        Container container;
+
+        switch (discriminator) {
+            case Discriminators.Uri.ERROR:
+                return input;
+            case Discriminators.Uri.JSON_LD:
+            case Discriminators.Uri.LIF:
+                container = new Container((Map) data.getPayload());
+                break;
+            case Discriminators.Uri.TEXT:
+                container = new Container();
+                container.setText((String) data.getPayload());
+                container.setLanguage("en");
+                break;
+            default:
+                String message = String.format
+                        ("Unsupported discriminator type: %s", discriminator);
+                return new Data<>(Discriminators.Uri.ERROR, message).asJson();
+        }
+
+        try {
+            return execute(container);
+        } catch (Throwable th) {
+            th.printStackTrace();
+            String message =
+                    String.format("Error processing input: %s", th.toString());
+            return new Data<>(Discriminators.Uri.ERROR, message).asJson();
         }
     }
-
-
 
     @Override
     public String getMetadata() {
+
+        String metadata;
         // get caller name using reflection
-        String name = this.getClass().getName();
-        //
-        String resName = "/metadata/"+ name +".json";
-//        System.out.println("load resources:" + resName);
+        String serviceName = this.getClass().getName();
+        String resName = "/metadata/"+ serviceName +".json";
         logger.info("load resources:" + resName);
-        try {
-            InputStream inputStream = this.getClass().getResourceAsStream(resName);
-            UTF8Reader reader = new UTF8Reader(inputStream);
-            Scanner s = new Scanner(reader).useDelimiter("\\A");
-            String meta= s.hasNext() ? s.next() : "";
-//            String meta = IOUtils.toString(this.getClass().getResourceAsStream(resName));
-            JsonObj json = new JsonObj();
-            json.put("discriminator", Discriminators.Uri.META);
-            json.put("payload", new JsonObj(meta));
-            return json.toString();
-        }catch (Throwable th) {
-            JsonObj json = new JsonObj();
-            json.put("discriminator", Discriminators.Uri.ERROR);
-            JsonObj error = new JsonObj();
-            error.put("class", name);
-            error.put("error", "NOT EXIST: "+resName);
-            error.put("message", th.getMessage());
-            StringWriter sw = new StringWriter();
-            th.printStackTrace( new PrintWriter(sw));
-            error.put("stacktrace", sw.toString());
-            json.put("payload", error);
-            return json.toString();
+
+        InputStream inputStream = this.getClass().getResourceAsStream(resName);
+
+        if (inputStream == null) {
+            String message = "Unable to load metadata file for " + this.getClass().getName();
+            logger.error(message);
+            metadata = (new Data<>(Discriminators.Uri.ERROR, message)).asPrettyJson();
+        } else {
+            UTF8Reader reader;
+            try {
+                reader = new UTF8Reader(inputStream);
+                Scanner s = new Scanner(reader).useDelimiter("\\A");
+                String metadataText = s.hasNext() ? s.next() : "";
+                metadata = (new Data<>(Discriminators.Uri.META,
+                        Serializer.parse(metadataText, ServiceMetadata.class))).asPrettyJson();
+                reader.close();
+            } catch (Exception e) {
+                String message = "Unable to parse metadata json for " + this.getClass().getName();
+                logger.error(message, e);
+                metadata = (new Data<>(Discriminators.Uri.ERROR, message)).asPrettyJson();
+            }
         }
+        return metadata;
     }
 
-    public abstract String execute(LIFJsonSerialization in) throws OpenNLPWebServiceException;
+    public abstract String execute(Container in) throws OpenNLPWebServiceException;
 }
