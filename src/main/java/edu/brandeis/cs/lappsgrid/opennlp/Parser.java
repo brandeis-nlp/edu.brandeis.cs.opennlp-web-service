@@ -5,13 +5,17 @@ import edu.brandeis.cs.lappsgrid.api.opennlp.IParser;
 import opennlp.tools.cmdline.parser.ParserTool;
 import opennlp.tools.parser.AbstractBottomUpParser;
 import opennlp.tools.parser.Parse;
-import org.lappsgrid.discriminator.Discriminators;
-import org.lappsgrid.serialization.json.JsonArr;
-import org.lappsgrid.serialization.json.JsonObj;
-import org.lappsgrid.serialization.json.LIFJsonSerialization;
+import org.lappsgrid.discriminator.Discriminators.Uri;
+import org.lappsgrid.serialization.Data;
+import org.lappsgrid.serialization.Serializer;
+import org.lappsgrid.serialization.lif.Annotation;
+import org.lappsgrid.serialization.lif.Container;
+import org.lappsgrid.serialization.lif.View;
+import org.lappsgrid.vocabulary.Features;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -28,84 +32,99 @@ import java.util.List;
  * 
  */
 public class Parser extends OpenNLPAbstractWebService implements IParser {
-	protected static final Logger logger = LoggerFactory
-			.getLogger(Parser.class);
+    protected static final Logger logger = LoggerFactory
+            .getLogger(Parser.class);
 
-	private static opennlp.tools.parser.Parser parser;
+    private static opennlp.tools.parser.Parser parser;
 
-	public Parser() throws OpenNLPWebServiceException {
+    public Parser() throws OpenNLPWebServiceException {
         if (parser == null) {
             init();
             parser = loadParser(registModelMap.get(this.getClass()));
         }
-	}
+    }
 
-	public String parse(String sentence) {
-		StringBuffer builder = new StringBuffer();
-		Parse parses[] = ParserTool.parseLine(sentence, parser, 1);
-        System.out.println(" parses.length = " + parses.length);
-		for (int pi = 0, pn = parses.length; pi < pn; pi++) {
-			parses[pi].show(builder);
-			builder.append("\n");
-		}
-		return builder.toString();
-	}
-
-
-    @Override
-    public String execute(LIFJsonSerialization json) throws OpenNLPWebServiceException {
-        String txt = json.getText();
-        List<JsonObj> annotationObjs = json.getLastViewAnnotations(Discriminators.Uri.SENTENCE);
-
-
-        JsonObj view = json.newView();
-        //json.newContains(view, Discriminators.Uri.TOKEN, "parser:opennlp", this.getClass().getName() + ":" + Version.getVersion());
-        json.newContains(view, Discriminators.Uri.CONSTITUENT, "parser:opennlp", this.getClass().getName() + ":" + Version.getVersion());
-        json.newContains(view, Discriminators.Uri.PHRASE_STRUCTURE, "parser:opennlp", this.getClass().getName() + ":" + Version.getVersion());
-
-        for(int i = 0; i < annotationObjs.size(); i++ ) {
-            // for each sentence
-            String sent = json.getAnnotationText(annotationObjs.get(i));
-            JsonObj ann = json.newAnnotation(view);
-            json.setId(ann, "ps" + i);
-            json.setType(ann, "http://vocab.lappsgrid.org/PhraseStructure");
-            json.setStart(ann, annotationObjs.get(i).getInt("start"));
-            json.setEnd(ann, annotationObjs.get(i).getInt("end"));
-            json.setSentence(ann, sent);
-            json.setFeature(ann, "penntree", parse(sent));
-            JsonArr constituents = new JsonArr();
-            Parse parses[] = ParserTool.parseLine(sent, parser, 1);
-            for (int pi = 0, pn = parses.length; pi < pn; pi++) {
-                fillParseAnnotation(parses[pi], constituents, i, json ,view);
-            }
-            json.setFeature(ann, "constituents", constituents);
+    private String buildPennString(Parse parses[]) {
+        StringBuffer builder = new StringBuffer();
+        for (Parse parse : parses) {
+            parse.show(builder);
+            builder.append("\n");
         }
-        return json.toString();
+        return builder.toString();
     }
 
 
-    protected String fillParseAnnotation(Parse parse, JsonArr constituents, int sentId, LIFJsonSerialization json, JsonObj view) {
-        JsonObj constituentAnn = json.newAnnotation(view);
-        String id = "cs" +sentId+"_"+constituents.length();
-        constituentAnn.put("id", id);
-        constituents.put(id);
-        constituentAnn.put("@type", "http://vocab.lappsgrid.org/Constituent");
-//        System.out.println("parse.getLabel() = " + parse.getLabel());
+    /* parse() is only used in test suite to see the parsing results */
+    public String parse(String sentence) {
+        StringBuffer builder = new StringBuffer();
+        Parse parses[] = ParserTool.parseLine(sentence, parser, 1);
+        System.out.println(" parses.length = " + parses.length);
+        for (int pi = 0, pn = parses.length; pi < pn; pi++) {
+            parses[pi].show(builder);
+            builder.append("\n");
+        }
+        return builder.toString();
+    }
+
+
+    @Override
+    public String execute(Container container) throws OpenNLPWebServiceException {
+        String txt = container.getText();
+
+        List<View> sentViews = container.findViewsThatContain(Uri.SENTENCE);
+        List<Annotation> sentAnns = sentViews.get(sentViews.size()).getAnnotations();
+
+        View view = container.newView();
+        view.addContains(Uri.PHRASE_STRUCTURE,
+                String.format("%s:%s", this.getClass().getName(), getVersion()),
+                "parser:opennlp");
+        view.addContains(Uri.CONSTITUENT,
+                String.format("%s:%s", this.getClass().getName(), getVersion()),
+                "parser:opennlp");
+
+        view.addContains(Uri.CONSTITUENT, "parser:opennlp", this.getClass().getName() + ":" + Version.getVersion());
+        view.addContains(Uri.PHRASE_STRUCTURE, "parser:opennlp", this.getClass().getName() + ":" + Version.getVersion());
+
+        for(int sid = 0; sid < sentAnns.size(); sid++ ) {
+            // for each sentence
+            Annotation sentAnn = sentAnns.get(sid);
+            String sentText = getTokenText(sentAnn, txt);
+            Parse parses[] = ParserTool.parseLine(sentText, parser, 1);
+
+            Annotation ps = view.newAnnotation(PS_ID + sid, Uri.PHRASE_STRUCTURE,
+                    sentAnn.getStart(), sentAnn.getEnd());
+            ps.addFeature("sentence", sentText);
+            ps.addFeature("penntree", buildPennString(parses));
+            List<String> constituentIds = new LinkedList<>();
+            for (Parse parse : parses) {
+                findConstituents(parse, constituentIds, sid, view);
+            }
+            ps.getFeatures().put(Features.PhraseStructure.CONSTITUENTS, constituentIds);
+        }
+        Data<Container> data = new Data<>(Uri.LIF, container);
+        return Serializer.toJson(data);
+    }
+
+
+    protected String findConstituents(Parse parse, List<String> constituentIds, int sentId, View view) {
+        String cid = CONSTITUENT_ID +sentId+"_"+ constituentIds.size();
+        constituentIds.add(cid);
+
+        Annotation constituentAnn = view.newAnnotation(cid, Uri.CONSTITUENT, -1, -1);
+
         if (!parse.getType().equals(AbstractBottomUpParser.TOK_NODE)) {
-            constituentAnn.put("label", parse.getType());
+            constituentAnn.setLabel(parse.getType());
         } else {
-            constituentAnn.put("label", parse.getCoveredText());
+            constituentAnn.setLabel(parse.getCoveredText());
         }
         if(parse.getChildren().length > 0 ) {
-            JsonObj features = new JsonObj();
-            JsonArr children = new JsonArr();
-            constituentAnn.put("features", features);
-            features.put("children", children);
+            List<String> children = new LinkedList<>();
             for (Parse child : parse.getChildren()) {
-                String childId = fillParseAnnotation(child, constituents, sentId, json, view);
-                children.put(childId);
+                String childId = findConstituents(child, constituentIds, sentId, view);
+                children.add(childId);
             }
+            constituentAnn.getFeatures().put("children", children.toString());
         }
-        return id;
+        return cid;
     }
 }

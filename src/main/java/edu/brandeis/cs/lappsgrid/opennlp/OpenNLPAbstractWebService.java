@@ -1,5 +1,6 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
+import edu.brandeis.cs.lappsgrid.Version;
 import opennlp.tools.coref.DefaultLinker;
 import opennlp.tools.coref.Linker;
 import opennlp.tools.coref.LinkerMode;
@@ -19,7 +20,6 @@ import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.Span;
 import opennlp.tools.util.model.BaseModel;
 import org.anc.io.UTF8Reader;
-import edu.brandeis.cs.lappsgrid.Version;
 import org.lappsgrid.api.WebService;
 import org.lappsgrid.discriminator.Discriminators;
 import org.lappsgrid.metadata.ServiceMetadata;
@@ -30,8 +30,13 @@ import org.lappsgrid.serialization.lif.Container;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Scanner;
 
 /**
  * Created by shicq on 3/6/14.
@@ -47,7 +52,7 @@ public abstract class OpenNLPAbstractWebService implements WebService {
     public static final String TOKEN_ID = "tok_";
     public static final String POS_ID = "pos_";
     public static final String SENT_ID = "sent_";
-    public static final String CONSTITUENT_ID = "c_";
+    public static final String CONSTITUENT_ID = "cs_";
     public static final String PS_ID = "ps_";
     public static final String DEPENDENCY_ID = "dep_";
     public static final String DS_ID = "ds_";

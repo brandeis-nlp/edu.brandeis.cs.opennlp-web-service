@@ -4,6 +4,8 @@ import edu.brandeis.cs.lappsgrid.api.opennlp.INamedEntityRecognizer;
 import opennlp.tools.namefind.TokenNameFinder;
 import opennlp.tools.util.Span;
 import org.lappsgrid.discriminator.Discriminators.Uri;
+import org.lappsgrid.serialization.Data;
+import org.lappsgrid.serialization.Serializer;
 import org.lappsgrid.serialization.lif.Annotation;
 import org.lappsgrid.serialization.lif.Container;
 import org.lappsgrid.serialization.lif.View;
@@ -109,7 +111,8 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
                 }
             }
         }
-        return container.toString();
+        Data<Container> data = new Data<>(Uri.LIF, container);
+        return Serializer.toJson(data);
     }
 
     private String getNEType(Span span) {
