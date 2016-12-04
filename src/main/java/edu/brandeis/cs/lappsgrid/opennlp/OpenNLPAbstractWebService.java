@@ -46,7 +46,7 @@ public abstract class OpenNLPAbstractWebService implements WebService {
     protected static final Logger logger = LoggerFactory.getLogger(OpenNLPAbstractWebService.class);
     public static final String PropFileName = "opennlp-web-service.properties";
 
-	public static final String TOKEN_ID = "tk_";
+	public static final String TOKEN_ID = "tok_";
     public static final String SENT_ID = "sent_";
     public static final String CONSTITUENT_ID = "c_";
     public static final String PS_ID = "ps_";
