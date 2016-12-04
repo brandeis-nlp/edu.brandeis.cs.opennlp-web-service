@@ -46,6 +46,18 @@ public abstract class OpenNLPAbstractWebService implements WebService {
     protected static final Logger logger = LoggerFactory.getLogger(OpenNLPAbstractWebService.class);
     public static final String PropFileName = "opennlp-web-service.properties";
 
+	public static final String TOKEN_ID = "tk_";
+    public static final String SENT_ID = "sent_";
+    public static final String CONSTITUENT_ID = "c_";
+    public static final String PS_ID = "ps_";
+    public static final String DEPENDENCY_ID = "dep_";
+    public static final String DS_ID = "ds_";
+    public static final String MENTION_ID = "m_";
+    public static final String COREF_ID = "coref_";
+    public static final String NE_ID = "ne_";
+
+
+
     static {
         registModelMap.put(Tokenizer.class, "Tokenizer");
         registModelMap.put(Splitter.class, "Sentence-Detector");
