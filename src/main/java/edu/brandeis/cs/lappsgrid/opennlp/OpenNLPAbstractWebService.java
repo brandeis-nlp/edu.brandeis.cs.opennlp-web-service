@@ -31,10 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Scanner;
+import java.util.*;
 
 /**
  * Created by shicq on 3/6/14.
@@ -47,7 +44,7 @@ public abstract class OpenNLPAbstractWebService implements WebService {
     protected static final Logger logger = LoggerFactory.getLogger(OpenNLPAbstractWebService.class);
     public static final String PropFileName = "opennlp-web-service.properties";
 
-	public static final String TOKEN_ID = "tok_";
+    public static final String TOKEN_ID = "tok_";
     public static final String POS_ID = "pos_";
     public static final String SENT_ID = "sent_";
     public static final String CONSTITUENT_ID = "c_";
@@ -422,9 +419,9 @@ public abstract class OpenNLPAbstractWebService implements WebService {
 
     protected String getTokenText(Annotation token, String fullText) {
         String tokenText;
-        try {
+        if (token.getFeatures().containsKey("word")) {
             tokenText = token.getFeature("word");
-        } catch (Exception e) {
+        } else {
             tokenText = fullText.substring(token.getStart().intValue(),  token.getEnd().intValue());
         }
         return tokenText;
