@@ -25,6 +25,7 @@ import org.lappsgrid.discriminator.Discriminators;
 import org.lappsgrid.metadata.ServiceMetadata;
 import org.lappsgrid.serialization.Data;
 import org.lappsgrid.serialization.Serializer;
+import org.lappsgrid.serialization.lif.Annotation;
 import org.lappsgrid.serialization.lif.Container;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +48,7 @@ public abstract class OpenNLPAbstractWebService implements WebService {
     public static final String PropFileName = "opennlp-web-service.properties";
 
 	public static final String TOKEN_ID = "tok_";
+    public static final String POS_ID = "pos_";
     public static final String SENT_ID = "sent_";
     public static final String CONSTITUENT_ID = "c_";
     public static final String PS_ID = "ps_";
@@ -416,6 +418,16 @@ public abstract class OpenNLPAbstractWebService implements WebService {
             }
         }
         return metadata;
+    }
+
+    protected String getTokenText(Annotation token, String fullText) {
+        String tokenText;
+        try {
+            tokenText = token.getFeature("word");
+        } catch (Exception e) {
+            tokenText = fullText.substring(token.getStart().intValue(),  token.getEnd().intValue());
+        }
+        return tokenText;
     }
 
     public abstract String execute(Container in) throws OpenNLPWebServiceException;
