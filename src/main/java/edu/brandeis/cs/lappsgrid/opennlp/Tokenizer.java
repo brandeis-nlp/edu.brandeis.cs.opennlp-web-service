@@ -1,7 +1,6 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
-import edu.brandeis.cs.lappsgrid.Version;
-import edu.brandeis.cs.lappsgrid.api.opennlp.ITokenizer;
+import edu.brandeis.cs.lappsgrid.opennlp.api.ITokenizer;
 import opennlp.tools.util.Span;
 import org.lappsgrid.discriminator.Discriminators.Uri;
 import org.lappsgrid.serialization.Data;

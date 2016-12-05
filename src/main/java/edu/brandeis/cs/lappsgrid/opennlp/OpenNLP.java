@@ -1,6 +1,6 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
-import edu.brandeis.cs.lappsgrid.api.opennlp.IOpenNLP;
+import edu.brandeis.cs.lappsgrid.opennlp.api.IOpenNLP;
 import edu.brandeis.cs.lappsgrid.util.FileLoadUtil;
 import edu.brandeis.cs.lappsgrid.util.SplitMergeUtil;
 import opennlp.tools.chunker.ChunkSample;

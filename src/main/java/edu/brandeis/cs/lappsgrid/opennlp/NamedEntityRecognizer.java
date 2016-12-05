@@ -1,6 +1,6 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
-import edu.brandeis.cs.lappsgrid.api.opennlp.INamedEntityRecognizer;
+import edu.brandeis.cs.lappsgrid.opennlp.api.INamedEntityRecognizer;
 import opennlp.tools.namefind.NameFinderME;
 import opennlp.tools.namefind.TokenNameFinder;
 import opennlp.tools.namefind.TokenNameFinderModel;

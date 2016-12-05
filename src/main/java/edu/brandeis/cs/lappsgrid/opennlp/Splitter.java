@@ -1,6 +1,6 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
-import edu.brandeis.cs.lappsgrid.api.opennlp.ISplitter;
+import edu.brandeis.cs.lappsgrid.opennlp.api.ISplitter;
 import opennlp.tools.sentdetect.SentenceDetector;
 import opennlp.tools.util.Span;
 import org.lappsgrid.discriminator.Discriminators.Uri;

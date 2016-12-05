@@ -1,6 +1,4 @@
-package edu.brandeis.cs.lappsgrid.api.opennlp;
-
-import org.lappsgrid.api.WebService;
+package edu.brandeis.cs.lappsgrid.opennlp.api;
 
 /**
  * <i>ITokenizer.java</i> Language Application Grids (<b>LAPPS</b>)

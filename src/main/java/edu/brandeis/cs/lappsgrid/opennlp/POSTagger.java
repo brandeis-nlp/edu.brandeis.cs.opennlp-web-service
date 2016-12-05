@@ -1,6 +1,6 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
-import edu.brandeis.cs.lappsgrid.api.opennlp.IPOSTagger;
+import edu.brandeis.cs.lappsgrid.opennlp.api.IPOSTagger;
 import opennlp.tools.util.Sequence;
 import org.lappsgrid.discriminator.Discriminators.Uri;
 import org.lappsgrid.serialization.Data;

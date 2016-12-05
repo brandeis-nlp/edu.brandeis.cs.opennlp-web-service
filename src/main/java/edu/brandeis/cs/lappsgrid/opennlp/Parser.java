@@ -1,7 +1,7 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
 import edu.brandeis.cs.lappsgrid.Version;
-import edu.brandeis.cs.lappsgrid.api.opennlp.IParser;
+import edu.brandeis.cs.lappsgrid.opennlp.api.IParser;
 import opennlp.tools.cmdline.parser.ParserTool;
 import opennlp.tools.parser.AbstractBottomUpParser;
 import opennlp.tools.parser.Parse;
