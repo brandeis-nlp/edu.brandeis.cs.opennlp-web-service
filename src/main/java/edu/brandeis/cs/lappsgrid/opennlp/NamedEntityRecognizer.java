@@ -1,7 +1,9 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
 import edu.brandeis.cs.lappsgrid.api.opennlp.INamedEntityRecognizer;
+import opennlp.tools.namefind.NameFinderME;
 import opennlp.tools.namefind.TokenNameFinder;
+import opennlp.tools.namefind.TokenNameFinderModel;
 import opennlp.tools.util.Span;
 import org.lappsgrid.discriminator.Discriminators.Uri;
 import org.lappsgrid.serialization.Data;
@@ -13,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -28,15 +31,28 @@ import java.util.List;
  * 
  */
 public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements INamedEntityRecognizer {
-    protected static final Logger logger = LoggerFactory
-            .getLogger(NamedEntityRecognizer.class);
 
-    private static ArrayList<TokenNameFinder> nameFinders = new ArrayList<TokenNameFinder> ();
+    protected static final Logger logger = LoggerFactory.getLogger(NamedEntityRecognizer.class);
+
+    // NOTE: models can be static, but the actual NameFinders cannot be static,
+    // because they are not thread safe
+    private static final List<TokenNameFinderModel> nameFinderModels = new LinkedList<>();
+    private List<TokenNameFinder> nameFinders = new LinkedList<> ();
 
     public NamedEntityRecognizer() throws OpenNLPWebServiceException {
-        if (nameFinders.size() == 0) {
-            super.init();
-            nameFinders.addAll(loadTokenNameFinders(registModelMap.get(this.getClass())).values());
+        init();
+    }
+
+    @Override
+    protected void init() throws OpenNLPWebServiceException {
+        super.init();
+        if (nameFinderModels.size() == 0) {
+            nameFinderModels.clear();
+            nameFinderModels.addAll(loadTokenNameFinderModels(registModelMap.get(this.getClass())));
+        }
+        nameFinders.clear();
+        for (TokenNameFinderModel model : nameFinderModels) {
+            nameFinders.add(new NameFinderME(model));
         }
     }
 

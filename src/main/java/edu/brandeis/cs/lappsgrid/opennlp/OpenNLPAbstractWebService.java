@@ -4,8 +4,6 @@ import edu.brandeis.cs.lappsgrid.Version;
 import opennlp.tools.coref.DefaultLinker;
 import opennlp.tools.coref.Linker;
 import opennlp.tools.coref.LinkerMode;
-import opennlp.tools.namefind.NameFinderME;
-import opennlp.tools.namefind.TokenNameFinder;
 import opennlp.tools.namefind.TokenNameFinderModel;
 import opennlp.tools.parser.AbstractBottomUpParser;
 import opennlp.tools.parser.Parse;
@@ -33,10 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Scanner;
+import java.util.*;
 
 /**
  * Created by shicq on 3/6/14.
@@ -59,8 +54,6 @@ public abstract class OpenNLPAbstractWebService implements WebService {
     public static final String MENTION_ID = "m_";
     public static final String COREF_ID = "coref_";
     public static final String NE_ID = "ne_";
-
-
 
     static {
         registModelMap.put(Tokenizer.class, "Tokenizer");
@@ -90,41 +83,6 @@ public abstract class OpenNLPAbstractWebService implements WebService {
             logger.error("init(): fail to load \""+PropFileName+"\".");
             throw new OpenNLPWebServiceException("init(): fail to load \""+PropFileName+"\".");
         }
-
-//        for(String name:prop.stringPropertyNames()) {
-//            if (models.get(name) != null) {
-//                continue;
-//            }
-//
-//            stream = this.getClass().getResourceAsStream("/" + name);
-//            if (stream == null) {
-//                logger.error("init(): fail to open MODEl \""+name+"\".");
-//                throw new OpenNLPWebServiceException("init(): fail to open MODEl \""+name+"\".");
-//            }
-//
-//            logger.info("init(): load MODEl \""+name+"\"");
-//
-//            try {
-//                try {
-//                    if (name == "Tokenizer")
-//                        models.put(name, new TokenizerModel(stream));
-//                    if (name == "Sentence-Detector")
-//                        models.put(name, new SentenceModel(stream));
-//                    if (name == "Name-Finder")
-//                        models.put(name, new TokenNameFinderModel(stream));
-//                    if (name == "Parser")
-//                        models.put(name, new ParserModel(stream));
-//                    if (name == "Coreference")
-//                        models.put(name, new TokenizerModel(stream));
-//                } finally {
-//                    stream.close();
-//                }
-//            } catch (IOException e) {
-//                logger.error("init(): fail to load MODEl \""+name+"\".");
-//                throw new OpenNLPWebServiceException("init(): fail to load MODEl \""+name+"\".");
-//            }
-//        }
-//        logger.info("init(): Creating OpenNLP!");
     }
 
     protected Parse createTerminalNodes(final String sentenceText, final Span[] sentenceTokens) {
@@ -197,60 +155,43 @@ public abstract class OpenNLPAbstractWebService implements WebService {
         return tokenizer;
     }
 
-    protected TokenNameFinder loadTokenNameFinder(String modelName)  throws  OpenNLPWebServiceException {
-        TokenNameFinder nameFinder;
-        InputStream stream = this.getClass().getResourceAsStream("/" + modelName);
-        if (stream == null) {
-            logger.error("load(): fail to open NER MODEL \"" + modelName
-                    + "\".");
-            throw new OpenNLPWebServiceException(
-                    "load(): fail to open NER MODEL \"" + modelName + "\".");
+    /* used to be loadTokenNameFinders(), but NameFinders cannot be static (and shared among threads) */
+    protected List<TokenNameFinderModel> loadTokenNameFinderModels(String nerPropKey) throws  OpenNLPWebServiceException  {
+        List<TokenNameFinderModel> nameFinderModels = new LinkedList<>();
+        String nerModelResources = prop.getProperty(nerPropKey, "en-ner-person.bin");
+        System.out.println(prop.keySet());
+        logger.info("init(): load opennlp-web-service.properties.");
+        for (String nerModelResName : nerModelResources.split(":")) {
+            logger.info("init(): load " + nerModelResName + " ...");
+            if (nerModelResName.trim().length() > 0) {
+                nameFinderModels.add(loadTokenNameFinderModel(nerModelResName));
+            }
         }
-        logger.info("load(): load NER MODEL \"" + modelName + "\"");
+        return nameFinderModels;
+    }
 
+    protected TokenNameFinderModel loadTokenNameFinderModel(String modelResName) throws OpenNLPWebServiceException {
+        TokenNameFinderModel model;
+        InputStream stream = this.getClass().getResourceAsStream("/" + modelResName);
+        if (stream == null) {
+            String error = String.format("load(): fail to open NER MODEL \"%s\".", modelResName);
+            logger.error(error);
+            throw new OpenNLPWebServiceException(error);
+        }
+        logger.info("load(): load NER MODEL \"" + modelResName + "\"");
         try {
             try {
-                TokenNameFinderModel model = new TokenNameFinderModel(stream);
-                nameFinder = new NameFinderME(model);
+                model = new TokenNameFinderModel(stream);
             } finally {
                 stream.close();
             }
         } catch (IOException e) {
-            logger.error("load(): fail to load NER MODEL \"" + modelName
-                    + "\".");
-            throw new OpenNLPWebServiceException(
-                    "load(): fail to load NER MODEL \"" + modelName + "\".");
+            String error = String.format("load(): fail to open NER MODEL \"%s\".", modelResName);
+            logger.error(error);
+            throw new OpenNLPWebServiceException(error);
         }
-        return nameFinder;
+        return model;
     }
-
-    protected static final String [] NERTags = new String[]{"Person", "Date", "Location", "Organization"};
-
-    protected Map<String, TokenNameFinder> loadTokenNameFinders(String modelName) throws  OpenNLPWebServiceException  {
-        Map<String, TokenNameFinder> nameFinders = new HashMap<String,TokenNameFinder> ();
-        String nerModels = prop.getProperty(modelName,
-                "en-ner-person.bin");
-        logger.info("init(): load opennlp-web-service.properties.");
-        for (String nerModel : nerModels.split(":")) {
-            logger.info("init(): load " + nerModel + " ...");
-            if (nerModel.trim().length() > 0) {
-                TokenNameFinder nameFinder = loadTokenNameFinder(nerModel);
-                if (nameFinder != null){
-                    String lowNerModel = nerModel.toLowerCase();
-                    String nerModelTag = "Unknown";
-                    for (String tag: NERTags) {
-                        if(lowNerModel.contains(tag.toLowerCase())) {
-                            nerModelTag = tag;
-                            nameFinders.put(nerModelTag,nameFinder);
-                        }
-                    }
-                }
-            }
-        }
-        logger.info("init(): Creating OpenNLP NamedEntityRecognizer!");
-        return nameFinders;
-    }
-
 
     protected POSTaggerME loadPOSTagger(String modelName) throws OpenNLPWebServiceException {
         POSTaggerME postagger;
