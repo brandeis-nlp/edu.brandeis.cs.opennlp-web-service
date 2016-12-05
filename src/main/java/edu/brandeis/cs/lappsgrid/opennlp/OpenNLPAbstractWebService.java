@@ -67,7 +67,7 @@ public abstract class OpenNLPAbstractWebService implements WebService {
         registModelMap.put(Splitter.class, "Sentence-Detector");
         registModelMap.put(NamedEntityRecognizer.class, "Name-Finder");
         registModelMap.put(Parser.class, "Parser");
-        registModelMap.put(Coreference.class, "Coreference");
+//        registModelMap.put(Coreference.class, "Coreference");
         registModelMap.put(POSTagger.class, "Part-of-Speech-Tagger");
     }
 
@@ -127,7 +127,7 @@ public abstract class OpenNLPAbstractWebService implements WebService {
 //        logger.info("init(): Creating OpenNLP!");
     }
 
-    protected Parse createSentenceParse(final String sentenceText, final Span[] sentenceTokens) {
+    protected Parse createTerminalNodes(final String sentenceText, final Span[] sentenceTokens) {
         Parse sentParse = new Parse(sentenceText, new Span(0, sentenceText.length()), AbstractBottomUpParser.INC_NODE, 1, 0);
         for (int i = 0; i < sentenceTokens.length; i++) {
             int tokenStart = sentenceTokens[i].getStart();
@@ -350,8 +350,10 @@ public abstract class OpenNLPAbstractWebService implements WebService {
 
         input = input.trim();
         // in case of Json
-        Data data = Serializer.parse(input, Data.class);
-        if (data == null) {
+        Data data;
+        if(input.startsWith("{") && input.endsWith("}")) {
+            data = Serializer.parse(input, Data.class);
+        } else {
             // when json parse failed
             data = new Data();
             data.setDiscriminator(Discriminators.Uri.TEXT);
@@ -380,6 +382,8 @@ public abstract class OpenNLPAbstractWebService implements WebService {
         }
 
         try {
+            // TODO: 12/4/2016 this will be redundant when @context stuff sorted out
+            container.setContext(Container.REMOTE_CONTEXT);
             return execute(container);
         } catch (Throwable th) {
             th.printStackTrace();

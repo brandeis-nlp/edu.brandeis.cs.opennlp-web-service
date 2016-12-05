@@ -72,7 +72,12 @@ public class Parser extends OpenNLPAbstractWebService implements IParser {
         String txt = container.getText();
 
         List<View> sentViews = container.findViewsThatContain(Uri.SENTENCE);
-        List<Annotation> sentAnns = sentViews.get(sentViews.size()).getAnnotations();
+        if (sentViews.size() == 0) {
+            throw new OpenNLPWebServiceException(String.format(
+                    "Wrong Input: CANNOT find %s within previous annotations",
+                    Uri.SENTENCE));
+        }
+        List<Annotation> sentAnns = sentViews.get(sentViews.size() - 1).getAnnotations();
 
         View view = container.newView();
         view.addContains(Uri.PHRASE_STRUCTURE,

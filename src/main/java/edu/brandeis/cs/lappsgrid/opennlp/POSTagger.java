@@ -19,13 +19,13 @@ import java.util.List;
  * <p> 
  *
  * @author Chunqi Shi ( <i>shicq@cs.brandeis.edu</i> )<br>Nov 20, 2013<br>
- * 
+ *
  */
 public class POSTagger extends OpenNLPAbstractWebService implements IPOSTagger  {
-    
+
     private static opennlp.tools.postag.POSTagger postagger;
-    
-    
+
+
     public POSTagger() throws OpenNLPWebServiceException {
         if (postagger == null) {
             init();
@@ -66,7 +66,12 @@ public class POSTagger extends OpenNLPAbstractWebService implements IPOSTagger  
         String txt = container.getText();
 
         List<View> tokenViews = container.findViewsThatContain(Uri.TOKEN);
-        List<Annotation> tokenAnns = tokenViews.get(tokenViews.size()).getAnnotations();
+        if (tokenViews.size() == 0) {
+            throw new OpenNLPWebServiceException(String.format(
+                    "Wrong Input: CANNOT find %s within previous annotations",
+                    Uri.TOKEN));
+        }
+        List<Annotation> tokenAnns = tokenViews.get(tokenViews.size() - 1).getAnnotations();
 
         View view = container.newView();
         view.addContains(Uri.POS,
@@ -80,7 +85,7 @@ public class POSTagger extends OpenNLPAbstractWebService implements IPOSTagger  
                 String [] tags = tag(new String []{txt});
                 for(int i = 0; i < tags.length; i++) {
                     Annotation ann = view.newAnnotation(POS_ID + count++,
-                                    Uri.POS, 0, txt.length());
+                            Uri.POS, 0, txt.length());
                     ann.addFeature(Features.Token.POS, tags[i]);
                 }
             } else {

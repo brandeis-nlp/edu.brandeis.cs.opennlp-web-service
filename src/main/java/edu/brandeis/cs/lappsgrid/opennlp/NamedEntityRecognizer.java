@@ -69,7 +69,12 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
         logger.info("execute(): Execute OpenNLP ner ...");
         String txt = container.getText();
         List<View> tokenViews = container.findViewsThatContain(Uri.TOKEN);
-        List<Annotation> tokenAnns = tokenViews.get(tokenViews.size()).getAnnotations();
+        if (tokenViews.size() == 0) {
+            throw new OpenNLPWebServiceException(String.format(
+                    "Wrong Input: CANNOT find %s within previous annotations",
+                    Uri.TOKEN));
+        }
+        List<Annotation> tokenAnns = tokenViews.get(tokenViews.size() - 1).getAnnotations();
 
 
         View view = container.newView();
