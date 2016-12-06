@@ -19,7 +19,8 @@ import org.lappsgrid.serialization.lif.View;
  * 
  */
 public class Tokenizer extends OpenNLPAbstractWebService implements ITokenizer {
-    private static opennlp.tools.tokenize.Tokenizer tokenizer;
+
+    private opennlp.tools.tokenize.Tokenizer tokenizer;
 
     public Tokenizer() throws OpenNLPWebServiceException {
         if (tokenizer == null) {

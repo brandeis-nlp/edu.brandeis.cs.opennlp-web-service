@@ -23,7 +23,7 @@ import java.util.List;
  */
 public class POSTagger extends OpenNLPAbstractWebService implements IPOSTagger  {
 
-    private static opennlp.tools.postag.POSTagger postagger;
+    private opennlp.tools.postag.POSTagger postagger;
 
 
     public POSTagger() throws OpenNLPWebServiceException {

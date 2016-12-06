@@ -20,7 +20,9 @@ import org.lappsgrid.serialization.lif.View;
  * 
  */
 public class Splitter extends OpenNLPAbstractWebService implements ISplitter {
-    private static SentenceDetector sentenceDetector;
+
+    private SentenceDetector sentenceDetector;
+
     public Splitter() throws OpenNLPWebServiceException {
         if (sentenceDetector == null) {
             init();

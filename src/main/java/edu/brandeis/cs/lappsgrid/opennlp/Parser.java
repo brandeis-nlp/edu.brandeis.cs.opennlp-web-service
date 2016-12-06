@@ -35,7 +35,7 @@ public class Parser extends OpenNLPAbstractWebService implements IParser {
     protected static final Logger logger = LoggerFactory
             .getLogger(Parser.class);
 
-    private static opennlp.tools.parser.Parser parser;
+    private opennlp.tools.parser.Parser parser;
 
     public Parser() throws OpenNLPWebServiceException {
         if (parser == null) {
