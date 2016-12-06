@@ -44,7 +44,7 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
     }
 
     @Override
-    protected void init() throws OpenNLPWebServiceException {
+    synchronized protected void init() throws OpenNLPWebServiceException {
         super.init();
         if (nameFinderModels.size() == 0) {
             nameFinderModels.clear();

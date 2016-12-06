@@ -1,6 +1,8 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
 import edu.brandeis.cs.lappsgrid.opennlp.api.IPOSTagger;
+import opennlp.tools.postag.POSModel;
+import opennlp.tools.postag.POSTaggerME;
 import opennlp.tools.util.Sequence;
 import org.lappsgrid.discriminator.Discriminators.Uri;
 import org.lappsgrid.serialization.Data;
@@ -23,14 +25,21 @@ import java.util.List;
  */
 public class POSTagger extends OpenNLPAbstractWebService implements IPOSTagger  {
 
+    private static POSModel posModel;
     private opennlp.tools.postag.POSTagger postagger;
 
 
     public POSTagger() throws OpenNLPWebServiceException {
-        if (postagger == null) {
-            init();
-            postagger = loadPOSTagger(registModelMap.get(this.getClass()));
+        init();
+    }
+
+    @Override
+    synchronized protected void init() throws OpenNLPWebServiceException {
+        super.init();
+        if (posModel == null) {
+            posModel = loadPOSModel(registModelMap.get(getClass()));
         }
+        postagger = new POSTaggerME(posModel);
     }
 
     @Override

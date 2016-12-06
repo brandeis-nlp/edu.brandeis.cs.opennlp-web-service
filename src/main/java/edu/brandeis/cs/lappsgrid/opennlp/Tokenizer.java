@@ -1,6 +1,8 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
 import edu.brandeis.cs.lappsgrid.opennlp.api.ITokenizer;
+import opennlp.tools.tokenize.TokenizerME;
+import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.Span;
 import org.lappsgrid.discriminator.Discriminators.Uri;
 import org.lappsgrid.serialization.Data;
@@ -20,13 +22,20 @@ import org.lappsgrid.serialization.lif.View;
  */
 public class Tokenizer extends OpenNLPAbstractWebService implements ITokenizer {
 
+    private static TokenizerModel tokenizerModel;
     private opennlp.tools.tokenize.Tokenizer tokenizer;
 
     public Tokenizer() throws OpenNLPWebServiceException {
-        if (tokenizer == null) {
-            init();
-            tokenizer = loadTokenizer(registModelMap.get(this.getClass()));
+        init();
+    }
+
+    @Override
+    protected void init() throws OpenNLPWebServiceException {
+        super.init();
+        if (tokenizerModel == null) {
+            tokenizerModel = loadTokenizerModel(registModelMap.get(this.getClass()));
         }
+        tokenizer = new TokenizerME(tokenizerModel);
     }
 
     @Override

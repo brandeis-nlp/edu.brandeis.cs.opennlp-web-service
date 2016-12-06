@@ -2,6 +2,8 @@ package edu.brandeis.cs.lappsgrid.opennlp;
 
 import edu.brandeis.cs.lappsgrid.opennlp.api.ISplitter;
 import opennlp.tools.sentdetect.SentenceDetector;
+import opennlp.tools.sentdetect.SentenceDetectorME;
+import opennlp.tools.sentdetect.SentenceModel;
 import opennlp.tools.util.Span;
 import org.lappsgrid.discriminator.Discriminators.Uri;
 import org.lappsgrid.serialization.Data;
@@ -21,13 +23,20 @@ import org.lappsgrid.serialization.lif.View;
  */
 public class Splitter extends OpenNLPAbstractWebService implements ISplitter {
 
+    private static SentenceModel sentenceDetectorModel;
     private SentenceDetector sentenceDetector;
 
     public Splitter() throws OpenNLPWebServiceException {
-        if (sentenceDetector == null) {
-            init();
-            sentenceDetector = loadSentenceDetector(registModelMap.get(this.getClass()));
+        init();
+    }
+
+    @Override
+    synchronized protected void init() throws OpenNLPWebServiceException {
+        super.init();
+        if (sentenceDetectorModel == null) {
+            sentenceDetectorModel = loadSentenceModel(registModelMap.get(this.getClass()));
         }
+        sentenceDetector = new SentenceDetectorME(sentenceDetectorModel);
     }
 
     @Override

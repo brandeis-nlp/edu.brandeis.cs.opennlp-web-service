@@ -1,10 +1,11 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
-import edu.brandeis.cs.lappsgrid.Version;
 import edu.brandeis.cs.lappsgrid.opennlp.api.IParser;
 import opennlp.tools.cmdline.parser.ParserTool;
 import opennlp.tools.parser.AbstractBottomUpParser;
 import opennlp.tools.parser.Parse;
+import opennlp.tools.parser.ParserFactory;
+import opennlp.tools.parser.ParserModel;
 import org.lappsgrid.discriminator.Discriminators.Uri;
 import org.lappsgrid.serialization.Data;
 import org.lappsgrid.serialization.Serializer;
@@ -32,17 +33,23 @@ import java.util.List;
  * 
  */
 public class Parser extends OpenNLPAbstractWebService implements IParser {
-    protected static final Logger logger = LoggerFactory
-            .getLogger(Parser.class);
+    protected static final Logger logger = LoggerFactory.getLogger(Parser.class);
 
+    private static ParserModel parserModel;
     private opennlp.tools.parser.Parser parser;
 
     public Parser() throws OpenNLPWebServiceException {
-        if (parser == null) {
-            init();
-            parser = loadParser(registModelMap.get(this.getClass()));
-        }
+        init();
     }
+
+    @Override
+    synchronized protected void init() throws OpenNLPWebServiceException {
+        super.init();
+        if (parserModel == null) {
+            parserModel = loadParserModel(registModelMap.get(this.getClass()));
+        }
+        parser = ParserFactory.create(parserModel);
+     }
 
     private String buildPennString(Parse parses[]) {
         StringBuffer builder = new StringBuffer();
@@ -87,8 +94,12 @@ public class Parser extends OpenNLPAbstractWebService implements IParser {
                 String.format("%s:%s", this.getClass().getName(), getVersion()),
                 "parser:opennlp");
 
-        view.addContains(Uri.CONSTITUENT, "parser:opennlp", this.getClass().getName() + ":" + Version.getVersion());
-        view.addContains(Uri.PHRASE_STRUCTURE, "parser:opennlp", this.getClass().getName() + ":" + Version.getVersion());
+        view.addContains(Uri.CONSTITUENT,
+                String.format("%s:%s", this.getClass().getName(), getVersion()),
+                "parser:opennlp");
+        view.addContains(Uri.PHRASE_STRUCTURE,
+                String.format("%s:%s", this.getClass().getName(), getVersion()),
+                "parser:opennlp");
 
         for(int sid = 0; sid < sentAnns.size(); sid++ ) {
             // for each sentence
