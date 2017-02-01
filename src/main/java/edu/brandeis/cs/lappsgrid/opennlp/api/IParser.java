@@ -1,4 +1,4 @@
-package edu.brandeis.cs.lappsgrid.api.opennlp;
+package edu.brandeis.cs.lappsgrid.opennlp.api;
 
 /**
  * <i>IParser.java</i> Language Application Grids (<b>LAPPS</b>)

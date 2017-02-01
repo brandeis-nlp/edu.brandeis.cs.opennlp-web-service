@@ -1,37 +1,33 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
+import edu.brandeis.cs.lappsgrid.Version;
 import opennlp.tools.coref.DefaultLinker;
 import opennlp.tools.coref.Linker;
 import opennlp.tools.coref.LinkerMode;
-import opennlp.tools.namefind.NameFinderME;
-import opennlp.tools.namefind.TokenNameFinder;
 import opennlp.tools.namefind.TokenNameFinderModel;
 import opennlp.tools.parser.AbstractBottomUpParser;
 import opennlp.tools.parser.Parse;
-import opennlp.tools.parser.ParserFactory;
 import opennlp.tools.parser.ParserModel;
 import opennlp.tools.postag.POSModel;
-import opennlp.tools.postag.POSTaggerME;
-import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.sentdetect.SentenceModel;
-import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.Span;
 import opennlp.tools.util.model.BaseModel;
 import org.anc.io.UTF8Reader;
-import org.apache.commons.io.IOUtils;
 import org.lappsgrid.api.WebService;
 import org.lappsgrid.discriminator.Discriminators;
-import org.lappsgrid.serialization.json.JsonObj;
-import org.lappsgrid.serialization.json.LIFJsonSerialization;
+import org.lappsgrid.metadata.ServiceMetadata;
+import org.lappsgrid.serialization.Data;
+import org.lappsgrid.serialization.Serializer;
+import org.lappsgrid.serialization.lif.Annotation;
+import org.lappsgrid.serialization.lif.Container;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Scanner;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
 
 /**
  * Created by shicq on 3/6/14.
@@ -44,13 +40,28 @@ public abstract class OpenNLPAbstractWebService implements WebService {
     protected static final Logger logger = LoggerFactory.getLogger(OpenNLPAbstractWebService.class);
     public static final String PropFileName = "opennlp-web-service.properties";
 
+    public static final String TOKEN_ID = "tok_";
+    public static final String POS_ID = "pos_";
+    public static final String SENT_ID = "sent_";
+    public static final String CONSTITUENT_ID = "cs_";
+    public static final String PS_ID = "ps_";
+    public static final String DEPENDENCY_ID = "dep_";
+    public static final String DS_ID = "ds_";
+    public static final String MENTION_ID = "m_";
+    public static final String COREF_ID = "coref_";
+    public static final String NE_ID = "ne_";
+
     static {
         registModelMap.put(Tokenizer.class, "Tokenizer");
         registModelMap.put(Splitter.class, "Sentence-Detector");
         registModelMap.put(NamedEntityRecognizer.class, "Name-Finder");
         registModelMap.put(Parser.class, "Parser");
-        registModelMap.put(Coreference.class, "Coreference");
+//        registModelMap.put(Coreference.class, "Coreference");
         registModelMap.put(POSTagger.class, "Part-of-Speech-Tagger");
+    }
+
+    public String getVersion() {
+        return Version.getVersion();
     }
 
     protected void init() throws OpenNLPWebServiceException {
@@ -68,44 +79,9 @@ public abstract class OpenNLPAbstractWebService implements WebService {
             logger.error("init(): fail to load \""+PropFileName+"\".");
             throw new OpenNLPWebServiceException("init(): fail to load \""+PropFileName+"\".");
         }
-
-//        for(String name:prop.stringPropertyNames()) {
-//            if (models.get(name) != null) {
-//                continue;
-//            }
-//
-//            stream = this.getClass().getResourceAsStream("/" + name);
-//            if (stream == null) {
-//                logger.error("init(): fail to open MODEl \""+name+"\".");
-//                throw new OpenNLPWebServiceException("init(): fail to open MODEl \""+name+"\".");
-//            }
-//
-//            logger.info("init(): load MODEl \""+name+"\"");
-//
-//            try {
-//                try {
-//                    if (name == "Tokenizer")
-//                        models.put(name, new TokenizerModel(stream));
-//                    if (name == "Sentence-Detector")
-//                        models.put(name, new SentenceModel(stream));
-//                    if (name == "Name-Finder")
-//                        models.put(name, new TokenNameFinderModel(stream));
-//                    if (name == "Parser")
-//                        models.put(name, new ParserModel(stream));
-//                    if (name == "Coreference")
-//                        models.put(name, new TokenizerModel(stream));
-//                } finally {
-//                    stream.close();
-//                }
-//            } catch (IOException e) {
-//                logger.error("init(): fail to load MODEl \""+name+"\".");
-//                throw new OpenNLPWebServiceException("init(): fail to load MODEl \""+name+"\".");
-//            }
-//        }
-//        logger.info("init(): Creating OpenNLP!");
     }
 
-    protected Parse createSentenceParse(final String sentenceText, final Span[] sentenceTokens) {
+    protected Parse createTerminalNodes(final String sentenceText, final Span[] sentenceTokens) {
         Parse sentParse = new Parse(sentenceText, new Span(0, sentenceText.length()), AbstractBottomUpParser.INC_NODE, 1, 0);
         for (int i = 0; i < sentenceTokens.length; i++) {
             int tokenStart = sentenceTokens[i].getStart();
@@ -118,182 +94,129 @@ public abstract class OpenNLPAbstractWebService implements WebService {
         return sentParse;
     }
 
-    /**
-     * loadSentenceModel("Sentence-Detector")
-     * @param modelName
-     * @return
-     */
-    protected SentenceDetectorME loadSentenceDetector(String modelName) throws  OpenNLPWebServiceException {
-        SentenceDetectorME sentenceDetector = null;
+    private OpenNLPWebServiceException logAndThrowError(String serviceName, String modelResName) {
+        String error = String.format("load(): fail to open %s MODEL \"%s\".", serviceName, modelResName);
+        logger.error(error);
+        return new OpenNLPWebServiceException(error);
+    }
+
+    /* used to be loadTokenNameFinders(), but NameFinders cannot be static (and shared among threads) */
+    protected List<TokenNameFinderModel> loadTokenNameFinderModels(String nerPropKey) throws  OpenNLPWebServiceException  {
+        List<TokenNameFinderModel> nameFinderModels = new LinkedList<>();
+        String nerModelResources = prop.getProperty(nerPropKey, "en-ner-person.bin");
+        System.out.println(prop.keySet());
+        logger.info("init(): load opennlp-web-service.properties.");
+        for (String nerModelResName : nerModelResources.split(":")) {
+            logger.info("init(): load " + nerModelResName + " ...");
+            if (nerModelResName.trim().length() > 0) {
+                nameFinderModels.add(loadTokenNameFinderModel(nerModelResName));
+            }
+        }
+        return nameFinderModels;
+    }
+
+    protected TokenNameFinderModel loadTokenNameFinderModel(String modelResName) throws OpenNLPWebServiceException {
+        TokenNameFinderModel model;
+        InputStream stream = this.getClass().getResourceAsStream("/" + modelResName);
+        if (stream == null) {
+            throw logAndThrowError("NER", modelResName);
+        }
+        logger.info("load(): load NER MODEL \"" + modelResName + "\"");
+        try {
+            try {
+                model = new TokenNameFinderModel(stream);
+            } finally {
+                stream.close();
+            }
+        } catch (IOException e) {
+            throw logAndThrowError("NER", modelResName);
+        }
+        return model;
+    }
+
+    protected SentenceModel loadSentenceModel(String splitPropKey) throws  OpenNLPWebServiceException {
         // default English
-        String sentenceModel = prop.getProperty(modelName, "en-sent.bin");
+        String sentenceModel = prop.getProperty(splitPropKey, "en-sent.bin");
         logger.info("init(): load " + sentenceModel);
         InputStream stream = this.getClass().getResourceAsStream("/" + sentenceModel);
         if (stream == null) {
-            logger.error("init(): fail to open SENTENCE MODEl \""+sentenceModel+"\".");
-            throw new OpenNLPWebServiceException("init(): fail to open SENTENCE MODEl \""+sentenceModel+"\".");
+            throw logAndThrowError("SENTENCE", sentenceModel);
         }
         logger.info("init(): load SENTENCE MODEl \""+sentenceModel+"\"");
         try {
             try {
-                SentenceModel model = new SentenceModel(stream);
-                sentenceDetector = new SentenceDetectorME(model);
+                return new SentenceModel(stream);
             } finally {
                 stream.close();
             }
         } catch (IOException e) {
-            logger.error("init(): fail to load SENTENCE MODEl \""+sentenceModel+"\".");
-            throw new OpenNLPWebServiceException("init(): fail to load SENTENCE MODEl \""+sentenceModel+"\".");
+            throw logAndThrowError("SENTENCE", sentenceModel);
         }
-        return sentenceDetector;
     }
 
-    protected TokenizerME loadTokenizer(String modelName)  throws  OpenNLPWebServiceException {
-        TokenizerME tokenizer = null;
-        // default English
-        String tokenModel = prop.getProperty(modelName, "en-token.bin");
+    protected TokenizerModel loadTokenizerModel(String tokPropKey)  throws  OpenNLPWebServiceException {
+        String tokenModel = prop.getProperty(tokPropKey, "en-token.bin");
 
         logger.info("init(): load " + tokenModel);
         InputStream stream = this.getClass().getResourceAsStream("/" + tokenModel);
         if (stream == null) {
-            logger.error("init(): fail to open TOKEN MODEl \""+tokenModel+"\".");
-            throw new OpenNLPWebServiceException("init(): fail to open TOKEN MODEl \""+tokenModel+"\".");
+            throw logAndThrowError("TOKEN", tokenModel);
         }
         logger.info("init(): load TOKEN MODEl \""+tokenModel+"\"");
         try {
             try {
-                TokenizerModel model = new TokenizerModel(stream);
-                tokenizer = new TokenizerME(model);
+                return new TokenizerModel(stream);
             } finally {
                 stream.close();
             }
         } catch (IOException e) {
-            logger.error("init(): fail to load TOKEN MODEl \""+tokenModel+"\".");
-            throw new OpenNLPWebServiceException("init(): fail to load TOKEN MODEl \""+tokenModel+"\".");
+            throw logAndThrowError("TOKEN", tokenModel);
         }
-        logger.info("init(): Creating OpenNLP Tokenizer!");
-        return tokenizer;
     }
 
-    protected TokenNameFinder loadTokenNameFinder(String modelName)  throws  OpenNLPWebServiceException {
-        TokenNameFinder nameFinder;
-        InputStream stream = this.getClass().getResourceAsStream("/" + modelName);
-        if (stream == null) {
-            logger.error("load(): fail to open NER MODEL \"" + modelName
-                    + "\".");
-            throw new OpenNLPWebServiceException(
-                    "load(): fail to open NER MODEL \"" + modelName + "\".");
-        }
-        logger.info("load(): load NER MODEL \"" + modelName + "\"");
+    protected POSModel loadPOSModel(String posPropKey) throws OpenNLPWebServiceException {
 
-        try {
-            try {
-                TokenNameFinderModel model = new TokenNameFinderModel(stream);
-                nameFinder = new NameFinderME(model);
-            } finally {
-                stream.close();
-            }
-        } catch (IOException e) {
-            logger.error("load(): fail to load NER MODEL \"" + modelName
-                    + "\".");
-            throw new OpenNLPWebServiceException(
-                    "load(): fail to load NER MODEL \"" + modelName + "\".");
-        }
-        return nameFinder;
-    }
-
-    protected static final String [] NERTags = new String[]{"Person", "Date", "Location", "Organization"};
-
-    protected Map<String, TokenNameFinder> loadTokenNameFinders(String modelName) throws  OpenNLPWebServiceException  {
-        Map<String, TokenNameFinder> nameFinders = new HashMap<String,TokenNameFinder> ();
-        String nerModels = prop.getProperty(modelName,
-                "en-ner-person.bin");
-        logger.info("init(): load opennlp-web-service.properties.");
-        for (String nerModel : nerModels.split(":")) {
-            logger.info("init(): load " + nerModel + " ...");
-            if (nerModel.trim().length() > 0) {
-                TokenNameFinder nameFinder = loadTokenNameFinder(nerModel);
-                if (nameFinder != null){
-                    String lowNerModel = nerModel.toLowerCase();
-                    String nerModelTag = "Unknown";
-                    for (String tag: NERTags) {
-                        if(lowNerModel.contains(tag.toLowerCase())) {
-                            nerModelTag = tag;
-                            nameFinders.put(nerModelTag,nameFinder);
-                        }
-                    }
-                }
-            }
-        }
-        logger.info("init(): Creating OpenNLP NamedEntityRecognizer!");
-        return nameFinders;
-    }
-
-
-    protected POSTaggerME loadPOSTagger(String modelName) throws OpenNLPWebServiceException {
-        POSTaggerME postagger;
-
-        String taggerModel = prop.getProperty(modelName);
+        String taggerModel = prop.getProperty(posPropKey);
         InputStream stream = this.getClass().getResourceAsStream("/" + taggerModel);
         if (stream == null) {
-            logger.error("init(): fail to open POSTAGGER MODEl \""+taggerModel+"\".");
-            throw new OpenNLPWebServiceException("init(): fail to open POSTAGGER MODEl \""+taggerModel+"\".");
+            throw logAndThrowError("POSTAGGER", taggerModel);
         }
 
         logger.info("init(): load POSTAGGER MODEl \""+taggerModel+"\"");
 
         try {
             try {
-                POSModel model = new POSModel(stream);
-                postagger = new POSTaggerME(model);
+                return new POSModel(stream);
             } finally {
                 stream.close();
             }
         } catch (IOException e) {
-            logger.error("init(): fail to load POSTAGGER MODEl \""+modelName+"\".");
-            throw new OpenNLPWebServiceException("init(): fail to load POSTAGGER MODEl \""+modelName+"\".");
+            throw logAndThrowError("POSTAGGER", taggerModel);
         }
-
-        logger.info("init(): Creating OpenNLP POSTagger!");
-        return postagger;
     }
 
-    protected opennlp.tools.parser.Parser loadParser(String modelName) throws  OpenNLPWebServiceException {
-        opennlp.tools.parser.Parser parser = null;
-        // default English
-        String parserModel = prop.getProperty(modelName,
-                "en-parser-chunking.bin");
+    protected ParserModel loadParserModel(String pspPropKey) throws  OpenNLPWebServiceException {
+        String parserModel = prop.getProperty(pspPropKey, "en-parser-chunking.bin");
 
         logger.info("init(): load opennlp-web-service.properties.");
         InputStream stream = this.getClass().getResourceAsStream("/" + parserModel);
         if (stream == null) {
-            logger.error("init(): fail to open PARSER MODEl \"" + parserModel
-                    + "\".");
-            throw new OpenNLPWebServiceException(
-                    "init(): fail to open PARSER MODEl \"" + parserModel + "\".");
+            throw logAndThrowError("PARSER", parserModel);
         }
-
         logger.info("init(): load PARSER MODEl \"" + parserModel + "\"");
 
         try {
             try {
-                ParserModel model = new ParserModel(stream);
-                parser = ParserFactory.create(model);
+                return new ParserModel(stream);
             } finally {
                 stream.close();
             }
         } catch (IOException e) {
-            logger.error("init(): fail to load PARSER MODEl \"" + parserModel
-                    + "\".");
-            throw new OpenNLPWebServiceException(
-                    "init(): fail to load PARSER MODEl \"" + parserModel + "\".");
+            throw logAndThrowError("PARSER", parserModel);
         }
-
-        logger.info("init(): Creating OpenNLP Parser!");
-        return parser;
     }
 
-    protected Linker loadCoRefLinker(String modelName) throws  OpenNLPWebServiceException  {
+    protected Linker loadCoRefLinker(String corefPropKey) throws  OpenNLPWebServiceException  {
         Linker linker = null;
         logger.info("init(): Creating OpenNLP Coreference ...");
         try {
@@ -304,7 +227,7 @@ public abstract class OpenNLPAbstractWebService implements WebService {
             throw new OpenNLPWebServiceException("Load wordnet 3.1 Error. ");
         }
         // default English
-        String linkerModel = prop.getProperty(modelName, "coref");
+        String linkerModel = prop.getProperty(corefPropKey, "coref");
         logger.info("init(): load opennlp-web-service.properties.");
         try {
             linker = new DefaultLinker( new File(
@@ -320,66 +243,98 @@ public abstract class OpenNLPAbstractWebService implements WebService {
         return linker;
     }
 
-
     @Override
-    public String execute(String s) {
-        LIFJsonSerialization json = null;
-        try{
-            s = s.trim();
-            if (s.startsWith("{") && s.endsWith("}")) {
-                json = new LIFJsonSerialization(s);
-                if (json.getDiscriminator().equals(Discriminators.Uri.ERROR)) {
-                    return json.toString();
-                }
-            } else {
-                json = new LIFJsonSerialization();
-                json.setText(s);
-            }
-            return execute(json);
-        }catch(Throwable th) {
-            json = new LIFJsonSerialization();
-            StringWriter sw = new StringWriter();
-            th.printStackTrace( new PrintWriter(sw));
-            json.setError(th.toString(), sw.toString());
-            System.err.println(sw.toString());
-            return json.toString();
+    public String execute(String input) {
+
+        if (input == null) return null;
+
+        input = input.trim();
+        // in case of Json
+        Data data;
+        if(input.startsWith("{") && input.endsWith("}")) {
+            data = Serializer.parse(input, Data.class);
+        } else {
+            // when json parse failed
+            data = new Data();
+            data.setDiscriminator(Discriminators.Uri.TEXT);
+            data.setPayload(input);
+        }
+
+        final String discriminator = data.getDiscriminator();
+        Container container;
+
+        switch (discriminator) {
+            case Discriminators.Uri.ERROR:
+                return input;
+            case Discriminators.Uri.JSON_LD:
+            case Discriminators.Uri.LIF:
+                container = new Container((Map) data.getPayload());
+                break;
+            case Discriminators.Uri.TEXT:
+                container = new Container();
+                container.setText((String) data.getPayload());
+                container.setLanguage("en");
+                break;
+            default:
+                String message = String.format
+                        ("Unsupported discriminator type: %s", discriminator);
+                return new Data<>(Discriminators.Uri.ERROR, message).asJson();
+        }
+
+        try {
+            // TODO: 12/4/2016 this will be redundant when @context stuff sorted out
+            container.setContext(Container.REMOTE_CONTEXT);
+            return execute(container);
+        } catch (Throwable th) {
+            th.printStackTrace();
+            String message =
+                    String.format("Error processing input: %s", th.toString());
+            return new Data<>(Discriminators.Uri.ERROR, message).asJson();
         }
     }
-
-
 
     @Override
     public String getMetadata() {
+
+        String metadata;
         // get caller name using reflection
-        String name = this.getClass().getName();
-        //
-        String resName = "/metadata/"+ name +".json";
-//        System.out.println("load resources:" + resName);
+        String serviceName = this.getClass().getName();
+        String resName = "/metadata/"+ serviceName +".json";
         logger.info("load resources:" + resName);
-        try {
-            InputStream inputStream = this.getClass().getResourceAsStream(resName);
-            UTF8Reader reader = new UTF8Reader(inputStream);
-            Scanner s = new Scanner(reader).useDelimiter("\\A");
-            String meta= s.hasNext() ? s.next() : "";
-//            String meta = IOUtils.toString(this.getClass().getResourceAsStream(resName));
-            JsonObj json = new JsonObj();
-            json.put("discriminator", Discriminators.Uri.META);
-            json.put("payload", new JsonObj(meta));
-            return json.toString();
-        }catch (Throwable th) {
-            JsonObj json = new JsonObj();
-            json.put("discriminator", Discriminators.Uri.ERROR);
-            JsonObj error = new JsonObj();
-            error.put("class", name);
-            error.put("error", "NOT EXIST: "+resName);
-            error.put("message", th.getMessage());
-            StringWriter sw = new StringWriter();
-            th.printStackTrace( new PrintWriter(sw));
-            error.put("stacktrace", sw.toString());
-            json.put("payload", error);
-            return json.toString();
+
+        InputStream inputStream = this.getClass().getResourceAsStream(resName);
+
+        if (inputStream == null) {
+            String message = "Unable to load metadata file for " + this.getClass().getName();
+            logger.error(message);
+            metadata = (new Data<>(Discriminators.Uri.ERROR, message)).asPrettyJson();
+        } else {
+            UTF8Reader reader;
+            try {
+                reader = new UTF8Reader(inputStream);
+                Scanner s = new Scanner(reader).useDelimiter("\\A");
+                String metadataText = s.hasNext() ? s.next() : "";
+                metadata = (new Data<>(Discriminators.Uri.META,
+                        Serializer.parse(metadataText, ServiceMetadata.class))).asPrettyJson();
+                reader.close();
+            } catch (Exception e) {
+                String message = "Unable to parse metadata json for " + this.getClass().getName();
+                logger.error(message, e);
+                metadata = (new Data<>(Discriminators.Uri.ERROR, message)).asPrettyJson();
+            }
         }
+        return metadata;
     }
 
-    public abstract String execute(LIFJsonSerialization in) throws OpenNLPWebServiceException;
+    protected String getTokenText(Annotation token, String fullText) {
+        String tokenText;
+        if (token.getFeatures().containsKey("word")) {
+            tokenText = token.getFeature("word");
+        } else {
+            tokenText = fullText.substring(token.getStart().intValue(),  token.getEnd().intValue());
+        }
+        return tokenText;
+    }
+
+    public abstract String execute(Container in) throws OpenNLPWebServiceException;
 }

@@ -12,8 +12,6 @@
     </appender>
 
     <logger name="edu.brandeis.cs.lappsgrid" level="info"/>
-    <logger name="org.lappsgrid.serialization.json" level="info"/>
-
     <root level="warn">
         <appender-ref ref="STDOUT" />
     </root>

@@ -1,4 +1,4 @@
-package edu.brandeis.cs.lappsgrid.api.opennlp;
+package edu.brandeis.cs.lappsgrid.opennlp.api;
 
 
 import edu.brandeis.cs.lappsgrid.opennlp.OpenNLPWebServiceException;
