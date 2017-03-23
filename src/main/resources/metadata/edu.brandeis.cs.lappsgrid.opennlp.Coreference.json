@@ -1,7 +1,6 @@
 {
   "$schema" : "http://vocab.lappsgrid.org/schema/service-schema-1.0.0.json",
   "name" : "edu.brandeis.cs.lappsgrid.opennlp.Coreference",
-  "version" : "2.0.0",
   "description" : "OpenNLP Coreference",
   "vendor" : "http://www.cs.brandeis.edu/",
   "allow" : "http://vocab.lappsgrid.org/ns/allow#any",

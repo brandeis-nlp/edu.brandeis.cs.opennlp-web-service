@@ -72,11 +72,8 @@ public class TestNamedEntityRecognizer extends TestService {
 
         String json = service.execute("Mike");
         System.out.println(json);
-        Container container = new Container((Map) Serializer.parse(json, Data.class).getPayload());
         json = service.execute(jsons.get("tokens.json"));
         System.out.println(json);
-        container = new Container((Map) Serializer.parse(json, Data.class).getPayload());
-
         System.out.println("\\-----------------------------------/\n");
     }
 }

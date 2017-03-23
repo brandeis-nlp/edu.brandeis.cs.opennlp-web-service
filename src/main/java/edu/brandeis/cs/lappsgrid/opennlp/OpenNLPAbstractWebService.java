@@ -296,7 +296,7 @@ public abstract class OpenNLPAbstractWebService implements WebService {
     @Override
     public String getMetadata() {
 
-        String metadata;
+        String metadataString;
         // get caller name using reflection
         String serviceName = this.getClass().getName();
         String resName = "/metadata/"+ serviceName +".json";
@@ -307,23 +307,24 @@ public abstract class OpenNLPAbstractWebService implements WebService {
         if (inputStream == null) {
             String message = "Unable to load metadata file for " + this.getClass().getName();
             logger.error(message);
-            metadata = (new Data<>(Discriminators.Uri.ERROR, message)).asPrettyJson();
+            metadataString = (new Data<>(Discriminators.Uri.ERROR, message)).asPrettyJson();
         } else {
             UTF8Reader reader;
             try {
                 reader = new UTF8Reader(inputStream);
                 Scanner s = new Scanner(reader).useDelimiter("\\A");
                 String metadataText = s.hasNext() ? s.next() : "";
-                metadata = (new Data<>(Discriminators.Uri.META,
-                        Serializer.parse(metadataText, ServiceMetadata.class))).asPrettyJson();
+                ServiceMetadata metadata = Serializer.parse(metadataText, ServiceMetadata.class);
+                metadata.setVersion(Version.getVersion());
+                metadataString = (new Data<>(Discriminators.Uri.META, metadata)).asPrettyJson();
                 reader.close();
             } catch (Exception e) {
                 String message = "Unable to parse metadata json for " + this.getClass().getName();
                 logger.error(message, e);
-                metadata = (new Data<>(Discriminators.Uri.ERROR, message)).asPrettyJson();
+                metadataString = (new Data<>(Discriminators.Uri.ERROR, message)).asPrettyJson();
             }
         }
-        return metadata;
+        return metadataString;
     }
 
     protected String getTokenText(Annotation token, String fullText) {
