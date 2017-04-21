@@ -13,10 +13,8 @@ import opennlp.tools.sentdetect.SentenceModel;
 import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.Span;
 import opennlp.tools.util.model.BaseModel;
-import org.anc.io.UTF8Reader;
 import org.lappsgrid.api.WebService;
 import org.lappsgrid.discriminator.Discriminators;
-import org.lappsgrid.metadata.ServiceMetadata;
 import org.lappsgrid.serialization.Data;
 import org.lappsgrid.serialization.Serializer;
 import org.lappsgrid.serialization.lif.Annotation;
@@ -50,6 +48,8 @@ public abstract class OpenNLPAbstractWebService implements WebService {
     public static final String MENTION_ID = "m_";
     public static final String COREF_ID = "coref_";
     public static final String NE_ID = "ne_";
+
+    protected String metadata;
 
     static {
         registModelMap.put(Tokenizer.class, "Tokenizer");
@@ -295,36 +295,7 @@ public abstract class OpenNLPAbstractWebService implements WebService {
 
     @Override
     public String getMetadata() {
-
-        String metadataString;
-        // get caller name using reflection
-        String serviceName = this.getClass().getName();
-        String resName = "/metadata/"+ serviceName +".json";
-        logger.info("load resources:" + resName);
-
-        InputStream inputStream = this.getClass().getResourceAsStream(resName);
-
-        if (inputStream == null) {
-            String message = "Unable to load metadata file for " + this.getClass().getName();
-            logger.error(message);
-            metadataString = (new Data<>(Discriminators.Uri.ERROR, message)).asPrettyJson();
-        } else {
-            UTF8Reader reader;
-            try {
-                reader = new UTF8Reader(inputStream);
-                Scanner s = new Scanner(reader).useDelimiter("\\A");
-                String metadataText = s.hasNext() ? s.next() : "";
-                ServiceMetadata metadata = Serializer.parse(metadataText, ServiceMetadata.class);
-                metadata.setVersion(Version.getVersion());
-                metadataString = (new Data<>(Discriminators.Uri.META, metadata)).asPrettyJson();
-                reader.close();
-            } catch (Exception e) {
-                String message = "Unable to parse metadata json for " + this.getClass().getName();
-                logger.error(message, e);
-                metadataString = (new Data<>(Discriminators.Uri.ERROR, message)).asPrettyJson();
-            }
-        }
-        return metadataString;
+        return metadata;
     }
 
     protected String getTokenText(Annotation token, String fullText) {

@@ -1,11 +1,14 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
+import edu.brandeis.cs.lappsgrid.Version;
 import edu.brandeis.cs.lappsgrid.opennlp.api.INamedEntityRecognizer;
 import opennlp.tools.namefind.NameFinderME;
 import opennlp.tools.namefind.TokenNameFinder;
 import opennlp.tools.namefind.TokenNameFinderModel;
 import opennlp.tools.util.Span;
 import org.lappsgrid.discriminator.Discriminators.Uri;
+import org.lappsgrid.metadata.IOSpecification;
+import org.lappsgrid.metadata.ServiceMetadata;
 import org.lappsgrid.serialization.Data;
 import org.lappsgrid.serialization.Serializer;
 import org.lappsgrid.serialization.lif.Annotation;
@@ -54,6 +57,7 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
         for (TokenNameFinderModel model : nameFinderModels) {
             nameFinders.add(new NameFinderME(model));
         }
+        this.metadata = loadMetadata();
     }
 
     public static String capitalize(String s) {
@@ -153,5 +157,31 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
                 break;
         }
         return atType;
+    }
+
+    public String loadMetadata() {
+    	ServiceMetadata meta = new ServiceMetadata();
+    	meta.setName(this.getClass().getName());
+    	meta.setDescription("ner:opennlp");
+    	meta.setVersion(Version.getVersion());
+    	meta.setVendor("http://www.cs.brandeis.edu/");
+    	meta.setLicense(Uri.APACHE2);
+
+    	IOSpecification requires = new IOSpecification();
+    	requires.setEncoding("UTF-8");
+    	requires.addLanguage("en");
+    	requires.addFormat(Uri.LAPPS);
+    	requires.addAnnotation(Uri.TOKEN);
+
+    	IOSpecification produces = new IOSpecification();
+    	produces.setEncoding("UTF-8");
+    	produces.addLanguage("en");
+    	produces.addFormat(Uri.LAPPS);
+    	produces.addAnnotation(Uri.NE);
+
+    	meta.setRequires(requires);
+    	meta.setProduces(produces);
+    	Data<ServiceMetadata> data = new Data<> (Uri.META, meta);
+    	return data.asPrettyJson();
     }
 }

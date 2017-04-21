@@ -1,5 +1,6 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
+import edu.brandeis.cs.lappsgrid.Version;
 import edu.brandeis.cs.lappsgrid.opennlp.api.IParser;
 import opennlp.tools.cmdline.parser.ParserTool;
 import opennlp.tools.parser.AbstractBottomUpParser;
@@ -7,6 +8,8 @@ import opennlp.tools.parser.Parse;
 import opennlp.tools.parser.ParserFactory;
 import opennlp.tools.parser.ParserModel;
 import org.lappsgrid.discriminator.Discriminators.Uri;
+import org.lappsgrid.metadata.IOSpecification;
+import org.lappsgrid.metadata.ServiceMetadata;
 import org.lappsgrid.serialization.Data;
 import org.lappsgrid.serialization.Serializer;
 import org.lappsgrid.serialization.lif.Annotation;
@@ -40,6 +43,7 @@ public class Parser extends OpenNLPAbstractWebService implements IParser {
 
     public Parser() throws OpenNLPWebServiceException {
         init();
+        this.metadata = loadMetadata();
     }
 
     @Override
@@ -49,7 +53,7 @@ public class Parser extends OpenNLPAbstractWebService implements IParser {
             parserModel = loadParserModel(registModelMap.get(this.getClass()));
         }
         parser = ParserFactory.create(parserModel);
-     }
+    }
 
     private String buildPennString(Parse parses[]) {
         StringBuffer builder = new StringBuffer();
@@ -101,7 +105,7 @@ public class Parser extends OpenNLPAbstractWebService implements IParser {
                 String.format("%s:%s", this.getClass().getName(), getVersion()),
                 "parser:opennlp");
 
-        for(int sid = 0; sid < sentAnns.size(); sid++ ) {
+        for (int sid = 0; sid < sentAnns.size(); sid++) {
             // for each sentence
             Annotation sentAnn = sentAnns.get(sid);
             String sentText = getTokenText(sentAnn, txt);
@@ -123,7 +127,7 @@ public class Parser extends OpenNLPAbstractWebService implements IParser {
 
 
     protected String findConstituents(Parse parse, List<String> constituentIds, int sentId, View view) {
-        String cid = CONSTITUENT_ID +sentId+"_"+ constituentIds.size();
+        String cid = CONSTITUENT_ID + sentId + "_" + constituentIds.size();
         constituentIds.add(cid);
 
         Annotation constituentAnn = view.newAnnotation(cid, Uri.CONSTITUENT, -1, -1);
@@ -133,7 +137,7 @@ public class Parser extends OpenNLPAbstractWebService implements IParser {
         } else {
             constituentAnn.setLabel(parse.getCoveredText());
         }
-        if(parse.getChildren().length > 0 ) {
+        if (parse.getChildren().length > 0) {
             List<String> children = new LinkedList<>();
             for (Parse child : parse.getChildren()) {
                 String childId = findConstituents(child, constituentIds, sentId, view);
@@ -143,4 +147,32 @@ public class Parser extends OpenNLPAbstractWebService implements IParser {
         }
         return cid;
     }
+
+    public String loadMetadata() {
+        ServiceMetadata meta = new ServiceMetadata();
+        meta.setName(this.getClass().getName());
+        meta.setDescription("parser:opennlp");
+        meta.setVersion(Version.getVersion());
+        meta.setVendor("http://www.cs.brandeis.edu/");
+        meta.setLicense(Uri.APACHE2);
+
+        IOSpecification requires = new IOSpecification();
+        requires.setEncoding("UTF-8");
+        requires.addLanguage("en");
+        requires.addFormat(Uri.LAPPS);
+        requires.addAnnotation(Uri.SENTENCE);
+
+        IOSpecification produces = new IOSpecification();
+        produces.setEncoding("UTF-8");
+        produces.addLanguage("en");
+        produces.addFormat(Uri.LAPPS);
+        produces.addAnnotation(Uri.CONSTITUENT);
+        produces.addAnnotation(Uri.PHRASE_STRUCTURE);
+
+        meta.setRequires(requires);
+        meta.setProduces(produces);
+        Data<ServiceMetadata> data = new Data<>(Uri.META, meta);
+        return data.asPrettyJson();
+    }
 }
+

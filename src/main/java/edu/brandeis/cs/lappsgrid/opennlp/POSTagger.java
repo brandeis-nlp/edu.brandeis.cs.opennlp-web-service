@@ -1,10 +1,13 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
+import edu.brandeis.cs.lappsgrid.Version;
 import edu.brandeis.cs.lappsgrid.opennlp.api.IPOSTagger;
 import opennlp.tools.postag.POSModel;
 import opennlp.tools.postag.POSTaggerME;
 import opennlp.tools.util.Sequence;
 import org.lappsgrid.discriminator.Discriminators.Uri;
+import org.lappsgrid.metadata.IOSpecification;
+import org.lappsgrid.metadata.ServiceMetadata;
 import org.lappsgrid.serialization.Data;
 import org.lappsgrid.serialization.Serializer;
 import org.lappsgrid.serialization.lif.Annotation;
@@ -117,4 +120,35 @@ public class POSTagger extends OpenNLPAbstractWebService implements IPOSTagger  
         Data<Container> data = new Data<>(Uri.LIF, container);
         return Serializer.toJson(data);
     }
+    
+    public String loadMetadata() {
+    	ServiceMetadata meta = new ServiceMetadata();
+    	meta.setName(this.getClass().getName());
+    	meta.setDescription("tagger:opennlp");
+    	meta.setVersion(Version.getVersion());
+    	meta.setVendor("http://www.cs.brandeis.edu/");
+    	meta.setLicense(Uri.APACHE2);
+    	
+    	IOSpecification requires = new IOSpecification();
+    	requires.setEncoding("UTF-8");
+    	requires.addLanguage("en");
+    	requires.addFormat(Uri.LAPPS);
+    	requires.addAnnotation(Uri.TOKEN);
+    	
+    	IOSpecification produces = new IOSpecification();
+    	produces.setEncoding("UTF-8");
+    	produces.addLanguage("en");
+    	produces.addFormat(Uri.LAPPS);
+    	produces.addAnnotation(Uri.POS);
+    	
+    	meta.setRequires(requires);
+    	meta.setProduces(produces);
+    	Data<ServiceMetadata> data = new Data<> (Uri.META, meta);
+    	return data.asPrettyJson();
+    }
+    
+    public String getMetadata() {
+    	return this.metadata;
+    }
+    
 }

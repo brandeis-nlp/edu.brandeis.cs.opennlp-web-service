@@ -1,11 +1,14 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
+import edu.brandeis.cs.lappsgrid.Version;
 import edu.brandeis.cs.lappsgrid.opennlp.api.ISplitter;
 import opennlp.tools.sentdetect.SentenceDetector;
 import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.sentdetect.SentenceModel;
 import opennlp.tools.util.Span;
 import org.lappsgrid.discriminator.Discriminators.Uri;
+import org.lappsgrid.metadata.IOSpecification;
+import org.lappsgrid.metadata.ServiceMetadata;
 import org.lappsgrid.serialization.Data;
 import org.lappsgrid.serialization.Serializer;
 import org.lappsgrid.serialization.lif.Annotation;
@@ -28,6 +31,7 @@ public class Splitter extends OpenNLPAbstractWebService implements ISplitter {
 
     public Splitter() throws OpenNLPWebServiceException {
         init();
+        this.metadata = loadMetadata();
     }
 
     @Override
@@ -88,5 +92,30 @@ public class Splitter extends OpenNLPAbstractWebService implements ISplitter {
         }
         Data<Container> data = new Data<>(Uri.LIF, container);
         return Serializer.toJson(data);
+    }
+
+    public String loadMetadata() {
+    	ServiceMetadata meta = new ServiceMetadata();
+    	meta.setName(this.getClass().getName());
+    	meta.setDescription("splitter:opennlp");
+    	meta.setVersion(Version.getVersion());
+    	meta.setVendor("http://www.cs.brandeis.edu/");
+    	meta.setLicense(Uri.APACHE2);
+
+    	IOSpecification requires = new IOSpecification();
+    	requires.setEncoding("UTF-8");
+    	requires.addLanguage("en");
+    	requires.addFormat(Uri.LAPPS);
+
+    	IOSpecification produces = new IOSpecification();
+    	produces.setEncoding("UTF-8");
+    	produces.addLanguage("en");
+    	produces.addFormat(Uri.LAPPS);
+    	produces.addAnnotation(Uri.SENTENCE);
+
+    	meta.setRequires(requires);
+    	meta.setProduces(produces);
+    	Data<ServiceMetadata> data = new Data<> (Uri.META, meta);
+    	return data.asPrettyJson();
     }
 }
