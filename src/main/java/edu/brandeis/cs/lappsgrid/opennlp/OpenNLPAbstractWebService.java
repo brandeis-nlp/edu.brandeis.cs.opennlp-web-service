@@ -64,20 +64,20 @@ public abstract class OpenNLPAbstractWebService implements WebService {
         return Version.getVersion();
     }
 
-    protected void init() throws OpenNLPWebServiceException {
-        logger.info("init(): Creating OpenNLP ...");
+    protected void loadModels() throws OpenNLPWebServiceException {
+        logger.info("loadModels(): Creating OpenNLP ...");
         InputStream stream = this.getClass().getResourceAsStream("/" + PropFileName);
         if (stream == null) {
-            logger.error("init(): fail to open \""+PropFileName+"\".");
-            throw new OpenNLPWebServiceException("init(): fail to open \""+PropFileName+"\".");
+            logger.error("loadModels(): fail to open \""+PropFileName+"\".");
+            throw new OpenNLPWebServiceException("loadModels(): fail to open \""+PropFileName+"\".");
         }
         try {
-            logger.info("init(): load opennlp-web-service.properties.");
+            logger.info("loadModels(): load opennlp-web-service.properties.");
             prop.load(stream);
             stream.close();
         } catch (IOException e) {
-            logger.error("init(): fail to load \""+PropFileName+"\".");
-            throw new OpenNLPWebServiceException("init(): fail to load \""+PropFileName+"\".");
+            logger.error("loadModels(): fail to load \""+PropFileName+"\".");
+            throw new OpenNLPWebServiceException("loadModels(): fail to load \""+PropFileName+"\".");
         }
     }
 
@@ -105,9 +105,9 @@ public abstract class OpenNLPAbstractWebService implements WebService {
         List<TokenNameFinderModel> nameFinderModels = new LinkedList<>();
         String nerModelResources = prop.getProperty(nerPropKey, "en-ner-person.bin");
         System.out.println(prop.keySet());
-        logger.info("init(): load opennlp-web-service.properties.");
+        logger.info("loadModels(): load opennlp-web-service.properties.");
         for (String nerModelResName : nerModelResources.split(":")) {
-            logger.info("init(): load " + nerModelResName + " ...");
+            logger.info("loadModels(): load " + nerModelResName + " ...");
             if (nerModelResName.trim().length() > 0) {
                 nameFinderModels.add(loadTokenNameFinderModel(nerModelResName));
             }
@@ -137,12 +137,12 @@ public abstract class OpenNLPAbstractWebService implements WebService {
     protected SentenceModel loadSentenceModel(String splitPropKey) throws  OpenNLPWebServiceException {
         // default English
         String sentenceModel = prop.getProperty(splitPropKey, "en-sent.bin");
-        logger.info("init(): load " + sentenceModel);
+        logger.info("loadModels(): load " + sentenceModel);
         InputStream stream = this.getClass().getResourceAsStream("/" + sentenceModel);
         if (stream == null) {
             throw logAndThrowError("SENTENCE", sentenceModel);
         }
-        logger.info("init(): load SENTENCE MODEl \""+sentenceModel+"\"");
+        logger.info("loadModels(): load SENTENCE MODEl \""+sentenceModel+"\"");
         try {
             try {
                 return new SentenceModel(stream);
@@ -157,12 +157,12 @@ public abstract class OpenNLPAbstractWebService implements WebService {
     protected TokenizerModel loadTokenizerModel(String tokPropKey)  throws  OpenNLPWebServiceException {
         String tokenModel = prop.getProperty(tokPropKey, "en-token.bin");
 
-        logger.info("init(): load " + tokenModel);
+        logger.info("loadModels(): load " + tokenModel);
         InputStream stream = this.getClass().getResourceAsStream("/" + tokenModel);
         if (stream == null) {
             throw logAndThrowError("TOKEN", tokenModel);
         }
-        logger.info("init(): load TOKEN MODEl \""+tokenModel+"\"");
+        logger.info("loadModels(): load TOKEN MODEl \""+tokenModel+"\"");
         try {
             try {
                 return new TokenizerModel(stream);
@@ -182,7 +182,7 @@ public abstract class OpenNLPAbstractWebService implements WebService {
             throw logAndThrowError("POSTAGGER", taggerModel);
         }
 
-        logger.info("init(): load POSTAGGER MODEl \""+taggerModel+"\"");
+        logger.info("loadModels(): load POSTAGGER MODEl \""+taggerModel+"\"");
 
         try {
             try {
@@ -198,12 +198,12 @@ public abstract class OpenNLPAbstractWebService implements WebService {
     protected ParserModel loadParserModel(String pspPropKey) throws  OpenNLPWebServiceException {
         String parserModel = prop.getProperty(pspPropKey, "en-parser-chunking.bin");
 
-        logger.info("init(): load opennlp-web-service.properties.");
+        logger.info("loadModels(): load opennlp-web-service.properties.");
         InputStream stream = this.getClass().getResourceAsStream("/" + parserModel);
         if (stream == null) {
             throw logAndThrowError("PARSER", parserModel);
         }
-        logger.info("init(): load PARSER MODEl \"" + parserModel + "\"");
+        logger.info("loadModels(): load PARSER MODEl \"" + parserModel + "\"");
 
         try {
             try {
@@ -218,7 +218,7 @@ public abstract class OpenNLPAbstractWebService implements WebService {
 
     protected Linker loadCoRefLinker(String corefPropKey) throws  OpenNLPWebServiceException  {
         Linker linker = null;
-        logger.info("init(): Creating OpenNLP Coreference ...");
+        logger.info("loadModels(): Creating OpenNLP Coreference ...");
         try {
             String wordnetPath = new File(new File(
                     this.getClass().getResource("/wordnet").toURI()), "3.1/dict").getAbsolutePath();
@@ -228,18 +228,18 @@ public abstract class OpenNLPAbstractWebService implements WebService {
         }
         // default English
         String linkerModel = prop.getProperty(corefPropKey, "coref");
-        logger.info("init(): load opennlp-web-service.properties.");
+        logger.info("loadModels(): load opennlp-web-service.properties.");
         try {
             linker = new DefaultLinker( new File(
                     this.getClass().getResource("/" + linkerModel).toURI()).getAbsolutePath(),
                     LinkerMode.TEST);
         } catch (Exception e) {
-            logger.error("init(): fail to load Linker \"" + linkerModel
+            logger.error("loadModels(): fail to load Linker \"" + linkerModel
                     + "\".");
             throw new OpenNLPWebServiceException(
-                    "init(): fail to load Linker \"" + linkerModel + "\".");
+                    "loadModels(): fail to load Linker \"" + linkerModel + "\".");
         }
-        logger.info("init(): Creating OpenNLP coreference!");
+        logger.info("loadModels(): Creating OpenNLP coreference!");
         return linker;
     }
 

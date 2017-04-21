@@ -43,12 +43,13 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
     private List<TokenNameFinder> nameFinders = new LinkedList<> ();
 
     public NamedEntityRecognizer() throws OpenNLPWebServiceException {
-        init();
+        loadModels();
+        this.metadata = loadMetadata();
     }
 
     @Override
-    synchronized protected void init() throws OpenNLPWebServiceException {
-        super.init();
+    synchronized protected void loadModels() throws OpenNLPWebServiceException {
+        super.loadModels();
         if (nameFinderModels.size() == 0) {
             nameFinderModels.clear();
             nameFinderModels.addAll(loadTokenNameFinderModels(registModelMap.get(this.getClass())));
@@ -57,7 +58,6 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
         for (TokenNameFinderModel model : nameFinderModels) {
             nameFinders.add(new NameFinderME(model));
         }
-        this.metadata = loadMetadata();
     }
 
     public static String capitalize(String s) {
@@ -68,7 +68,7 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
     public Span[] find(String[] tokens) {
         if (nameFinders.size() == 0) {
             try {
-                init();
+                loadModels();
             } catch (OpenNLPWebServiceException e) {
                 throw new RuntimeException(
                         "tokenize(): Fail to initialize NamedEntityRecognizer", e);

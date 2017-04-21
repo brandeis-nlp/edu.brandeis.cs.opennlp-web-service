@@ -42,13 +42,13 @@ public class Parser extends OpenNLPAbstractWebService implements IParser {
     private opennlp.tools.parser.Parser parser;
 
     public Parser() throws OpenNLPWebServiceException {
-        init();
+        loadModels();
         this.metadata = loadMetadata();
     }
 
     @Override
-    synchronized protected void init() throws OpenNLPWebServiceException {
-        super.init();
+    synchronized protected void loadModels() throws OpenNLPWebServiceException {
+        super.loadModels();
         if (parserModel == null) {
             parserModel = loadParserModel(registModelMap.get(this.getClass()));
         }

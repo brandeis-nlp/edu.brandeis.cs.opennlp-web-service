@@ -33,12 +33,13 @@ public class POSTagger extends OpenNLPAbstractWebService implements IPOSTagger  
 
 
     public POSTagger() throws OpenNLPWebServiceException {
-        init();
+        loadModels();
+        this.metadata = loadMetadata();
     }
 
     @Override
-    synchronized protected void init() throws OpenNLPWebServiceException {
-        super.init();
+    synchronized protected void loadModels() throws OpenNLPWebServiceException {
+        super.loadModels();
         if (posModel == null) {
             posModel = loadPOSModel(registModelMap.get(getClass()));
         }
@@ -49,7 +50,7 @@ public class POSTagger extends OpenNLPAbstractWebService implements IPOSTagger  
     public String[] tag(String[] sentence) {
         if (postagger == null) {
             try {
-                init();
+                loadModels();
             } catch (OpenNLPWebServiceException e) {
                 throw new RuntimeException("tokenize(): Fail to initialize POSTagger", e);
             }
@@ -63,7 +64,7 @@ public class POSTagger extends OpenNLPAbstractWebService implements IPOSTagger  
     public Sequence[] topKSequences(String[] sentence) {
         if (postagger == null) {
             try {
-                init();
+                loadModels();
             } catch (OpenNLPWebServiceException e) {
                 throw new RuntimeException("tokenize(): Fail to initialize POSTagger", e);
             }

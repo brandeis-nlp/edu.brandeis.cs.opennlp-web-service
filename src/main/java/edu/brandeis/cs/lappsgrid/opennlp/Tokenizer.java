@@ -29,13 +29,13 @@ public class Tokenizer extends OpenNLPAbstractWebService implements ITokenizer {
     private opennlp.tools.tokenize.Tokenizer tokenizer;
 
     public Tokenizer() throws OpenNLPWebServiceException {
-        init();
+        loadModels();
         this.metadata = loadMetadata();
     }
 
     @Override
-    protected void init() throws OpenNLPWebServiceException {
-        super.init();
+    protected void loadModels() throws OpenNLPWebServiceException {
+        super.loadModels();
         if (tokenizerModel == null) {
             tokenizerModel = loadTokenizerModel(registModelMap.get(this.getClass()));
         }

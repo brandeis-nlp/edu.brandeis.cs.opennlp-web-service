@@ -30,13 +30,13 @@ public class Splitter extends OpenNLPAbstractWebService implements ISplitter {
     private SentenceDetector sentenceDetector;
 
     public Splitter() throws OpenNLPWebServiceException {
-        init();
+        loadModels();
         this.metadata = loadMetadata();
     }
 
     @Override
-    synchronized protected void init() throws OpenNLPWebServiceException {
-        super.init();
+    synchronized protected void loadModels() throws OpenNLPWebServiceException {
+        super.loadModels();
         if (sentenceDetectorModel == null) {
             sentenceDetectorModel = loadSentenceModel(registModelMap.get(this.getClass()));
         }
@@ -47,7 +47,7 @@ public class Splitter extends OpenNLPAbstractWebService implements ISplitter {
     public String[] sentDetect(String s) {
         if (sentenceDetector == null) {
             try {
-                init();
+                loadModels();
             } catch (OpenNLPWebServiceException e) {
                 throw new RuntimeException("sentDetect(): Fail to initialize SentenceDetector", e);
             }
@@ -61,7 +61,7 @@ public class Splitter extends OpenNLPAbstractWebService implements ISplitter {
     public Span[] sentPosDetect(String s) {
         if (sentenceDetector == null) {
             try {
-                init();
+                loadModels();
             } catch (OpenNLPWebServiceException e) {
                 throw new RuntimeException("sentPosDetect(): Fail to initialize SentenceDetector", e);
             }
