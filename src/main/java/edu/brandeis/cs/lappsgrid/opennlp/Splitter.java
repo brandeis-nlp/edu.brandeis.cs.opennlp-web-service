@@ -19,10 +19,13 @@ import org.lappsgrid.serialization.json.LIFJsonSerialization;
  */
 public class Splitter  extends OpenNLPAbstractWebService implements ISplitter {
     private static SentenceDetector sentenceDetector;
+    String metadata;
+    
 	public Splitter() throws OpenNLPWebServiceException {
         if (sentenceDetector == null) {
             init();
             sentenceDetector = loadSentenceDetector(registModelMap.get(this.getClass()));
+            this.metadata = loadMetadata();
         }
 	}
 
@@ -70,4 +73,34 @@ public class Splitter  extends OpenNLPAbstractWebService implements ISplitter {
         }
         return json.toString();
     }
+    
+    public String loadMetadata() {
+    	ServiceMetadata meta = new ServiceMetadata();
+    	meta.setName(this.getClass().getName());
+    	meta.setDescription("splitter:opennlp");
+    	meta.setVersion(Version.getVersion());
+    	meta.setVendor("http://www.cs.brandeis.edu/");
+    	meta.setLicense(Discriminators.Uri.APACHE2);
+    	
+    	IOSpecification requires = new IOSpecification();
+    	requires.setEncoding("UTF-8");
+    	requires.addLanguage("en");
+    	requires.addFormat(Discriminators.Uri.LAPPS);
+    	
+    	IOSpecification produces = new IOSpecification();
+    	produces.setEncoding("UTF-8");
+    	produces.addLanguage("en");
+    	produces.addFormat(Discriminators.Uri.LAPPS);
+    	produces.addAnnotation(Discriminators.Uri.SENTENCE);
+    	
+    	meta.setRequires(requires);
+    	meta.setProduces(produces);
+    	Data<ServiceMetadata> data = new Data<> (Discriminators.Uri.META, meta);
+    	return data.asPrettyJson();
+    }
+    
+    public String getMetadata() {
+    	return this.metadata;
+    }
+    
 }

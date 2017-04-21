@@ -349,37 +349,39 @@ public abstract class OpenNLPAbstractWebService implements WebService {
 
 
     @Override
-    public String getMetadata() {
-        // get caller name using reflection
-        String name = this.getClass().getName();
-        //
-        String resName = "/metadata/"+ name +".json";
-//        System.out.println("load resources:" + resName);
-        logger.info("load resources:" + resName);
-        try {
-            InputStream inputStream = this.getClass().getResourceAsStream(resName);
-            UTF8Reader reader = new UTF8Reader(inputStream);
-            Scanner s = new Scanner(reader).useDelimiter("\\A");
-            String meta= s.hasNext() ? s.next() : "";
-//            String meta = IOUtils.toString(this.getClass().getResourceAsStream(resName));
-            JsonObj json = new JsonObj();
-            json.put("discriminator", Discriminators.Uri.META);
-            json.put("payload", new JsonObj(meta));
-            return json.toString();
-        }catch (Throwable th) {
-            JsonObj json = new JsonObj();
-            json.put("discriminator", Discriminators.Uri.ERROR);
-            JsonObj error = new JsonObj();
-            error.put("class", name);
-            error.put("error", "NOT EXIST: "+resName);
-            error.put("message", th.getMessage());
-            StringWriter sw = new StringWriter();
-            th.printStackTrace( new PrintWriter(sw));
-            error.put("stacktrace", sw.toString());
-            json.put("payload", error);
-            return json.toString();
-        }
-    }
+//    public String getMetadata() {
+//        // get caller name using reflection
+//        String name = this.getClass().getName();
+//        //
+//        String resName = "/metadata/"+ name +".json";
+////        System.out.println("load resources:" + resName);
+//        logger.info("load resources:" + resName);
+//        try {
+//            InputStream inputStream = this.getClass().getResourceAsStream(resName);
+//            UTF8Reader reader = new UTF8Reader(inputStream);
+//            Scanner s = new Scanner(reader).useDelimiter("\\A");
+//            String meta= s.hasNext() ? s.next() : "";
+////            String meta = IOUtils.toString(this.getClass().getResourceAsStream(resName));
+//            JsonObj json = new JsonObj();
+//            json.put("discriminator", Discriminators.Uri.META);
+//            json.put("payload", new JsonObj(meta));
+//            return json.toString();
+//        }catch (Throwable th) {
+//            JsonObj json = new JsonObj();
+//            json.put("discriminator", Discriminators.Uri.ERROR);
+//            JsonObj error = new JsonObj();
+//            error.put("class", name);
+//            error.put("error", "NOT EXIST: "+resName);
+//            error.put("message", th.getMessage());
+//            StringWriter sw = new StringWriter();
+//            th.printStackTrace( new PrintWriter(sw));
+//            error.put("stacktrace", sw.toString());
+//            json.put("payload", error);
+//            return json.toString();
+//        }
+//    }
+
+    public abstract String getMetadata();
 
     public abstract String execute(LIFJsonSerialization in) throws OpenNLPWebServiceException;
 }

@@ -99,4 +99,35 @@ public class POSTagger extends OpenNLPAbstractWebService implements IPOSTagger  
         }
         return json.toString();
     }
+    
+    public String loadMetadata() {
+    	ServiceMetadata meta = new ServiceMetadata();
+    	meta.setName(this.getClass().getName());
+    	meta.setDescription("tagger:opennlp");
+    	meta.setVersion(Version.getVersion());
+    	meta.setVendor("http://www.cs.brandeis.edu/");
+    	meta.setLicense(Discriminators.Uri.APACHE2);
+    	
+    	IOSpecification requires = new IOSpecification();
+    	requires.setEncoding("UTF-8");
+    	requires.addLanguage("en");
+    	requires.addFormat(Discriminators.Uri.LAPPS);
+    	requires.addAnnotation(Discriminators.Uri.TOKEN);
+    	
+    	IOSpecification produces = new IOSpecification();
+    	produces.setEncoding("UTF-8");
+    	produces.addLanguage("en");
+    	produces.addFormat(Discriminators.Uri.LAPPS);
+    	produces.addAnnotation(Discriminators.Uri.POS);
+    	
+    	meta.setRequires(requires);
+    	meta.setProduces(produces);
+    	Data<ServiceMetadata> data = new Data<> (Discriminators.Uri.META, meta);
+    	return data.asPrettyJson();
+    }
+    
+    public String getMetadata() {
+    	return this.metadata;
+    }
+    
 }

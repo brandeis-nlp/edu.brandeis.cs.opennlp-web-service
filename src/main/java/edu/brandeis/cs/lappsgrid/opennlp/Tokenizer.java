@@ -18,11 +18,13 @@ import org.lappsgrid.serialization.json.LIFJsonSerialization;
  */
 public class Tokenizer extends OpenNLPAbstractWebService implements ITokenizer {
     private static opennlp.tools.tokenize.Tokenizer tokenizer;
+    String metadata;
 
 	public Tokenizer() throws OpenNLPWebServiceException {
         if (tokenizer == null) {
             init();
             tokenizer = loadTokenizer(registModelMap.get(this.getClass()));
+            this.metadata = loadMetadata();
         }
 	}
 
@@ -55,4 +57,35 @@ public class Tokenizer extends OpenNLPAbstractWebService implements ITokenizer {
         }
         return json.toString();
     }
+    
+    public String loadMetadata() {
+    	ServiceMetadata meta = new ServiceMetadata();
+    	meta.setName(this.getClass().getName());
+    	meta.setDescription("tokenizer:opennlp");
+    	meta.setVersion(Version.getVersion());
+    	meta.setVendor("http://www.cs.brandeis.edu/");
+    	meta.setLicense(Discriminators.Uri.APACHE2);
+    	
+    	IOSpecification requires = new IOSpecification();
+    	requires.setEncoding("UTF-8");
+    	requires.addLanguage("en");
+    	requires.addFormat(Discriminators.Uri.LAPPS);
+    	
+    	IOSpecification produces = new IOSpecification();
+    	produces.setEncoding("UTF-8");
+    	produces.addLanguage("en");
+    	produces.addAnnotation(Discriminators.Uri.TOKEN);
+    	produces.addFormat(Discriminators.Uri.LAPPS);
+    	
+    	meta.setRequires(requires);
+    	meta.setProduces(produces);
+    	Data<ServiceMetadata> data = new Data<> (Discriminators.Uri.META, meta);
+    	return data.asPrettyJson();
+    }
+    
+    @Override
+    public String getMetadata() {
+    	return this.metadata;
+    }
+    
 }
