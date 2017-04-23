@@ -9,6 +9,10 @@ import org.lappsgrid.discriminator.Discriminators;
 import org.lappsgrid.serialization.Data;
 import org.lappsgrid.serialization.Serializer;
 import org.lappsgrid.serialization.lif.Container;
+import org.lappsgrid.metadata.IOSpecification;
+import org.lappsgrid.metadata.ServiceMetadata;
+import org.lappsgrid.discriminator.Discriminators.Uri;
+import edu.brandeis.cs.lappsgrid.Version;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -90,4 +94,35 @@ public class TestTokenizer extends TestService {
 
         System.out.println("\\-----------------------------------/\n");
     }
+    
+    @Test
+    public void testMetadata() {
+    	String json = service.getMetadata();
+    	Assert.assertNotNull("service.getMetadata() returned null", json);
+
+		Data data = Serializer.parse(json, Data.class);
+		Assert.assertNotNull("Unable to parse metadata json.", data);
+		Assert.assertNotSame(data.getPayload().toString(), Uri.ERROR, data.getDiscriminator());
+		
+		ServiceMetadata metadata = new ServiceMetadata((Map) data.getPayload());
+		Assert.assertEquals("Vendor is not correct", "http://www.cs.brandeis.edu/", metadata.getVendor());
+		Assert.assertEquals("Name is not correct", service.getClass().getName(), metadata.getName());
+		Assert.assertEquals("Version is not correct", Version.getVersion(), metadata.getVersion());
+		Assert.assertEquals("License is not correct", Uri.APACHE2, metadata.getLicense());
+		
+		IOSpecification requires = metadata.getRequires();
+		Assert.assertEquals("Requires encoding is not correct", "UTF-8", requires.getEncoding());
+		Assert.assertTrue("English not accepted", requires.getLanguage().contains("en"));
+		Assert.assertEquals("One format should be required", 1, requires.getFormat().size());
+		Assert.assertTrue("LIF format not accepted", requires.getFormat().contains(Uri.LAPPS));
+		
+		IOSpecification produces = metadata.getProduces();
+		Assert.assertEquals("Produces encoding is not correct", "UTF-8", produces.getEncoding());
+		Assert.assertTrue("English not produced", produces.getLanguage().contains("en"));
+		Assert.assertEquals("One format should be produced", 1, produces.getFormat().size());
+		Assert.assertTrue("LIF format not produced.", produces.getFormat().contains(Uri.LAPPS));
+		Assert.assertEquals("Two annotations should be produced", 1, produces.getAnnotations().size());
+		Assert.assertTrue("Constituent not produced", produces.getAnnotations().contains(Uri.TOKEN));
+    }
+    
 }
