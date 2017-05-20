@@ -1,10 +1,13 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
+import edu.brandeis.cs.lappsgrid.Version;
 import edu.brandeis.cs.lappsgrid.opennlp.api.ITokenizer;
 import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.Span;
 import org.lappsgrid.discriminator.Discriminators.Uri;
+import org.lappsgrid.metadata.IOSpecification;
+import org.lappsgrid.metadata.ServiceMetadata;
 import org.lappsgrid.serialization.Data;
 import org.lappsgrid.serialization.Serializer;
 import org.lappsgrid.serialization.lif.Annotation;
@@ -26,12 +29,13 @@ public class Tokenizer extends OpenNLPAbstractWebService implements ITokenizer {
     private opennlp.tools.tokenize.Tokenizer tokenizer;
 
     public Tokenizer() throws OpenNLPWebServiceException {
-        init();
+        loadModels();
+        this.metadata = loadMetadata();
     }
 
     @Override
-    protected void init() throws OpenNLPWebServiceException {
-        super.init();
+    protected void loadModels() throws OpenNLPWebServiceException {
+        super.loadModels();
         if (tokenizerModel == null) {
             tokenizerModel = loadTokenizerModel(registModelMap.get(this.getClass()));
         }
@@ -69,5 +73,30 @@ public class Tokenizer extends OpenNLPAbstractWebService implements ITokenizer {
         }
         Data<Container> data = new Data<>(Uri.LIF, container);
         return Serializer.toJson(data);
+    }
+
+    public String loadMetadata() {
+    	ServiceMetadata meta = new ServiceMetadata();
+    	meta.setName(this.getClass().getName());
+    	meta.setDescription("tokenizer:opennlp");
+    	meta.setVersion(Version.getVersion());
+    	meta.setVendor("http://www.cs.brandeis.edu/");
+    	meta.setLicense(Uri.APACHE2);
+
+    	IOSpecification requires = new IOSpecification();
+    	requires.setEncoding("UTF-8");
+    	requires.addLanguage("en");
+    	requires.addFormat(Uri.LAPPS);
+
+    	IOSpecification produces = new IOSpecification();
+    	produces.setEncoding("UTF-8");
+    	produces.addLanguage("en");
+    	produces.addAnnotation(Uri.TOKEN);
+    	produces.addFormat(Uri.LAPPS);
+
+    	meta.setRequires(requires);
+    	meta.setProduces(produces);
+    	Data<ServiceMetadata> data = new Data<> (Uri.META, meta);
+    	return data.asPrettyJson();
     }
 }

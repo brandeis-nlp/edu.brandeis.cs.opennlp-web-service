@@ -20,8 +20,7 @@ public class TestService {
 
     protected java.lang.String payload1 = null;
     protected java.lang.String payload2 = null;
-
-    protected HashMap<String,String> jsons = new HashMap<String,String>();
+    protected HashMap<String,String> jsons = new HashMap<>();
 
     OpenNLPAbstractWebService service;
     public static String getResource(String name) throws IOException{
@@ -32,12 +31,9 @@ public class TestService {
     @Before
     public void init() throws IOException {
         File jsonDir = FileUtils.toFile(this.getClass().getResource("/jsons"));
-//        System.out.println(jsonDir);
-        Collection<File> fils = FileUtils.listFiles(jsonDir, new String[]{"json"}, true);
-//        System.out.println(fils);
-        for(File jsonFil : fils){
-//            System.out.println(jsonFil.getName());
-            jsons.put(jsonFil.getName(), FileUtils.readFileToString(jsonFil, "UTF-8"));
+        Collection<File> files = FileUtils.listFiles(jsonDir, new String[]{"json"}, true);
+        for(File jsonFile : files){
+            jsons.put(jsonFile.getName(), FileUtils.readFileToString(jsonFile, "UTF-8"));
         }
         payload1 = jsons.get("payload1.json");
         payload2 = jsons.get("payload2.json");
@@ -46,29 +42,9 @@ public class TestService {
     protected Container wrapContainer(String plainText) {
         Data data = Serializer.parse(service.getMetadata(), Data.class);
         Container container = new Container();
-//        container.setLanguage("en");
+        container.setLanguage("en");
         container.setText(plainText);
-        // return empty metadata for process result (for now)
-//        container.setMetadata((Map) data.getPayload());
         return container;
     }
-
-    @Test
-    public void test() {
-//        System.out.println(payload1);
-//        System.out.println("<-------------------------------->");
-//
-//        System.out.println(payload2);
-    }
-
-//    @BeforeClass
-//    public static void prepare() {
-//        System.out.println("/-----------------------------------\\");
-//    }
-//
-//    @AfterClass
-//    public static void tear() {
-//        System.out.println("\\-----------------------------------/\n");
-//    }
 
 }
