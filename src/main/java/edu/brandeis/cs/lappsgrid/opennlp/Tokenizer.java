@@ -1,6 +1,5 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
-import edu.brandeis.cs.lappsgrid.Version;
 import edu.brandeis.cs.lappsgrid.opennlp.api.ITokenizer;
 import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
@@ -79,7 +78,7 @@ public class Tokenizer extends OpenNLPAbstractWebService implements ITokenizer {
     	ServiceMetadata meta = new ServiceMetadata();
     	meta.setName(this.getClass().getName());
     	meta.setDescription("tokenizer:opennlp");
-    	meta.setVersion(Version.getVersion());
+    	meta.setVersion(getVersion());
     	meta.setVendor("http://www.cs.brandeis.edu/");
     	meta.setLicense(Uri.APACHE2);
 

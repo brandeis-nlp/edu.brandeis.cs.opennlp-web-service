@@ -1,6 +1,5 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
-import edu.brandeis.cs.lappsgrid.Version;
 import edu.brandeis.cs.lappsgrid.opennlp.api.IPOSTagger;
 import opennlp.tools.postag.POSModel;
 import opennlp.tools.postag.POSTaggerME;
@@ -126,7 +125,7 @@ public class POSTagger extends OpenNLPAbstractWebService implements IPOSTagger  
     	ServiceMetadata meta = new ServiceMetadata();
     	meta.setName(this.getClass().getName());
     	meta.setDescription("tagger:opennlp");
-    	meta.setVersion(Version.getVersion());
+    	meta.setVersion(getVersion());
     	meta.setVendor("http://www.cs.brandeis.edu/");
     	meta.setLicense(Uri.APACHE2);
     	

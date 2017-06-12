@@ -1,6 +1,5 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
-import edu.brandeis.cs.lappsgrid.Version;
 import edu.brandeis.cs.lappsgrid.opennlp.api.INamedEntityRecognizer;
 import opennlp.tools.namefind.NameFinderME;
 import opennlp.tools.namefind.TokenNameFinder;
@@ -163,7 +162,7 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
     	ServiceMetadata meta = new ServiceMetadata();
     	meta.setName(this.getClass().getName());
     	meta.setDescription("ner:opennlp");
-    	meta.setVersion(Version.getVersion());
+    	meta.setVersion(getVersion());
     	meta.setVendor("http://www.cs.brandeis.edu/");
     	meta.setLicense(Uri.APACHE2);
 
