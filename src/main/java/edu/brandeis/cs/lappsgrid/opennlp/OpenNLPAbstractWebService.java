@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -107,9 +108,11 @@ public abstract class OpenNLPAbstractWebService implements WebService {
         return sentParse;
     }
 
-    private OpenNLPWebServiceException logAndThrowError(String serviceName, String modelResName) {
+    private OpenNLPWebServiceException logAndThrowError(String serviceName, String modelResName, Throwable e) {
         String error = String.format("load(): fail to open %s MODEL \"%s\".", serviceName, modelResName);
         logger.error(error);
+        logger.error(e.toString());
+        e.printStackTrace();
         return new OpenNLPWebServiceException(error);
     }
 
@@ -132,7 +135,7 @@ public abstract class OpenNLPAbstractWebService implements WebService {
         TokenNameFinderModel model;
         InputStream stream = this.getClass().getResourceAsStream("/" + modelResName);
         if (stream == null) {
-            throw logAndThrowError("NER", modelResName);
+            throw logAndThrowError("NER", modelResName, new FileNotFoundException());
         }
         logger.info("load(): load NER MODEL \"" + modelResName + "\"");
         try {
@@ -142,7 +145,7 @@ public abstract class OpenNLPAbstractWebService implements WebService {
                 stream.close();
             }
         } catch (IOException e) {
-            throw logAndThrowError("NER", modelResName);
+            throw logAndThrowError("NER", modelResName, e);
         }
         return model;
     }
@@ -153,7 +156,7 @@ public abstract class OpenNLPAbstractWebService implements WebService {
         logger.info("loadModels(): load " + sentenceModel);
         InputStream stream = this.getClass().getResourceAsStream("/" + sentenceModel);
         if (stream == null) {
-            throw logAndThrowError("SENTENCE", sentenceModel);
+            throw logAndThrowError("SENTENCE", sentenceModel, new FileNotFoundException());
         }
         logger.info("loadModels(): load SENTENCE MODEl \""+sentenceModel+"\"");
         try {
@@ -163,7 +166,7 @@ public abstract class OpenNLPAbstractWebService implements WebService {
                 stream.close();
             }
         } catch (IOException e) {
-            throw logAndThrowError("SENTENCE", sentenceModel);
+            throw logAndThrowError("SENTENCE", sentenceModel, e);
         }
     }
 
@@ -173,7 +176,7 @@ public abstract class OpenNLPAbstractWebService implements WebService {
         logger.info("loadModels(): load " + tokenModel);
         InputStream stream = this.getClass().getResourceAsStream("/" + tokenModel);
         if (stream == null) {
-            throw logAndThrowError("TOKEN", tokenModel);
+            throw logAndThrowError("TOKEN", tokenModel, new FileNotFoundException());
         }
         logger.info("loadModels(): load TOKEN MODEl \""+tokenModel+"\"");
         try {
@@ -183,7 +186,7 @@ public abstract class OpenNLPAbstractWebService implements WebService {
                 stream.close();
             }
         } catch (IOException e) {
-            throw logAndThrowError("TOKEN", tokenModel);
+            throw logAndThrowError("TOKEN", tokenModel, e);
         }
     }
 
@@ -192,7 +195,7 @@ public abstract class OpenNLPAbstractWebService implements WebService {
         String taggerModel = prop.getProperty(posPropKey);
         InputStream stream = this.getClass().getResourceAsStream("/" + taggerModel);
         if (stream == null) {
-            throw logAndThrowError("POSTAGGER", taggerModel);
+            throw logAndThrowError("POSTAGGER", taggerModel, new FileNotFoundException());
         }
 
         logger.info("loadModels(): load POSTAGGER MODEl \""+taggerModel+"\"");
@@ -204,7 +207,7 @@ public abstract class OpenNLPAbstractWebService implements WebService {
                 stream.close();
             }
         } catch (IOException e) {
-            throw logAndThrowError("POSTAGGER", taggerModel);
+            throw logAndThrowError("POSTAGGER", taggerModel, e);
         }
     }
 
@@ -214,7 +217,7 @@ public abstract class OpenNLPAbstractWebService implements WebService {
         logger.info("loadModels(): load opennlp-web-service.properties.");
         InputStream stream = this.getClass().getResourceAsStream("/" + parserModel);
         if (stream == null) {
-            throw logAndThrowError("PARSER", parserModel);
+            throw logAndThrowError("PARSER", parserModel, new FileNotFoundException());
         }
         logger.info("loadModels(): load PARSER MODEl \"" + parserModel + "\"");
 
@@ -225,7 +228,7 @@ public abstract class OpenNLPAbstractWebService implements WebService {
                 stream.close();
             }
         } catch (IOException e) {
-            throw logAndThrowError("PARSER", parserModel);
+            throw logAndThrowError("PARSER", parserModel, e);
         }
     }
 
