@@ -1,6 +1,5 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
-import edu.brandeis.cs.lappsgrid.opennlp.api.IParser;
 import opennlp.tools.cmdline.parser.ParserTool;
 import opennlp.tools.parser.AbstractBottomUpParser;
 import opennlp.tools.parser.Parse;
@@ -34,7 +33,7 @@ import java.util.List;
  *         Nov 20, 2013<br>
  * 
  */
-public class Parser extends OpenNLPAbstractWebService implements IParser {
+public class Parser extends OpenNLPAbstractWebService {
     protected static final Logger logger = LoggerFactory.getLogger(Parser.class);
 
     private static ParserModel parserModel;
@@ -49,7 +48,11 @@ public class Parser extends OpenNLPAbstractWebService implements IParser {
     synchronized protected void loadModels() throws OpenNLPWebServiceException {
         super.loadModels();
         if (parserModel == null) {
-            parserModel = loadParserModel(registModelMap.get(this.getClass()));
+            String syntacticModelResPath = MODELS.getProperty(
+                    MODEL_PROP_KEY_MAP.get(getClass()),
+                    DEFAULT_MODEL_RES_FILE_MAP.get(getClass()));
+            parserModel = (ParserModel) loadBinaryModel(
+                    "PARSER", syntacticModelResPath, ParserModel.class);
         }
         parser = ParserFactory.create(parserModel);
     }

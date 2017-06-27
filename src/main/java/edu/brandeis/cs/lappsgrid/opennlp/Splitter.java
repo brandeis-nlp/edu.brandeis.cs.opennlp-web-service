@@ -1,6 +1,5 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
-import edu.brandeis.cs.lappsgrid.opennlp.api.ISplitter;
 import opennlp.tools.sentdetect.SentenceDetector;
 import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.sentdetect.SentenceModel;
@@ -21,9 +20,9 @@ import org.lappsgrid.serialization.lif.View;
  * <p> 
  *
  * @author Chunqi Shi ( <i>shicq@cs.brandeis.edu</i> )<br>Nov 20, 2013<br>
- * 
+ *
  */
-public class Splitter extends OpenNLPAbstractWebService implements ISplitter {
+public class Splitter extends OpenNLPAbstractWebService {
 
     private static SentenceModel sentenceDetectorModel;
     private SentenceDetector sentenceDetector;
@@ -37,18 +36,21 @@ public class Splitter extends OpenNLPAbstractWebService implements ISplitter {
     synchronized protected void loadModels() throws OpenNLPWebServiceException {
         super.loadModels();
         if (sentenceDetectorModel == null) {
-            sentenceDetectorModel = loadSentenceModel(registModelMap.get(this.getClass()));
+            String sentenceModelResPath = MODELS.getProperty(
+                    MODEL_PROP_KEY_MAP.get(getClass()),
+                    DEFAULT_MODEL_RES_FILE_MAP.get(getClass()));
+            sentenceDetectorModel =(SentenceModel) loadBinaryModel(
+                    "SENTENCE", sentenceModelResPath, SentenceModel.class);
         }
         sentenceDetector = new SentenceDetectorME(sentenceDetectorModel);
     }
 
-    @Override
     public String[] sentDetect(String s) {
         if (sentenceDetector == null) {
             try {
                 loadModels();
             } catch (OpenNLPWebServiceException e) {
-                throw new RuntimeException("sentDetect(): Fail to initialize SentenceDetector", e);
+                throw new RuntimeException("Fail to initialize SentenceDetector", e);
             }
         }
 
@@ -56,13 +58,12 @@ public class Splitter extends OpenNLPAbstractWebService implements ISplitter {
         return sentences;
     }
 
-    @Override
     public Span[] sentPosDetect(String s) {
         if (sentenceDetector == null) {
             try {
                 loadModels();
             } catch (OpenNLPWebServiceException e) {
-                throw new RuntimeException("sentPosDetect(): Fail to initialize SentenceDetector", e);
+                throw new RuntimeException("Fail to initialize SentenceDetector", e);
             }
         }
         Span [] offsets = sentenceDetector.sentPosDetect(s);
@@ -72,7 +73,7 @@ public class Splitter extends OpenNLPAbstractWebService implements ISplitter {
     @Override
     public String execute(Container container) throws OpenNLPWebServiceException {
 
-        logger.info("execute(): Execute OpenNLP SentenceDetector ...");
+        logger.info("Executing");
         String txt = container.getText();
 
         View view = container.newView();
@@ -94,27 +95,27 @@ public class Splitter extends OpenNLPAbstractWebService implements ISplitter {
     }
 
     public String loadMetadata() {
-    	ServiceMetadata meta = new ServiceMetadata();
-    	meta.setName(this.getClass().getName());
-    	meta.setDescription("splitter:opennlp");
-    	meta.setVersion(getVersion());
-    	meta.setVendor("http://www.cs.brandeis.edu/");
-    	meta.setLicense(Uri.APACHE2);
+        ServiceMetadata meta = new ServiceMetadata();
+        meta.setName(this.getClass().getName());
+        meta.setDescription("splitter:opennlp");
+        meta.setVersion(getVersion());
+        meta.setVendor("http://www.cs.brandeis.edu/");
+        meta.setLicense(Uri.APACHE2);
 
-    	IOSpecification requires = new IOSpecification();
-    	requires.setEncoding("UTF-8");
-    	requires.addLanguage("en");
-    	requires.addFormat(Uri.LAPPS);
+        IOSpecification requires = new IOSpecification();
+        requires.setEncoding("UTF-8");
+        requires.addLanguage("en");
+        requires.addFormat(Uri.LAPPS);
 
-    	IOSpecification produces = new IOSpecification();
-    	produces.setEncoding("UTF-8");
-    	produces.addLanguage("en");
-    	produces.addFormat(Uri.LAPPS);
-    	produces.addAnnotation(Uri.SENTENCE);
+        IOSpecification produces = new IOSpecification();
+        produces.setEncoding("UTF-8");
+        produces.addLanguage("en");
+        produces.addFormat(Uri.LAPPS);
+        produces.addAnnotation(Uri.SENTENCE);
 
-    	meta.setRequires(requires);
-    	meta.setProduces(produces);
-    	Data<ServiceMetadata> data = new Data<> (Uri.META, meta);
-    	return data.asPrettyJson();
+        meta.setRequires(requires);
+        meta.setProduces(produces);
+        Data<ServiceMetadata> data = new Data<> (Uri.META, meta);
+        return data.asPrettyJson();
     }
 }

@@ -1,8 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <!--parent> <groupId>org.apache.opennlp</groupId> <artifactId>opennlp</artifactId>
-        <version>1.5.3</version> </parent -->
     <groupId>edu.brandeis.cs.lapps</groupId>
     <artifactId>opennlp-web-service</artifactId>
     <version>2.0.4-SNAPSHOT</version>
@@ -24,22 +22,10 @@
         <opennlp.version>1.5.3</opennlp.version>
     </properties>
 
-    <!--<pluginRepositories>-->
-    <!--<pluginRepository>-->
-    <!--<id>the Maven central repository</id>-->
-    <!--<url>http://repo.maven.apache.org/maven2/</url>-->
-    <!--</pluginRepository>-->
-    <!--</pluginRepositories>-->
-
     <dependencies>
         <dependency>
             <groupId>org.apache.opennlp</groupId>
             <artifactId>opennlp-tools</artifactId>
-            <version>${opennlp.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.opennlp</groupId>
-            <artifactId>opennlp-uima</artifactId>
             <version>${opennlp.version}</version>
         </dependency>
         <dependency>
@@ -80,16 +66,6 @@
                 </configuration>
             </plugin>
 
-            <!-- Brandeis node no longer maintains a mvn nexus: should we keep this> -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>2.4.2</version>
-                <configuration>
-                    <tagBase>http://eldrad.cs-i.brandeis.edu:6061/nexus/content/repositories/releases/</tagBase>
-                </configuration>
-            </plugin>
-
         </plugins>
 
         <resources>
@@ -104,7 +80,7 @@
                 <directory>src/main/resources</directory>
                 <filtering>false</filtering>
                 <includes>
-                    <include>*</include>
+                    <include>**</include>
                 </includes>
             </resource>
 

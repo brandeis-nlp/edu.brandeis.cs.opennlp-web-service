@@ -1,6 +1,5 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
-import edu.brandeis.cs.lappsgrid.opennlp.api.INamedEntityRecognizer;
 import opennlp.tools.namefind.NameFinderME;
 import opennlp.tools.namefind.TokenNameFinder;
 import opennlp.tools.namefind.TokenNameFinderModel;
@@ -32,12 +31,12 @@ import java.util.List;
  *         Nov 20, 2013<br>
  * 
  */
-public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements INamedEntityRecognizer {
+public class NamedEntityRecognizer extends OpenNLPAbstractWebService {
 
     protected static final Logger logger = LoggerFactory.getLogger(NamedEntityRecognizer.class);
 
     // NOTE: models can be static, but the actual NameFinders cannot be static,
-    // because they are not thread safe
+    // because they are not thread safe.
     private static final List<TokenNameFinderModel> nameFinderModels = new LinkedList<>();
     private List<TokenNameFinder> nameFinders = new LinkedList<> ();
 
@@ -50,10 +49,16 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
     synchronized protected void loadModels() throws OpenNLPWebServiceException {
         super.loadModels();
         if (nameFinderModels.size() == 0) {
-            nameFinderModels.clear();
-            nameFinderModels.addAll(loadTokenNameFinderModels(registModelMap.get(this.getClass())));
+            String[] neModelsResPaths = MODELS.getProperty(
+                    MODEL_PROP_KEY_MAP.get(getClass()),
+                    DEFAULT_MODEL_RES_FILE_MAP.get(getClass())).split(":");
+            for (String neModelresPath : neModelsResPaths) {
+                if (neModelresPath.trim().length() > 0) {
+                    nameFinderModels.add((TokenNameFinderModel) loadBinaryModel(
+                            "NER", neModelresPath, TokenNameFinderModel.class));
+                }
+            }
         }
-        nameFinders.clear();
         for (TokenNameFinderModel model : nameFinderModels) {
             nameFinders.add(new NameFinderME(model));
         }
@@ -70,7 +75,7 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
                 loadModels();
             } catch (OpenNLPWebServiceException e) {
                 throw new RuntimeException(
-                        "tokenize(): Fail to initialize NamedEntityRecognizer", e);
+                        "Fail to initialize NamedEntityRecognizer", e);
             }
         }
         ArrayList<Span> spanArr = new ArrayList<Span>(16);
@@ -85,7 +90,7 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService implements 
 
     @Override
     public String execute(Container container) throws OpenNLPWebServiceException {
-        logger.info("execute(): Execute OpenNLP ner ...");
+        logger.info("Executing");
         String txt = container.getText();
         List<View> tokenViews = container.findViewsThatContain(Uri.TOKEN);
         if (tokenViews.size() == 0) {

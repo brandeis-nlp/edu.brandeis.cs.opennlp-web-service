@@ -1,6 +1,5 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
-import edu.brandeis.cs.lappsgrid.opennlp.api.IPOSTagger;
 import opennlp.tools.postag.POSModel;
 import opennlp.tools.postag.POSTaggerME;
 import opennlp.tools.util.Sequence;
@@ -25,7 +24,7 @@ import java.util.List;
  * @author Chunqi Shi ( <i>shicq@cs.brandeis.edu</i> )<br>Nov 20, 2013<br>
  *
  */
-public class POSTagger extends OpenNLPAbstractWebService implements IPOSTagger  {
+public class POSTagger extends OpenNLPAbstractWebService {
 
     private static POSModel posModel;
     private opennlp.tools.postag.POSTagger postagger;
@@ -40,18 +39,21 @@ public class POSTagger extends OpenNLPAbstractWebService implements IPOSTagger  
     synchronized protected void loadModels() throws OpenNLPWebServiceException {
         super.loadModels();
         if (posModel == null) {
-            posModel = loadPOSModel(registModelMap.get(getClass()));
+            String posModelResPath = MODELS.getProperty(
+                    MODEL_PROP_KEY_MAP.get(getClass()),
+                    DEFAULT_MODEL_RES_FILE_MAP.get(getClass()));
+            posModel = (POSModel) loadBinaryModel(
+                    "POSTAGGER", posModelResPath, POSModel.class);
         }
         postagger = new POSTaggerME(posModel);
     }
 
-    @Override
     public String[] tag(String[] sentence) {
         if (postagger == null) {
             try {
                 loadModels();
             } catch (OpenNLPWebServiceException e) {
-                throw new RuntimeException("tokenize(): Fail to initialize POSTagger", e);
+                throw new RuntimeException("Fail to initialize POSTagger", e);
             }
         }
         String tags[] = postagger.tag(sentence);
@@ -59,13 +61,12 @@ public class POSTagger extends OpenNLPAbstractWebService implements IPOSTagger  
     }
 
 
-    @Override
     public Sequence[] topKSequences(String[] sentence) {
         if (postagger == null) {
             try {
                 loadModels();
             } catch (OpenNLPWebServiceException e) {
-                throw new RuntimeException("tokenize(): Fail to initialize POSTagger", e);
+                throw new RuntimeException("Fail to initialize POSTagger", e);
             }
         }
         Sequence tags[] = postagger.topKSequences(sentence);
@@ -74,7 +75,7 @@ public class POSTagger extends OpenNLPAbstractWebService implements IPOSTagger  
 
     @Override
     public String execute(Container container) throws OpenNLPWebServiceException {
-        logger.info("execute(): Execute OpenNLP tokenizer ...");
+        logger.info("Executing");
         String txt = container.getText();
 
         List<View> tokenViews = container.findViewsThatContain(Uri.TOKEN);
