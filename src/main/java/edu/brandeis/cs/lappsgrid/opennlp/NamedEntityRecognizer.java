@@ -64,11 +64,6 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService {
         }
     }
 
-    public static String capitalize(String s) {
-        if (s == null || s.length() == 0) return s;
-        return s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
-    }
-
     public Span[] find(String[] tokens) {
         if (nameFinders.size() == 0) {
             try {
@@ -112,10 +107,10 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService {
                 for (TokenNameFinder nameFinder : nameFinders) {
                     Span [] neSpans = nameFinder.find(new String[]{txt});
                     for (Span span:neSpans){
-                        String atType = getNEType(span);
-                        Annotation annotation =  view.newAnnotation(NE_ID + count++,
-                                atType, 0, txt.length());
+                        String category = getNEType(span);
+                        Annotation annotation =  view.newAnnotation(NE_ID + count++, Uri.NE, 0, txt.length());
                         annotation.addFeature("word", txt);
+                        annotation.addFeature("category", category);
                     }
                 }
             } else {
@@ -134,9 +129,10 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService {
                     // namedSpans will keep all named-entities as (start_tok_id, end_tok_id) pairs
                     Long start = tokenAnns.get(span.getStart()).getStart();
                     Long end = tokenAnns.get(span.getEnd()).getEnd();
-                    String atType = getNEType(span);
-                    Annotation ann = view.newAnnotation(NE_ID + count++, atType, start, end);
+                    String category = getNEType(span);
+                    Annotation ann = view.newAnnotation(NE_ID + count++, Uri.NE, start, end);
                     ann.addFeature("word", txt.substring(start.intValue(), end.intValue()));
+                    ann.addFeature("category", category);
                 }
             }
         }
