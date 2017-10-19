@@ -24,7 +24,6 @@ import org.lappsgrid.serialization.lif.View;
  */
 public class Splitter extends OpenNLPAbstractWebService {
 
-    private static SentenceModel sentenceDetectorModel;
     private SentenceDetector sentenceDetector;
 
     public Splitter() throws OpenNLPWebServiceException {

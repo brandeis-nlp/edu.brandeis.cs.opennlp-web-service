@@ -35,9 +35,6 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService {
 
     protected static final Logger logger = LoggerFactory.getLogger(NamedEntityRecognizer.class);
 
-    // NOTE: models can be static, but the actual NameFinders cannot be static,
-    // because they are not thread safe.
-    private static final List<TokenNameFinderModel> nameFinderModels = new LinkedList<>();
     private List<TokenNameFinder> nameFinders = new LinkedList<> ();
 
     public NamedEntityRecognizer() throws OpenNLPWebServiceException {
@@ -48,14 +45,14 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService {
     @Override
     synchronized protected void loadModels() throws OpenNLPWebServiceException {
         super.loadModels();
-        if (nameFinderModels.size() == 0) {
+        if (nameFinderModels == null || nameFinderModels.size() == 0) {
             String[] neModelsResPaths = MODELS.getProperty(
                     MODEL_PROP_KEY_MAP.get(getClass()),
                     DEFAULT_MODEL_RES_FILE_MAP.get(getClass())).split(":");
-            for (String neModelresPath : neModelsResPaths) {
-                if (neModelresPath.trim().length() > 0) {
+            for (String neModelResPath : neModelsResPaths) {
+                if (neModelResPath.trim().length() > 0) {
                     nameFinderModels.add((TokenNameFinderModel) loadBinaryModel(
-                            "NER", neModelresPath, TokenNameFinderModel.class));
+                            "NER", neModelResPath, TokenNameFinderModel.class));
                 }
             }
         }

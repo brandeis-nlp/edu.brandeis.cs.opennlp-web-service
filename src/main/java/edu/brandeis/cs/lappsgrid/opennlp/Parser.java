@@ -36,7 +36,6 @@ import java.util.List;
 public class Parser extends OpenNLPAbstractWebService {
     protected static final Logger logger = LoggerFactory.getLogger(Parser.class);
 
-    private static ParserModel parserModel;
     private opennlp.tools.parser.Parser parser;
 
     public Parser() throws OpenNLPWebServiceException {

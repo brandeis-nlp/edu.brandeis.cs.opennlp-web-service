@@ -3,9 +3,11 @@ package edu.brandeis.cs.lappsgrid.opennlp;
 import opennlp.tools.coref.DefaultLinker;
 import opennlp.tools.coref.Linker;
 import opennlp.tools.coref.LinkerMode;
-import opennlp.tools.parser.AbstractBottomUpParser;
-import opennlp.tools.parser.Parse;
-import opennlp.tools.util.Span;
+import opennlp.tools.namefind.TokenNameFinderModel;
+import opennlp.tools.parser.ParserModel;
+import opennlp.tools.postag.POSModel;
+import opennlp.tools.sentdetect.SentenceModel;
+import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.model.BaseModel;
 import org.lappsgrid.api.WebService;
 import org.lappsgrid.discriminator.Discriminators;
@@ -22,9 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * Created by shicq on 3/6/14.
@@ -45,6 +45,13 @@ public abstract class OpenNLPAbstractWebService implements WebService {
     public static final String MENTION_ID = "m_";
     public static final String COREF_ID = "coref_";
     public static final String NE_ID = "ne_";
+    // NOTE: models can be static, but the actual NameFinders cannot be static,
+    // because they are not thread safe.
+    static final List<TokenNameFinderModel> nameFinderModels = new LinkedList<>();
+    static SentenceModel sentenceDetectorModel;
+    static POSModel posModel;
+    static ParserModel parserModel;
+    static TokenizerModel tokenizerModel;
 
     protected String metadata;
 
@@ -109,19 +116,6 @@ public abstract class OpenNLPAbstractWebService implements WebService {
 
     protected void loadModels() throws OpenNLPWebServiceException {
         this.loadModelPaths();
-    }
-
-    protected Parse createTerminalNodes(final String sentenceText, final Span[] sentenceTokens) {
-        Parse sentParse = new Parse(sentenceText, new Span(0, sentenceText.length()), AbstractBottomUpParser.INC_NODE, 1, 0);
-        for (int i = 0; i < sentenceTokens.length; i++) {
-            int tokenStart = sentenceTokens[i].getStart();
-            int tokenEnd = sentenceTokens[i].getEnd();
-
-            // flesh out the parse with token sub-parses
-            sentParse.insert(new Parse(sentenceText, new Span(tokenStart, tokenEnd),
-                    AbstractBottomUpParser.TOK_NODE, 1, i));
-        }
-        return sentParse;
     }
 
     private OpenNLPWebServiceException modelFails(String modelName, String modelResName, Throwable e) {

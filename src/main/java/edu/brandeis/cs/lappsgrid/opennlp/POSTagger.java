@@ -26,7 +26,6 @@ import java.util.List;
  */
 public class POSTagger extends OpenNLPAbstractWebService {
 
-    private static POSModel posModel;
     private opennlp.tools.postag.POSTagger postagger;
 
 
