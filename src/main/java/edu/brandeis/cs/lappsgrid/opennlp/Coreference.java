@@ -1,17 +1,26 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
+import opennlp.tools.coref.DefaultLinker;
 import opennlp.tools.coref.DiscourseEntity;
 import opennlp.tools.coref.Linker;
+import opennlp.tools.coref.LinkerMode;
 import opennlp.tools.coref.mention.DefaultParse;
 import opennlp.tools.coref.mention.Mention;
 import opennlp.tools.coref.mention.MentionContext;
+import opennlp.tools.namefind.NameFinderME;
 import opennlp.tools.namefind.TokenNameFinder;
+import opennlp.tools.namefind.TokenNameFinderModel;
+import opennlp.tools.parser.AbstractBottomUpParser;
 import opennlp.tools.parser.Parse;
+import opennlp.tools.parser.ParserFactory;
+import opennlp.tools.parser.ParserModel;
 import opennlp.tools.sentdetect.SentenceDetector;
+import opennlp.tools.sentdetect.SentenceDetectorME;
+import opennlp.tools.sentdetect.SentenceModel;
 import opennlp.tools.tokenize.TokenizerME;
+import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.Span;
 
-import org.lappsgrid.discriminator.Discriminators;
 import org.lappsgrid.serialization.Data;
 import org.lappsgrid.serialization.Serializer;
 import org.lappsgrid.serialization.lif.Annotation;
@@ -22,6 +31,9 @@ import org.lappsgrid.vocabulary.Features;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.*;
 
 /**
@@ -35,29 +47,56 @@ import java.util.*;
  */
 public class Coreference extends OpenNLPAbstractWebService {
     protected static final Logger logger = LoggerFactory.getLogger(Coreference.class);
-    private static SentenceDetector sentDetector;
-    private static Linker linker;
-    private static TokenizerME tokenizer;
-    private static Map<String,TokenNameFinder> nameFinders;
-    private static  opennlp.tools.parser.Parser parser;
+    private Linker corefLinker;
+
+    private SentenceDetector sentDetector;
+    private opennlp.tools.tokenize.Tokenizer tokenizer;
+    private List<TokenNameFinder> nameFinders;
+    private opennlp.tools.parser.Parser parser;
 
     public Coreference() throws OpenNLPWebServiceException {
-        if (linker == null)
-            init();
+        if (corefLinker == null)
+            loadAnnotators();
     }
-    
-    protected void init() throws OpenNLPWebServiceException {
-        super.init();
-        linker = super.loadCoRefLinker("Coreference");
-        sentDetector = this.loadSentenceDetector("Sentence-Detector");
-        tokenizer = this.loadTokenizer("Tokenizer");
-        nameFinders = this.loadTokenNameFinders("Name-Finder");
-        parser = this.loadParser("Parser");
+
+    @Override
+    protected void loadAnnotators() throws OpenNLPWebServiceException {
+
+        corefLinker = loadCoRefLinker();
+        super.loadTokenizerModel();
+        super.loadSentenceModel();
+        super.loadParserModel();
+        super.loadNameFinderModels();
+        tokenizer = new TokenizerME(tokenizerModel);
+        sentDetector = new SentenceDetectorME(sentenceDetectorModel);
+        parser = ParserFactory.create(parserModel);
+        nameFinders = new ArrayList<>();
+        for (TokenNameFinderModel model : nameFinderModels) {
+            nameFinders.add(new NameFinderME(model));
+        }
+    }
+
+    private Linker loadCoRefLinker() throws  OpenNLPWebServiceException  {
+        String corefModelResPath = MODELS.getProperty(
+                MODEL_PROP_KEY_MAP.get(getClass()),
+                DEFAULT_MODEL_RES_FILE_MAP.get(getClass()));
+        try {
+
+            logger.info("Setting a system property for `WNSEARCHDIR`. " +
+                    "This is required to run opennlp coreference resolution.");
+            System.setProperty("WNSEARCHDIR", MODELS.getProperty("Wordnet", "/wordnet.3.1.dict"));
+
+            logger.info(String.format("Opening a binary model for %s", "COREF"));
+            String corefModelDirectory = new File(getClass().getResource(corefModelResPath).toURI()).getAbsolutePath();
+            return new DefaultLinker(corefModelDirectory, LinkerMode.TEST);
+        } catch (URISyntaxException | IOException e) {
+            throw super.modelFails("COREF", corefModelResPath, e);
+        }
     }
 
     @Override
     public String execute(Container container) throws OpenNLPWebServiceException {
-        String txt = container.getText();
+        String text = container.getText();
         View view = container.newView();
         view.addContains(Uri.TOKEN,
                 String.format("%s:%s", this.getClass().getName(), getVersion()),
@@ -70,13 +109,18 @@ public class Coreference extends OpenNLPAbstractWebService {
                 "markable:opennlp");
 
         // get sentences
-        Span[] sentSpans = sentDetector.sentPosDetect(txt);
-        List<Mention> mentions = new ArrayList<Mention>();
-        List<Parse> parses = new ArrayList<Parse>();
-        int mentionCount = 0;
+        Span[] sentSpans = sentDetector.sentPosDetect(text);
+        List<Mention> mentions = new ArrayList<>();
+        List<Parse> parses = new ArrayList<>();
+        int mentionIdx = 0;
+        int sentIdx = 0;
+        for (Span sentSpan : sentSpans) {
+
+        }
+        // krim for each sentence
         for(int sentIdx = 0 ; sentIdx < sentSpans.length ; sentIdx++) {
             Span sentSpan = sentSpans[sentIdx];
-            String sentText = txt.substring(sentSpan.getStart(), sentSpan.getEnd());
+            String sentText = text.substring(sentSpan.getStart(), sentSpan.getEnd());
             Span[] sentTokens = tokenizer.tokenizePos(sentText);
 
             // create a parse tree of the sentence, based on the terminal tokens
@@ -130,7 +174,7 @@ public class Coreference extends OpenNLPAbstractWebService {
             // now wrap the parsed sentence result in a DefaultParse object, so it can be used in coref
             DefaultParse sentParseInd = new DefaultParse(sentParse, sentIdx);
             // get all mentions in the parsed sentence
-            Mention[] sentMentions = linker.getMentionFinder().getMentions(sentParseInd);
+            Mention[] sentMentions = corefLinker.getMentionFinder().getMentions(sentParseInd);
 
             // Copy & paste from TreebankLinker source code.. edited for var name changes
             //construct new parses for mentions which don't have constituents.
@@ -146,7 +190,7 @@ public class Coreference extends OpenNLPAbstractWebService {
                 int end =  sentStart + men.getSpan().getEnd();
                 JsonObj ann = container.newAnnotation(view);
 //                String id = "m_"+start+"_"+end;
-                men.setId(mentionCount++);
+                men.setId(mIdx++);
                 container.setId(ann, "m" + men.getId());
                 container.setType(ann, "http://vocab.lappsgrid.org/Markable");
                 container.setStart(ann, start);
@@ -165,7 +209,7 @@ public class Coreference extends OpenNLPAbstractWebService {
         int cntCof = 0;
         if (mentions.size() > 0) {
             // this was for treebank linker, but I'm using DefaultLinker....
-            DiscourseEntity[] entities = linker.getEntities(mentions.toArray(new Mention[mentions.size()]));
+            DiscourseEntity[] entities = corefLinker.getEntities(mentions.toArray(new Mention[mentions.size()]));
             System.out.println("\nNow displaying all discourse entities::");
             for(DiscourseEntity ent : entities) {
                 Iterator<MentionContext> entMentions = ent.getMentions();
@@ -222,5 +266,18 @@ public class Coreference extends OpenNLPAbstractWebService {
 //                container.setFeature(tokAnn,"pos", posNodes[posIdx].getType());
         }
         return tokens;
+    }
+
+    private Parse createTerminalNodes(final String sentenceText, final Span[] sentenceTokens) {
+        Parse sentParse = new Parse(sentenceText, new Span(0, sentenceText.length()), AbstractBottomUpParser.INC_NODE, 1, 0);
+        for (int i = 0; i < sentenceTokens.length; i++) {
+            int tokenStart = sentenceTokens[i].getStart();
+            int tokenEnd = sentenceTokens[i].getEnd();
+
+            // flesh out the parse with token sub-parses
+            sentParse.insert(new Parse(sentenceText, new Span(tokenStart, tokenEnd),
+                    AbstractBottomUpParser.TOK_NODE, 1, i));
+        }
+        return sentParse;
     }
 }
