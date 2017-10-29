@@ -38,24 +38,13 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService {
     private List<TokenNameFinder> nameFinders = new LinkedList<> ();
 
     public NamedEntityRecognizer() throws OpenNLPWebServiceException {
-        loadModels();
+        loadAnnotators();
         this.metadata = loadMetadata();
     }
 
     @Override
-    synchronized protected void loadModels() throws OpenNLPWebServiceException {
-        super.loadModels();
-        if (nameFinderModels == null || nameFinderModels.size() == 0) {
-            String[] neModelsResPaths = MODELS.getProperty(
-                    MODEL_PROP_KEY_MAP.get(getClass()),
-                    DEFAULT_MODEL_RES_FILE_MAP.get(getClass())).split(":");
-            for (String neModelResPath : neModelsResPaths) {
-                if (neModelResPath.trim().length() > 0) {
-                    nameFinderModels.add((TokenNameFinderModel) loadBinaryModel(
-                            "NER", neModelResPath, TokenNameFinderModel.class));
-                }
-            }
-        }
+    synchronized protected void loadAnnotators() throws OpenNLPWebServiceException {
+        super.loadNameFinderModels();
         for (TokenNameFinderModel model : nameFinderModels) {
             nameFinders.add(new NameFinderME(model));
         }
@@ -64,7 +53,7 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService {
     public Span[] find(String[] tokens) {
         if (nameFinders.size() == 0) {
             try {
-                loadModels();
+                loadAnnotators();
             } catch (OpenNLPWebServiceException e) {
                 throw new RuntimeException(
                         "Fail to initialize NamedEntityRecognizer", e);

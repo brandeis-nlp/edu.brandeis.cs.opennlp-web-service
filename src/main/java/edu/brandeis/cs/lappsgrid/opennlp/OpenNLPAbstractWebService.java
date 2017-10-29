@@ -1,8 +1,5 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
-import opennlp.tools.coref.DefaultLinker;
-import opennlp.tools.coref.Linker;
-import opennlp.tools.coref.LinkerMode;
 import opennlp.tools.namefind.TokenNameFinderModel;
 import opennlp.tools.parser.ParserModel;
 import opennlp.tools.postag.POSModel;
@@ -18,7 +15,6 @@ import org.lappsgrid.serialization.lif.Container;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -69,7 +65,7 @@ public abstract class OpenNLPAbstractWebService implements WebService {
     static {
         DEFAULT_MODEL_RES_FILE_MAP.put(Tokenizer.class, "/en-token.bin");
         DEFAULT_MODEL_RES_FILE_MAP.put(Splitter.class, "/en-sent.bin");
-        DEFAULT_MODEL_RES_FILE_MAP.put(NamedEntityRecognizer.class, "/en-ner-person.bin:en-ner-location.bin:en-ner-organization.bin:en-ner-date.bin");
+        DEFAULT_MODEL_RES_FILE_MAP.put(NamedEntityRecognizer.class, "/en-ner-person.bin:/en-ner-location.bin:/en-ner-organization.bin:/en-ner-date.bin");
         DEFAULT_MODEL_RES_FILE_MAP.put(Parser.class, "/en-parser-chunking.bin");
 //        DEFAULT_MODEL_RES_FILE_MAP.put(Coreference.class, "/coref");
         DEFAULT_MODEL_RES_FILE_MAP.put(POSTagger.class, "/en-pos-maxent.bin");
@@ -114,19 +110,76 @@ public abstract class OpenNLPAbstractWebService implements WebService {
         }
     }
 
-    protected void loadModels() throws OpenNLPWebServiceException {
+    protected OpenNLPAbstractWebService() throws OpenNLPWebServiceException {
         this.loadModelPaths();
     }
 
-    private OpenNLPWebServiceException modelFails(String modelName, String modelResName, Throwable e) {
+    protected abstract void loadAnnotators() throws OpenNLPWebServiceException;
+
+    protected OpenNLPWebServiceException modelFails(String modelName, String modelResName, Throwable e) {
         String error = String.format("Failed to open %s MODEL \"%s\".", modelName, modelResName);
         logger.error(error);
         logger.error(e.toString());
         return new OpenNLPWebServiceException(error);
     }
 
+    void loadSentenceModel() throws OpenNLPWebServiceException {
+        if (sentenceDetectorModel == null) {
+            String sentenceModelResPath = MODELS.getProperty(
+                    MODEL_PROP_KEY_MAP.get(Splitter.class),
+                    DEFAULT_MODEL_RES_FILE_MAP.get(Splitter.class));
+            sentenceDetectorModel =(SentenceModel) loadBinaryModel(
+                    "SENTENCE", sentenceModelResPath, SentenceModel.class);
+        }
+    }
+
+    void loadPOSModel() throws OpenNLPWebServiceException {
+        if (posModel == null) {
+            String posModelResPath = MODELS.getProperty(
+                    MODEL_PROP_KEY_MAP.get(POSTagger.class),
+                    DEFAULT_MODEL_RES_FILE_MAP.get(POSTagger.class));
+            posModel = (POSModel) loadBinaryModel(
+                    "POSTAGGER", posModelResPath, POSModel.class);
+        }
+    }
+
+    void loadParserModel() throws OpenNLPWebServiceException {
+        if (parserModel == null) {
+            String syntacticModelResPath = MODELS.getProperty(
+                    MODEL_PROP_KEY_MAP.get(Parser.class),
+                    DEFAULT_MODEL_RES_FILE_MAP.get(Parser.class));
+            parserModel = (ParserModel) loadBinaryModel(
+                    "PARSER", syntacticModelResPath, ParserModel.class);
+        }
+    }
+
+    void loadTokenizerModel() throws OpenNLPWebServiceException {
+        if (tokenizerModel == null) {
+            String tokenModelResPath = MODELS.getProperty(
+                    MODEL_PROP_KEY_MAP.get(Tokenizer.class),
+                    DEFAULT_MODEL_RES_FILE_MAP.get(Tokenizer.class));
+            tokenizerModel = (TokenizerModel) loadBinaryModel(
+                    "TOKEN", tokenModelResPath, TokenizerModel.class);
+        }
+    }
+
+    void loadNameFinderModels() throws OpenNLPWebServiceException {
+        if (nameFinderModels.size() == 0) {
+            String[] neModelsResPaths = MODELS.getProperty(
+                    MODEL_PROP_KEY_MAP.get(NamedEntityRecognizer.class),
+                    DEFAULT_MODEL_RES_FILE_MAP.get(NamedEntityRecognizer.class)).split(":");
+            Arrays.toString(neModelsResPaths);
+            for (String neModelResPath : neModelsResPaths) {
+                if (neModelResPath.trim().length() > 0) {
+                    nameFinderModels.add((TokenNameFinderModel) loadBinaryModel(
+                            "NER", neModelResPath, TokenNameFinderModel.class));
+                }
+            }
+        }
+    }
 
     BaseModel loadBinaryModel(String modelName, String modelResPath, Class modelClass) throws OpenNLPWebServiceException {
+        this.loadModelPaths();
 
         logger.info(String.format("Opening a binary model for %s: %s", modelName, modelResPath));
         InputStream stream = this.getClass().getResourceAsStream(modelResPath);
@@ -152,33 +205,6 @@ public abstract class OpenNLPAbstractWebService implements WebService {
             throw modelFails(modelName, modelResPath, e);
         }
         return null;
-    }
-
-    protected Linker loadCoRefLinker(String corefPropKey) throws  OpenNLPWebServiceException  {
-        Linker linker = null;
-        logger.info("Creating OpenNLP Coreference ...");
-        try {
-            String wordnetPath = new File(new File(
-                    this.getClass().getResource("/wordnet").toURI()), "3.1/dict").getAbsolutePath();
-            System.setProperty("WNSEARCHDIR", wordnetPath);
-        }catch(Exception e){
-            throw new OpenNLPWebServiceException("Load wordnet 3.1 Error. ");
-        }
-        // default English
-        String model = MODELS.getProperty(corefPropKey, "coref");
-        logger.info("Opening " + model);
-        try {
-            linker = new DefaultLinker( new File(
-                    this.getClass().getResource("/" + model).toURI()).getAbsolutePath(),
-                    LinkerMode.TEST);
-        } catch (Exception e) {
-            logger.error("fail to load Linker \"" + model
-                    + "\".");
-            throw new OpenNLPWebServiceException(
-                    "fail to load Linker \"" + model + "\".");
-        }
-        logger.info("Creating OpenNLP coreference!");
-        return linker;
     }
 
     @Override

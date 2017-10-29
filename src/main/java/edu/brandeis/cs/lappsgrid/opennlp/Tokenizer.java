@@ -26,20 +26,13 @@ public class Tokenizer extends OpenNLPAbstractWebService {
     private opennlp.tools.tokenize.Tokenizer tokenizer;
 
     public Tokenizer() throws OpenNLPWebServiceException {
-        loadModels();
+        loadAnnotators();
         this.metadata = loadMetadata();
     }
 
     @Override
-    protected void loadModels() throws OpenNLPWebServiceException {
-        super.loadModels();
-        if (tokenizerModel == null) {
-            String tokenModelResPath = MODELS.getProperty(
-                    MODEL_PROP_KEY_MAP.get(getClass()),
-                    DEFAULT_MODEL_RES_FILE_MAP.get(getClass()));
-            tokenizerModel = (TokenizerModel) loadBinaryModel(
-                    "TOKEN", tokenModelResPath, TokenizerModel.class);
-        }
+    protected void loadAnnotators() throws OpenNLPWebServiceException {
+        super.loadTokenizerModel();
         tokenizer = new TokenizerME(tokenizerModel);
     }
 

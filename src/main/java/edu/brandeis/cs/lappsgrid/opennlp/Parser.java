@@ -39,20 +39,13 @@ public class Parser extends OpenNLPAbstractWebService {
     private opennlp.tools.parser.Parser parser;
 
     public Parser() throws OpenNLPWebServiceException {
-        loadModels();
+        loadAnnotators();
         this.metadata = loadMetadata();
     }
 
     @Override
-    synchronized protected void loadModels() throws OpenNLPWebServiceException {
-        super.loadModels();
-        if (parserModel == null) {
-            String syntacticModelResPath = MODELS.getProperty(
-                    MODEL_PROP_KEY_MAP.get(getClass()),
-                    DEFAULT_MODEL_RES_FILE_MAP.get(getClass()));
-            parserModel = (ParserModel) loadBinaryModel(
-                    "PARSER", syntacticModelResPath, ParserModel.class);
-        }
+    synchronized protected void loadAnnotators() throws OpenNLPWebServiceException {
+        super.loadParserModel();
         parser = ParserFactory.create(parserModel);
     }
 

@@ -27,27 +27,20 @@ public class Splitter extends OpenNLPAbstractWebService {
     private SentenceDetector sentenceDetector;
 
     public Splitter() throws OpenNLPWebServiceException {
-        loadModels();
+        loadAnnotators();
         this.metadata = loadMetadata();
     }
 
     @Override
-    synchronized protected void loadModels() throws OpenNLPWebServiceException {
-        super.loadModels();
-        if (sentenceDetectorModel == null) {
-            String sentenceModelResPath = MODELS.getProperty(
-                    MODEL_PROP_KEY_MAP.get(getClass()),
-                    DEFAULT_MODEL_RES_FILE_MAP.get(getClass()));
-            sentenceDetectorModel =(SentenceModel) loadBinaryModel(
-                    "SENTENCE", sentenceModelResPath, SentenceModel.class);
-        }
+    synchronized protected void loadAnnotators() throws OpenNLPWebServiceException {
+        super.loadSentenceModel();
         sentenceDetector = new SentenceDetectorME(sentenceDetectorModel);
     }
 
     public String[] sentDetect(String s) {
         if (sentenceDetector == null) {
             try {
-                loadModels();
+                loadAnnotators();
             } catch (OpenNLPWebServiceException e) {
                 throw new RuntimeException("Fail to initialize SentenceDetector", e);
             }
@@ -60,7 +53,7 @@ public class Splitter extends OpenNLPAbstractWebService {
     public Span[] sentPosDetect(String s) {
         if (sentenceDetector == null) {
             try {
-                loadModels();
+                loadAnnotators();
             } catch (OpenNLPWebServiceException e) {
                 throw new RuntimeException("Fail to initialize SentenceDetector", e);
             }

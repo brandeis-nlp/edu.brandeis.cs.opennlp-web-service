@@ -30,27 +30,20 @@ public class POSTagger extends OpenNLPAbstractWebService {
 
 
     public POSTagger() throws OpenNLPWebServiceException {
-        loadModels();
+        loadAnnotators();
         this.metadata = loadMetadata();
     }
 
     @Override
-    synchronized protected void loadModels() throws OpenNLPWebServiceException {
-        super.loadModels();
-        if (posModel == null) {
-            String posModelResPath = MODELS.getProperty(
-                    MODEL_PROP_KEY_MAP.get(getClass()),
-                    DEFAULT_MODEL_RES_FILE_MAP.get(getClass()));
-            posModel = (POSModel) loadBinaryModel(
-                    "POSTAGGER", posModelResPath, POSModel.class);
-        }
+    synchronized protected void loadAnnotators() throws OpenNLPWebServiceException {
+        super.loadPOSModel();
         postagger = new POSTaggerME(posModel);
     }
 
     public String[] tag(String[] sentence) {
         if (postagger == null) {
             try {
-                loadModels();
+                loadAnnotators();
             } catch (OpenNLPWebServiceException e) {
                 throw new RuntimeException("Fail to initialize POSTagger", e);
             }
@@ -63,7 +56,7 @@ public class POSTagger extends OpenNLPAbstractWebService {
     public Sequence[] topKSequences(String[] sentence) {
         if (postagger == null) {
             try {
-                loadModels();
+                loadAnnotators();
             } catch (OpenNLPWebServiceException e) {
                 throw new RuntimeException("Fail to initialize POSTagger", e);
             }
