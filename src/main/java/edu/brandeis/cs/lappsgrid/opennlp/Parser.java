@@ -9,6 +9,7 @@ import org.lappsgrid.discriminator.Discriminators.Uri;
 import org.lappsgrid.metadata.IOSpecification;
 import org.lappsgrid.metadata.ServiceMetadata;
 import org.lappsgrid.serialization.Data;
+import org.lappsgrid.serialization.LifException;
 import org.lappsgrid.serialization.Serializer;
 import org.lappsgrid.serialization.lif.Annotation;
 import org.lappsgrid.serialization.lif.Container;
@@ -84,7 +85,11 @@ public class Parser extends OpenNLPAbstractWebService {
         }
         List<Annotation> sentAnns = sentViews.get(sentViews.size() - 1).getAnnotations();
 
-        View view = container.newView();
+        View view = null;
+        try {
+            view = container.newView();
+        } catch (LifException ignored) {
+        }
         view.addContains(Uri.PHRASE_STRUCTURE,
                 String.format("%s:%s", this.getClass().getName(), getVersion()),
                 "parser:opennlp");
@@ -113,7 +118,7 @@ public class Parser extends OpenNLPAbstractWebService {
             for (Parse parse : parses) {
                 findConstituents(parse, constituentIds, sid, view);
             }
-            ps.getFeatures().put(Features.PhraseStructure.CONSTITUENTS, constituentIds);
+            ps.addFeature(Features.PhraseStructure.CONSTITUENTS, constituentIds);
         }
         Data<Container> data = new Data<>(Uri.LIF, container);
         return Serializer.toJson(data);
@@ -137,12 +142,12 @@ public class Parser extends OpenNLPAbstractWebService {
                 String childId = findConstituents(child, constituentIds, sentId, view);
                 children.add(childId);
             }
-            constituentAnn.getFeatures().put("children", children.toString());
+            constituentAnn.addFeature("children", children.toString());
         }
         return cid;
     }
 
-    public String loadMetadata() {
+    private String loadMetadata() {
         ServiceMetadata meta = new ServiceMetadata();
         meta.setName(this.getClass().getName());
         meta.setDescription("parser:opennlp");

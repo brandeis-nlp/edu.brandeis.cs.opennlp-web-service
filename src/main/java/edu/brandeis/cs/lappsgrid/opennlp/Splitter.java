@@ -8,6 +8,7 @@ import org.lappsgrid.discriminator.Discriminators.Uri;
 import org.lappsgrid.metadata.IOSpecification;
 import org.lappsgrid.metadata.ServiceMetadata;
 import org.lappsgrid.serialization.Data;
+import org.lappsgrid.serialization.LifException;
 import org.lappsgrid.serialization.Serializer;
 import org.lappsgrid.serialization.lif.Annotation;
 import org.lappsgrid.serialization.lif.Container;
@@ -68,7 +69,11 @@ public class Splitter extends OpenNLPAbstractWebService {
         logger.info("Executing");
         String txt = container.getText();
 
-        View view = container.newView();
+        View view = null;
+        try {
+            view = container.newView();
+        } catch (LifException ignored) {
+        }
         view.addContains(Uri.SENTENCE,
                 String.format("%s:%s", this.getClass().getName(), getVersion()),
                 "splitter:opennlp");
@@ -80,13 +85,13 @@ public class Splitter extends OpenNLPAbstractWebService {
             int end = span.getEnd();
             Annotation ann = view.newAnnotation(SENT_ID + count++,
                     Uri.SENTENCE, start, end);
-            ann.getFeatures().put("sentence", txt.substring(start, end));
+            ann.addFeature("sentence", txt.substring(start, end));
         }
         Data<Container> data = new Data<>(Uri.LIF, container);
         return Serializer.toJson(data);
     }
 
-    public String loadMetadata() {
+    private String loadMetadata() {
         ServiceMetadata meta = new ServiceMetadata();
         meta.setName(this.getClass().getName());
         meta.setDescription("splitter:opennlp");

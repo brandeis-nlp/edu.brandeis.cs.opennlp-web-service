@@ -7,6 +7,7 @@ import org.lappsgrid.discriminator.Discriminators.Uri;
 import org.lappsgrid.metadata.IOSpecification;
 import org.lappsgrid.metadata.ServiceMetadata;
 import org.lappsgrid.serialization.Data;
+import org.lappsgrid.serialization.LifException;
 import org.lappsgrid.serialization.Serializer;
 import org.lappsgrid.serialization.lif.Annotation;
 import org.lappsgrid.serialization.lif.Container;
@@ -50,7 +51,12 @@ public class Tokenizer extends OpenNLPAbstractWebService {
     public String execute(Container container) throws OpenNLPWebServiceException {
         logger.info("Executing");
         String txt = container.getText();
-        View view = container.newView();
+
+        View view = null;
+        try {
+            view = container.newView();
+        } catch (LifException ignored) {
+        }
         view.addContains(Uri.TOKEN,
                 String.format("%s:%s", this.getClass().getName(), getVersion()),
                 "tokenizer:opennlp");
@@ -61,13 +67,13 @@ public class Tokenizer extends OpenNLPAbstractWebService {
             int end = span.getEnd();
             Annotation ann = view.newAnnotation(TOKEN_ID + count++,
                     Uri.TOKEN, start, end);
-            ann.getFeatures().put("word", txt.substring(start, end));
+            ann.addFeature("word", txt.substring(start, end));
         }
         Data<Container> data = new Data<>(Uri.LIF, container);
         return Serializer.toJson(data);
     }
 
-    public String loadMetadata() {
+    private String loadMetadata() {
     	ServiceMetadata meta = new ServiceMetadata();
     	meta.setName(this.getClass().getName());
     	meta.setDescription("tokenizer:opennlp");

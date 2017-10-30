@@ -18,7 +18,7 @@
 
 
     <properties>
-        <lapps.all>2.3.3</lapps.all>
+        <lapps.all>2.4.0</lapps.all>
         <opennlp.version>1.5.3</opennlp.version>
     </properties>
 

@@ -8,6 +8,7 @@ import org.lappsgrid.discriminator.Discriminators.Uri;
 import org.lappsgrid.metadata.IOSpecification;
 import org.lappsgrid.metadata.ServiceMetadata;
 import org.lappsgrid.serialization.Data;
+import org.lappsgrid.serialization.LifException;
 import org.lappsgrid.serialization.Serializer;
 import org.lappsgrid.serialization.lif.Annotation;
 import org.lappsgrid.serialization.lif.Container;
@@ -82,7 +83,11 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService {
         List<Annotation> tokenAnns = tokenViews.get(tokenViews.size() - 1).getAnnotations();
 
 
-        View view = container.newView();
+        View view = null;
+        try {
+            view = container.newView();
+        } catch (LifException ignored) {
+        }
         view.addContains(Uri.NE,
                 String.format("%s:%s", this.getClass().getName(), getVersion()),
                 "ner:opennlp");
@@ -145,7 +150,7 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService {
         return atType;
     }
 
-    public String loadMetadata() {
+    private String loadMetadata() {
     	ServiceMetadata meta = new ServiceMetadata();
     	meta.setName(this.getClass().getName());
     	meta.setDescription("ner:opennlp");
