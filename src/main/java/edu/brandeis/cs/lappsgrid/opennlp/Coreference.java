@@ -21,7 +21,10 @@ import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.Span;
 
+import org.lappsgrid.metadata.IOSpecification;
+import org.lappsgrid.metadata.ServiceMetadata;
 import org.lappsgrid.serialization.Data;
+import org.lappsgrid.serialization.LifException;
 import org.lappsgrid.serialization.Serializer;
 import org.lappsgrid.serialization.lif.Annotation;
 import org.lappsgrid.serialization.lif.Container;
@@ -55,16 +58,16 @@ public class Coreference extends OpenNLPAbstractWebService {
     private opennlp.tools.parser.Parser parser;
 
     public Coreference() throws OpenNLPWebServiceException {
-        if (corefLinker == null)
-            loadAnnotators();
+        loadAnnotators();
+        this.metadata = loadMetadata();
     }
 
     @Override
     protected void loadAnnotators() throws OpenNLPWebServiceException {
 
         corefLinker = loadCoRefLinker();
-        super.loadTokenizerModel();
-        super.loadSentenceModel();
+//        super.loadTokenizerModel();
+//        super.loadSentenceModel();
         super.loadParserModel();
         super.loadNameFinderModels();
         tokenizer = new TokenizerME(tokenizerModel);
@@ -97,10 +100,31 @@ public class Coreference extends OpenNLPAbstractWebService {
     @Override
     public String execute(Container container) throws OpenNLPWebServiceException {
         String text = container.getText();
-        View view = container.newView();
-        view.addContains(Uri.TOKEN,
-                String.format("%s:%s", this.getClass().getName(), getVersion()),
-                "tokenizer:opennlp");
+
+        List<View> tokenViews = container.findViewsThatContain(Uri.TOKEN);
+        if (tokenViews.size() == 0) {
+            throw new OpenNLPWebServiceException(String.format(
+                    "Wrong Input: CANNOT find %s within previous annotations",
+                    Uri.TOKEN));
+        }
+        View tokenView = tokenViews.get(tokenViews.size() - 1);
+        List<Annotation> tokenAnns = tokenView.getAnnotations();
+
+        List<View> sentViews = container.findViewsThatContain(Uri.SENTENCE);
+        if (sentViews.size() == 0) {
+            throw new OpenNLPWebServiceException(String.format(
+                    "Wrong Input: CANNOT find %s within previous annotations",
+                    Uri.SENTENCE));
+        }
+        List<Annotation> sentAnns = sentViews.get(sentViews.size() - 1).getAnnotations();
+
+        View view = null;
+        try {
+            view = container.newView();
+        } catch (LifException ignored) {
+            // newView() throws an error when the given ID already exists
+            // , which never be the case when not passing (ID gets generated)
+        }
         view.addContains(Uri.COREF,
                 String.format("%s:%s", this.getClass().getName(), getVersion()),
                 "coreference:opennlp");
@@ -108,176 +132,135 @@ public class Coreference extends OpenNLPAbstractWebService {
                 String.format("%s:%s", this.getClass().getName(), getVersion()),
                 "markable:opennlp");
 
-        // get sentences
-        Span[] sentSpans = sentDetector.sentPosDetect(text);
-        List<Mention> mentions = new ArrayList<>();
-        List<Parse> parses = new ArrayList<>();
-        int mentionIdx = 0;
+        List<Mention> allMentions = new ArrayList<>();
+        Map<Annotation, List<Annotation>> sentsAndTokens = nestTokenUnderSents(sentAnns, tokenAnns);
+
+        // from http://blog.dpdearing.com/2012/11/making-coreference-resolution-with-opennlp-1-5-0-your-bitch/
         int sentIdx = 0;
-        for (Span sentSpan : sentSpans) {
+        for (Annotation sent : sentAnns) {
+            String sentText = text.substring(sent.getStart().intValue(), sent.getEnd().intValue());
+            // TODO: 10/29/17 experiment with ParseTool.parseLine results
+            Parse parse = parseSent(sentText, sentsAndTokens.get(sent));
+            DefaultParse parseWrapper = new DefaultParse(parse, sentIdx);
 
-        }
-        // krim for each sentence
-        for(int sentIdx = 0 ; sentIdx < sentSpans.length ; sentIdx++) {
-            Span sentSpan = sentSpans[sentIdx];
-            String sentText = text.substring(sentSpan.getStart(), sentSpan.getEnd());
-            Span[] sentTokens = tokenizer.tokenizePos(sentText);
+            // run linker to get mentions first
+            // Parse objects are used later to get chains
+            Mention[] mentionsInSent = corefLinker.getMentionFinder().getMentions(parseWrapper);
+            for (Mention mention : mentionsInSent) {
+                if (mention.getParse() == null) {
+                    Parse mentionParse = new Parse(sentText, mention.getSpan(), "NML", 1, 0);
+                    parse.insert(mentionParse);
+                    mention.setParse(new DefaultParse(mentionParse, sentIdx));
+                }
 
-            // create a parse tree of the sentence, based on the terminal tokens
-            Parse sentParse = parser.parse(createTerminalNodes(sentText, sentTokens));
-            Parse[] posNodes = sentParse.getTagNodes(); // pos-tag span array
-
-            // create empty array for tag node string values (word tokens)
-            String[] tokens = getWordTokens(view, sentIdx, sentSpan, sentText, posNodes);
-
-            /*
-            // Now pass the work token array to ner
-            for (String nerType:nameFinders.keySet())  {
-                Span[] neSpans  = nameFinders.get(nerType).find(tokens);
-                // with an input Parse object we can generate token parses as above
-                // process each name token
-                for (Span neSpan : neSpans) {
-                    Parse startToken = posNodes[neSpan.getStart()];
-                    Parse endToken = posNodes[neSpan.getEnd()];
-                    Parse commonParent = startToken.getCommonParent(endToken);
-                    if (commonParent != null) {
-                        Span wholeNeSpan = new Span(startToken.getSpan().getStart(), endToken.getSpan().getEnd());
-                        if (wholeNeSpan.equals(commonParent.getSpan())) {
-                            commonParent.insert(new Parse(commonParent.getText(), wholeNeSpan, nerType, 1.0, endToken.getHeadIndex()));
-                        } else {
-                            Parse[] children = commonParent.getChildren();
-                            boolean crossingKids = false;
-                            for (Parse child : children) {
-                                if (wholeNeSpan.crosses(child.getSpan()))
-                                    crossingKids = true;
-                            }
-                            if (crossingKids) {
-                                if (commonParent.getType().equals("NP")) {
-                                    Parse[] grandChildren = children[0].getChildren();
-                                    if (grandChildren.length > 1 && wholeNeSpan.contains(grandChildren[grandChildren.length - 1].getSpan())) {
-                                        commonParent.insert(new Parse(commonParent.getText(), commonParent.getSpan(), nerType, 1.0, commonParent.getHeadIndex()));
-                                    }
-                                }
-                            } else {
-                                commonParent.insert(new Parse(commonParent.getText(), wholeNeSpan, nerType, 1.0, endToken.getHeadIndex()));
-                            }
-                        }
+                // now add all mentions as LIF annotations
+                int mentionStart = (int) (sent.getStart() + mention.getSpan().getStart());
+                int mentionEnd = (int) (sent.getStart() + mention.getSpan().getEnd());
+                Annotation mentionAnn = view.newAnnotation(
+                        MENTION_ID + mention.getId(), Uri.MARKABLE, mentionStart, mentionEnd);
+                mentionAnn.addFeature("words", text.substring(mentionStart, mentionEnd));
+                ArrayList<String> targets = new ArrayList<>();
+                for (Annotation tokenAnn : sentsAndTokens.get(sent)) {
+                    if (tokenAnn.getStart() >= mentionStart) {
+                        targets.add(String.format("%s:%s", tokenView.getId(), tokenAnn.getId()));
+                    }
+                    if (tokenAnn.getEnd() > mentionEnd) {
+                        break;
                     }
                 }
+                mentionAnn.addFeature(Features.Markable.TARGETS, targets);
             }
-            */
+            allMentions.addAll(Arrays.asList(mentionsInSent));
 
-            System.out.println("\nSentence#" + sentIdx + " parse after POS & NER tag:");
-            sentParse.show();
-            // add to list of parses
-            parses.add(sentParse);
-            // now wrap the parsed sentence result in a DefaultParse object, so it can be used in coref
-            DefaultParse sentParseInd = new DefaultParse(sentParse, sentIdx);
-            // get all mentions in the parsed sentence
-            Mention[] sentMentions = corefLinker.getMentionFinder().getMentions(sentParseInd);
-
-            // Copy & paste from TreebankLinker source code.. edited for var name changes
-            //construct new parses for mentions which don't have constituents.
-            for (int mIdx = 0; mIdx < sentMentions.length; mIdx++) {
-                Mention men = sentMentions[mIdx];
-                if (men.getParse() == null) {
-//                    //not sure how to get head index, but its not used at this point.
-                    Parse snp = new Parse(sentParse.getText(),men.getSpan(),"NML",1.0,0);
-                    sentParse.insert(snp);
-                    men.setParse(new DefaultParse(snp, sentIdx));
-                }
-                int start = sentStart + men.getSpan().getStart();
-                int end =  sentStart + men.getSpan().getEnd();
-                JsonObj ann = container.newAnnotation(view);
-//                String id = "m_"+start+"_"+end;
-                men.setId(mIdx++);
-                container.setId(ann, "m" + men.getId());
-                container.setType(ann, "http://vocab.lappsgrid.org/Markable");
-                container.setStart(ann, start);
-                container.setEnd(ann,  end);
-                JsonArr targets = new JsonArr();
-                for(opennlp.tools.coref.mention.Parse token : men.getParse().getTokens()) {
-                    targets.put("tok_"+sentIdx+"_" + token.getSpan().getStart());
-                }
-                container.setFeature(ann, "targets", targets);
-                container.setFeature(ann, "words", men.getParse().toString());
-                container.setFeature(ann, "sentenceIndex", sentIdx);
-                // json.setFeature(ann, "ENTITY_MENTION_TYPE", sentMentions[mIdx].getParse().getEntityType());
-            }
-            mentions.addAll(Arrays.asList(sentMentions));
         }
-        int cntCof = 0;
-        if (mentions.size() > 0) {
-            // this was for treebank linker, but I'm using DefaultLinker....
-            DiscourseEntity[] entities = corefLinker.getEntities(mentions.toArray(new Mention[mentions.size()]));
-            System.out.println("\nNow displaying all discourse entities::");
-            for(DiscourseEntity ent : entities) {
-                Iterator<MentionContext> entMentions = ent.getMentions();
-                if(!entMentions.hasNext())
-                    continue;
-                String mentionString = "";
-                JsonArr mentions = new JsonArr();
-                while(entMentions.hasNext()) {
-                    Mention men = entMentions.next();
-//                    System.out.println("men="+men.getClass());
-                    mentions.put("m" + men.getId());
-                    mentionString = mentionString + " || " + men.toString();
-                }
-                System.out.println("\tMention set:: [ " + mentionString + " ]");
-                if(mentions.length() > 1){
-                    JsonObj ann =  container.newAnnotation(view, Uri.COREF);
-                    container.setId(ann, "coref"+cntCof++);
-                    container.setFeature(ann, "mentions", mentions);
-                }
-            }
 
-            System.out.println("\n\nNow printing out the named entities from mention sets::");
-            for(DiscourseEntity ent : entities) {
-                Iterator<MentionContext> entMentions = ent.getMentions();
-                while(entMentions.hasNext()) {
-                    Mention men = entMentions.next();
-                    if(men.getNameType() != null) {
-                        System.out.println("\t[" +men.getNameType()+"::"+ men.toString() + "]");
+        int corefId = 0;
+        if (allMentions.size() > 0) {
+            DiscourseEntity[] chains = corefLinker.getEntities(allMentions.toArray(new Mention[0]));
+
+            for (DiscourseEntity chain : chains) {
+                List<String> chainedMentions = new LinkedList<>();
+                // opennlp coref does not support getRepresentativeMention() or equivalent
+                // so we'll just take the first one as the representative one
+                String representativeMentionId = null;
+                for (Iterator<MentionContext> chainsIter = chain.getMentions(); chainsIter.hasNext(); ) {
+                    Mention mention = chainsIter.next();
+                    if (representativeMentionId == null) {
+                        representativeMentionId = Integer.toString(mention.getId());
                     }
+                    chainedMentions.add((Integer.toString(mention.getId())));
                 }
+                Annotation corefAnn = view.newAnnotation(COREF_ID + corefId++, Uri.COREF);
+                corefAnn.addFeature(Features.Coreference.REPRESENTATIVE, representativeMentionId);
+                corefAnn.addFeature(Features.Coreference.MENTIONS, chainedMentions);
             }
         }
         Data<Container> data = new Data<>(Uri.LIF, container);
         return Serializer.toJson(data);
     }
 
-    private String[] getWordTokens(View view, int sentIdx, Span sentSpan, String sentText, Parse[] posNodes) {
-        String[] tokens = new String[posNodes.length];
-
-        // get word tokens, getting ready to pass to ner
-        for (int posIdx = 0; posIdx < posNodes.length; posIdx ++) {
-            Span posSpan = posNodes[posIdx].getSpan();
-            int posStart = posSpan.getStart();
-            int posEnd = posSpan.getEnd();
-            tokens[posIdx] = sentText.substring(posStart, posEnd);
-            // krim: isn't posNodes[i].getText() a token text?
-//                tokens[i] = posNodes[i].getText().substring(posStart, posEnd);
-            String id = "tok_" + sentIdx + "_" + posIdx;
-            Annotation ann = view.newAnnotation(id, Uri.TOKEN,
-                    sentSpan.getStart() + posStart, sentSpan.getStart() + posEnd);
-            ann.addFeature("word", tokens[posIdx]);
-            // krim: why do we need POS tags in LIF?
-            ann.addFeature(Features.Token.POS, posNodes[posIdx].getType());
-//                container.setFeature(tokAnn,"pos", posNodes[posIdx].getType());
+    /**
+     * Expects sents and tokens are sorted by the order (ascending)
+     * @param sents
+     * @param tokens
+     * @return
+     */
+    private Map<Annotation, List<Annotation>> nestTokenUnderSents(List<Annotation> sents, List<Annotation> tokens) {
+        int tokenIdx = 0;
+        Map<Annotation, List<Annotation>> nested = new HashMap<>();
+        for (Annotation sent : sents) {
+            List<Annotation> nestedTokens = new LinkedList<>();
+            while (tokens.get(tokenIdx).getEnd() <= sent.getEnd()) {
+                nestedTokens.add(tokens.get(tokenIdx));
+                tokenIdx++;
+            }
+            nested.put(sent, nestedTokens);
         }
-        return tokens;
+        return nested;
     }
 
-    private Parse createTerminalNodes(final String sentenceText, final Span[] sentenceTokens) {
-        Parse sentParse = new Parse(sentenceText, new Span(0, sentenceText.length()), AbstractBottomUpParser.INC_NODE, 1, 0);
-        for (int i = 0; i < sentenceTokens.length; i++) {
-            int tokenStart = sentenceTokens[i].getStart();
-            int tokenEnd = sentenceTokens[i].getEnd();
+    private Parse parseSent(String sentenceText, Collection<Annotation> tokenAnns) {
+        // see http://blog.dpdearing.com/2011/12/how-to-use-the-opennlp-1-5-0-parser/
+        Parse p = new Parse(sentenceText,
+                new Span(0, sentenceText.length()),
+                AbstractBottomUpParser.INC_NODE,
+                1, 0);
 
-            // flesh out the parse with token sub-parses
-            sentParse.insert(new Parse(sentenceText, new Span(tokenStart, tokenEnd),
-                    AbstractBottomUpParser.TOK_NODE, 1, i));
+        int tokenIdx = 0;
+        for (Annotation token : tokenAnns) {
+            p.insert(new Parse(sentenceText,
+                    new Span(token.getStart().intValue(), token.getEnd().intValue()),
+                    AbstractBottomUpParser.TOK_NODE,
+                    0, tokenIdx++));
         }
-        return sentParse;
+        return this.parser.parse(p);
+    }
+
+    private String loadMetadata() {
+        ServiceMetadata meta = new ServiceMetadata();
+        meta.setName(this.getClass().getName());
+        meta.setDescription("corefernce:opennlp");
+        meta.setVersion(getVersion());
+        meta.setVendor("http://www.cs.brandeis.edu/");
+        meta.setLicense(Uri.APACHE2);
+
+        IOSpecification requires = new IOSpecification();
+        requires.setEncoding("UTF-8");
+        requires.addLanguage("en");
+        requires.addFormat(Uri.LAPPS);
+        requires.addAnnotation(Uri.TOKEN);
+        requires.addAnnotation(Uri.SENTENCE);
+
+        IOSpecification produces = new IOSpecification();
+        produces.setEncoding("UTF-8");
+        produces.addLanguage("en");
+        produces.addFormat(Uri.LAPPS);
+        produces.addAnnotation(Uri.MARKABLE);
+        produces.addAnnotation(Uri.COREF);
+
+        meta.setRequires(requires);
+        meta.setProduces(produces);
+        Data<ServiceMetadata> data = new Data<>(Uri.META, meta);
+        return data.asPrettyJson();
     }
 }
