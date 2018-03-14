@@ -1,4 +1,4 @@
-package edu.brandeis.cs.lappsgrid.opennlp;
+package edu.brandeis.lapps.opennlp;
 
 /**
  * <i>OpenNLPWebServiceException.java</i> Language Application Grids (<b>LAPPS</b>)

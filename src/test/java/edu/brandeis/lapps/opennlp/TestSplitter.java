@@ -1,4 +1,4 @@
-package edu.brandeis.cs.lappsgrid.opennlp;
+package edu.brandeis.lapps.opennlp;
 
 import opennlp.tools.util.Span;
 import org.junit.Assert;

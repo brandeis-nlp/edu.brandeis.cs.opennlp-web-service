@@ -1,4 +1,4 @@
-package edu.brandeis.cs.lappsgrid.opennlp;
+package edu.brandeis.lapps.opennlp;
 
 import opennlp.tools.namefind.NameFinderME;
 import opennlp.tools.namefind.TokenNameFinder;

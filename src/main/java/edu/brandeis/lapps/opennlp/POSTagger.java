@@ -1,6 +1,5 @@
-package edu.brandeis.cs.lappsgrid.opennlp;
+package edu.brandeis.lapps.opennlp;
 
-import opennlp.tools.postag.POSModel;
 import opennlp.tools.postag.POSTaggerME;
 import opennlp.tools.util.Sequence;
 import org.lappsgrid.discriminator.Discriminators.Uri;

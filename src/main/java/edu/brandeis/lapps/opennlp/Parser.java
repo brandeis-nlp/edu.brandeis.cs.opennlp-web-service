@@ -1,10 +1,9 @@
-package edu.brandeis.cs.lappsgrid.opennlp;
+package edu.brandeis.lapps.opennlp;
 
 import opennlp.tools.cmdline.parser.ParserTool;
 import opennlp.tools.parser.AbstractBottomUpParser;
 import opennlp.tools.parser.Parse;
 import opennlp.tools.parser.ParserFactory;
-import opennlp.tools.parser.ParserModel;
 import org.lappsgrid.discriminator.Discriminators.Uri;
 import org.lappsgrid.metadata.IOSpecification;
 import org.lappsgrid.metadata.ServiceMetadata;
@@ -110,6 +109,7 @@ public class Parser extends OpenNLPAbstractWebService {
             ps.addFeature("sentence", sentText);
             ps.addFeature("penntree", buildPennString(parses));
             List<String> constituentIds = new LinkedList<>();
+            // TODO: 2/2/2018 leaves are not grounded to token annotations
             for (Parse parse : parses) {
                 findConstituents(parse, constituentIds, sid, view);
             }

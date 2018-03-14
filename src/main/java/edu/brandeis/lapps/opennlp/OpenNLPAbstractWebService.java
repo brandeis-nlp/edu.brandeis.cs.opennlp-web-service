@@ -1,4 +1,4 @@
-package edu.brandeis.cs.lappsgrid.opennlp;
+package edu.brandeis.lapps.opennlp;
 
 import opennlp.tools.namefind.TokenNameFinderModel;
 import opennlp.tools.parser.ParserModel;
@@ -57,7 +57,7 @@ public abstract class OpenNLPAbstractWebService implements WebService {
         MODEL_PROP_KEY_MAP.put(Splitter.class, "Sentence-Detector");
         MODEL_PROP_KEY_MAP.put(NamedEntityRecognizer.class, "Name-Finder");
         MODEL_PROP_KEY_MAP.put(Parser.class, "Parser");
-//        MODEL_PROP_KEY_MAP.put(Coreference.class, "Coreference");
+        MODEL_PROP_KEY_MAP.put(Coreference.class, "Coreference");
         MODEL_PROP_KEY_MAP.put(POSTagger.class, "Part-of-Speech-Tagger");
     }
 
@@ -67,7 +67,7 @@ public abstract class OpenNLPAbstractWebService implements WebService {
         DEFAULT_MODEL_RES_FILE_MAP.put(Splitter.class, "/en-sent.bin");
         DEFAULT_MODEL_RES_FILE_MAP.put(NamedEntityRecognizer.class, "/en-ner-person.bin:/en-ner-location.bin:/en-ner-organization.bin:/en-ner-date.bin");
         DEFAULT_MODEL_RES_FILE_MAP.put(Parser.class, "/en-parser-chunking.bin");
-//        DEFAULT_MODEL_RES_FILE_MAP.put(Coreference.class, "/coref");
+        DEFAULT_MODEL_RES_FILE_MAP.put(Coreference.class, "/coref");
         DEFAULT_MODEL_RES_FILE_MAP.put(POSTagger.class, "/en-pos-maxent.bin");
     }
 

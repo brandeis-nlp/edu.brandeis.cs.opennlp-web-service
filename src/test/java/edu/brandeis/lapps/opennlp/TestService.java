@@ -1,4 +1,4 @@
-package edu.brandeis.cs.lappsgrid.opennlp;
+package edu.brandeis.lapps.opennlp;
 
 
 import org.apache.commons.io.FileUtils;
