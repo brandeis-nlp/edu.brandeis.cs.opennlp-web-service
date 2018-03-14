@@ -1,7 +1,5 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
-import edu.brandeis.cs.lappsgrid.Version;
-import edu.brandeis.cs.lappsgrid.opennlp.api.ITokenizer;
 import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.Span;
@@ -23,32 +21,26 @@ import org.lappsgrid.serialization.lif.View;
  * @author Chunqi Shi ( <i>shicq@cs.brandeis.edu</i> )<br>Nov 20, 2013<br>
  * 
  */
-public class Tokenizer extends OpenNLPAbstractWebService implements ITokenizer {
+public class Tokenizer extends OpenNLPAbstractWebService {
 
-    private static TokenizerModel tokenizerModel;
     private opennlp.tools.tokenize.Tokenizer tokenizer;
 
     public Tokenizer() throws OpenNLPWebServiceException {
-        loadModels();
+        loadAnnotators();
         this.metadata = loadMetadata();
     }
 
     @Override
-    protected void loadModels() throws OpenNLPWebServiceException {
-        super.loadModels();
-        if (tokenizerModel == null) {
-            tokenizerModel = loadTokenizerModel(registModelMap.get(this.getClass()));
-        }
+    protected void loadAnnotators() throws OpenNLPWebServiceException {
+        super.loadTokenizerModel();
         tokenizer = new TokenizerME(tokenizerModel);
     }
 
-    @Override
     public String[] tokenize(String s) {
         String tokens[] = tokenizer.tokenize(s);
         return tokens;
     }
 
-    @Override
     public Span[] tokenizePos(String s) {
         Span [] boundaries = tokenizer.tokenizePos(s);
         return boundaries;
@@ -56,7 +48,7 @@ public class Tokenizer extends OpenNLPAbstractWebService implements ITokenizer {
 
     @Override
     public String execute(Container container) throws OpenNLPWebServiceException {
-        logger.info("execute(): Execute OpenNLP tokenizer ...");
+        logger.info("Executing");
         String txt = container.getText();
         View view = container.newView();
         view.addContains(Uri.TOKEN,
@@ -79,7 +71,7 @@ public class Tokenizer extends OpenNLPAbstractWebService implements ITokenizer {
     	ServiceMetadata meta = new ServiceMetadata();
     	meta.setName(this.getClass().getName());
     	meta.setDescription("tokenizer:opennlp");
-    	meta.setVersion(Version.getVersion());
+    	meta.setVersion(getVersion());
     	meta.setVendor("http://www.cs.brandeis.edu/");
     	meta.setLicense(Uri.APACHE2);
 

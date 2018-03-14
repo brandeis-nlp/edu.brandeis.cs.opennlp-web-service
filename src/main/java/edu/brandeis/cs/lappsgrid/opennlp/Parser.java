@@ -1,7 +1,5 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
-import edu.brandeis.cs.lappsgrid.Version;
-import edu.brandeis.cs.lappsgrid.opennlp.api.IParser;
 import opennlp.tools.cmdline.parser.ParserTool;
 import opennlp.tools.parser.AbstractBottomUpParser;
 import opennlp.tools.parser.Parse;
@@ -35,23 +33,19 @@ import java.util.List;
  *         Nov 20, 2013<br>
  * 
  */
-public class Parser extends OpenNLPAbstractWebService implements IParser {
+public class Parser extends OpenNLPAbstractWebService {
     protected static final Logger logger = LoggerFactory.getLogger(Parser.class);
 
-    private static ParserModel parserModel;
     private opennlp.tools.parser.Parser parser;
 
     public Parser() throws OpenNLPWebServiceException {
-        loadModels();
+        loadAnnotators();
         this.metadata = loadMetadata();
     }
 
     @Override
-    synchronized protected void loadModels() throws OpenNLPWebServiceException {
-        super.loadModels();
-        if (parserModel == null) {
-            parserModel = loadParserModel(registModelMap.get(this.getClass()));
-        }
+    synchronized protected void loadAnnotators() throws OpenNLPWebServiceException {
+        super.loadParserModel();
         parser = ParserFactory.create(parserModel);
     }
 
@@ -152,7 +146,7 @@ public class Parser extends OpenNLPAbstractWebService implements IParser {
         ServiceMetadata meta = new ServiceMetadata();
         meta.setName(this.getClass().getName());
         meta.setDescription("parser:opennlp");
-        meta.setVersion(Version.getVersion());
+        meta.setVersion(getVersion());
         meta.setVendor("http://www.cs.brandeis.edu/");
         meta.setLicense(Uri.APACHE2);
 

@@ -1,15 +1,13 @@
 package edu.brandeis.cs.lappsgrid.opennlp;
 
-import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.lappsgrid.serialization.Data;
-import org.lappsgrid.serialization.Serializer;
+import org.lappsgrid.discriminator.Discriminators.Uri;
 import org.lappsgrid.metadata.IOSpecification;
 import org.lappsgrid.metadata.ServiceMetadata;
-import org.lappsgrid.discriminator.Discriminators.Uri;
-import edu.brandeis.cs.lappsgrid.Version;
+import org.lappsgrid.serialization.Data;
+import org.lappsgrid.serialization.Serializer;
 
 import java.io.IOException;
 import java.util.Map;
@@ -72,7 +70,7 @@ public class TestParser extends TestService {
 		ServiceMetadata metadata = new ServiceMetadata((Map) data.getPayload());
 		Assert.assertEquals("Vendor is not correct", "http://www.cs.brandeis.edu/", metadata.getVendor());
 		Assert.assertEquals("Name is not correct", service.getClass().getName(), metadata.getName());
-		Assert.assertEquals("Version is not correct", Version.getVersion(), metadata.getVersion());
+		Assert.assertEquals("Version is not correct", service.getVersion(), metadata.getVersion());
 		Assert.assertEquals("License is not correct", Uri.APACHE2, metadata.getLicense());
 		
 		IOSpecification requires = metadata.getRequires();
