@@ -64,3 +64,6 @@ $RECYCLE.BIN/
 *.iml
 out
 gen
+
+### ctag cache
+.tags

@@ -1,24 +1,24 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>edu.brandeis.cs.lapps</groupId>
+    <groupId>edu.brandeis.lapps</groupId>
     <artifactId>opennlp-web-service</artifactId>
     <version>2.1.1-SNAPSHOT</version>
     <packaging>war</packaging>
     <name>Brandeis LAPPS Web Services wrapping OpenNLP tools</name>
     <description>
-        Publish API for the LAPPS exchange data structure (LEDS), the thing that will be serialized to from JSON-LD.
-        Provide converter for the OpenNLP one-per-line format to LEDS.
+        This web service publishes APIs to call Apache OpenNLP annotators using JSON-LD-serialized LEDS data.
+        This version uses CoreNLP ${opennlp.version} internally.
     </description>
     <parent>
         <groupId>org.lappsgrid.maven</groupId>
         <artifactId>war-parent-pom</artifactId>
-        <version>2.0.5</version>
+        <version>2.2.0</version>
     </parent>
 
 
     <properties>
-        <lapps.all>2.3.3</lapps.all>
+        <lapps.all>2.5.0-SNAPSHOT</lapps.all>
         <opennlp.version>1.5.3</opennlp.version>
     </properties>
 
