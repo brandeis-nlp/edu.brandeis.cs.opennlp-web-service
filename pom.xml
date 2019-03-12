@@ -18,11 +18,33 @@
 
 
     <properties>
-        <lapps.all>2.5.0-SNAPSHOT</lapps.all>
         <opennlp.version>1.5.3</opennlp.version>
+        <scaffolding.version>1.0.0-SNAPSHOT</scaffolding.version>
+        <brandeis.nexus.baseurl>http://morbius.cs-i.brandeis.edu:8081</brandeis.nexus.baseurl>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>maven-group</id>
+            <url>${brandeis.nexus.baseurl}/repository/maven-public/</url>
+        </repository>
+    </repositories>
+
     <dependencies>
+        <dependency>
+            <groupId>edu.brandeis.lapps</groupId>
+            <artifactId>brandeis-lapps-service</artifactId>
+            <version>${scaffolding.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>edu.brandeis.lapps</groupId>
+            <artifactId>brandeis-lapps-service</artifactId>
+            <version>${scaffolding.version}</version>
+            <classifier>tests</classifier>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.opennlp</groupId>
             <artifactId>opennlp-tools</artifactId>
@@ -37,13 +59,6 @@
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>1.4</version>
-        </dependency>
-
-        <!-- LappsGrid dependencies -->
-        <dependency>
-            <groupId>org.lappsgrid</groupId>
-            <artifactId>all</artifactId>
-            <version>${lapps.all}</version>
         </dependency>
 
     </dependencies>

@@ -1,10 +1,10 @@
 package edu.brandeis.lapps.opennlp;
 
+import edu.brandeis.lapps.BrandeisServiceException;
 import opennlp.tools.sentdetect.SentenceDetector;
 import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.util.Span;
 import org.lappsgrid.discriminator.Discriminators.Uri;
-import org.lappsgrid.metadata.IOSpecification;
 import org.lappsgrid.metadata.ServiceMetadata;
 import org.lappsgrid.serialization.Data;
 import org.lappsgrid.serialization.Serializer;
@@ -12,26 +12,18 @@ import org.lappsgrid.serialization.lif.Annotation;
 import org.lappsgrid.serialization.lif.Container;
 import org.lappsgrid.serialization.lif.View;
 
-/**
- * <i>AbstractOpenNLPWebService.java</i> Language Application Grids (<b>LAPPS</b>)
- * <p> 
- * <p><a href="http://opennlp.sourceforge.net/models-1.5/">Models for 1.5 series</a>
- * <p> 
- *
- * @author Chunqi Shi ( <i>shicq@cs.brandeis.edu</i> )<br>Nov 20, 2013<br>
- *
- */
 public class Splitter extends OpenNLPAbstractWebService {
-
+    private static String TOOL_DESCRIPTION = "This service is a wrapper around Apache OpenNLP 1.5.3 providing an English sentence splitting service." +
+            "\nInternally it uses public OpenNLP-1.5 models (available at http://opennlp.sourceforge.net/models-1.5/), in particular, \n" +
+            "\"/en-sent.bin\" is used. ";
     private SentenceDetector sentenceDetector;
 
-    public Splitter() throws OpenNLPWebServiceException {
+    public Splitter() throws BrandeisServiceException {
         loadAnnotators();
-        this.metadata = loadMetadata();
     }
 
     @Override
-    synchronized protected void loadAnnotators() throws OpenNLPWebServiceException {
+    synchronized protected void loadAnnotators() throws BrandeisServiceException {
         super.loadSentenceModel();
         sentenceDetector = new SentenceDetectorME(sentenceDetectorModel);
     }
@@ -40,7 +32,7 @@ public class Splitter extends OpenNLPAbstractWebService {
         if (sentenceDetector == null) {
             try {
                 loadAnnotators();
-            } catch (OpenNLPWebServiceException e) {
+            } catch (BrandeisServiceException e) {
                 throw new RuntimeException("Fail to initialize SentenceDetector", e);
             }
         }
@@ -53,7 +45,7 @@ public class Splitter extends OpenNLPAbstractWebService {
         if (sentenceDetector == null) {
             try {
                 loadAnnotators();
-            } catch (OpenNLPWebServiceException e) {
+            } catch (BrandeisServiceException e) {
                 throw new RuntimeException("Fail to initialize SentenceDetector", e);
             }
         }
@@ -62,15 +54,12 @@ public class Splitter extends OpenNLPAbstractWebService {
     }
 
     @Override
-    public String execute(Container container) throws OpenNLPWebServiceException {
-
+    public String execute(Container container) {
         logger.info("Executing");
         String txt = container.getText();
 
         View view = container.newView();
-        view.addContains(Uri.SENTENCE,
-                String.format("%s:%s", this.getClass().getName(), getVersion()),
-                "splitter:opennlp");
+        setUpContainsMetadata(view, PRODUCER_ALIAS);
 
         Span[] spans = sentPosDetect(txt);
         int count = 0;
@@ -85,28 +74,10 @@ public class Splitter extends OpenNLPAbstractWebService {
         return Serializer.toJson(data);
     }
 
-    public String loadMetadata() {
-        ServiceMetadata meta = new ServiceMetadata();
-        meta.setName(this.getClass().getName());
-        meta.setDescription("splitter:opennlp");
-        meta.setVersion(getVersion());
-        meta.setVendor("http://www.cs.brandeis.edu/");
-        meta.setLicense(Uri.APACHE2);
-
-        IOSpecification requires = new IOSpecification();
-        requires.setEncoding("UTF-8");
-        requires.addLanguage("en");
-        requires.addFormat(Uri.LAPPS);
-
-        IOSpecification produces = new IOSpecification();
-        produces.setEncoding("UTF-8");
-        produces.addLanguage("en");
-        produces.addFormat(Uri.LAPPS);
-        produces.addAnnotation(Uri.SENTENCE);
-
-        meta.setRequires(requires);
-        meta.setProduces(produces);
-        Data<ServiceMetadata> data = new Data<> (Uri.META, meta);
-        return data.asPrettyJson();
+    public ServiceMetadata loadMetadata() {
+        ServiceMetadata meta = setDefaultMetadata();
+        meta.setDescription(TOOL_DESCRIPTION);
+        meta.getProduces().addAnnotation(Uri.SENTENCE);
+        return meta;
     }
 }

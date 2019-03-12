@@ -1,11 +1,11 @@
 package edu.brandeis.lapps.opennlp;
 
+import edu.brandeis.lapps.BrandeisServiceException;
 import opennlp.tools.cmdline.parser.ParserTool;
 import opennlp.tools.parser.AbstractBottomUpParser;
 import opennlp.tools.parser.Parse;
 import opennlp.tools.parser.ParserFactory;
 import org.lappsgrid.discriminator.Discriminators.Uri;
-import org.lappsgrid.metadata.IOSpecification;
 import org.lappsgrid.metadata.ServiceMetadata;
 import org.lappsgrid.serialization.Data;
 import org.lappsgrid.serialization.Serializer;
@@ -19,31 +19,20 @@ import org.slf4j.LoggerFactory;
 import java.util.LinkedList;
 import java.util.List;
 
-/**
- * <i>Parser.java</i> Language Application Grids
- * (<b>LAPPS</b>)
- * <p>
- * <p>
- * <a href="http://opennlp.sourceforge.net/models-1.5/">Models for 1.5
- * series</a>
- * <p>
- * 
- * @author Chunqi Shi ( <i>shicq@cs.brandeis.edu</i> )<br>
- *         Nov 20, 2013<br>
- * 
- */
 public class Parser extends OpenNLPAbstractWebService {
+    private static String TOOL_DESCRIPTION = "This service is a wrapper around Apache OpenNLP 1.5.3 providing an English constituent parser service." +
+            "\nInternally it uses public OpenNLP-1.5 models (available at http://opennlp.sourceforge.net/models-1.5/), in particular, \n" +
+            "\"/en-parser-chunking.bin\" is used. ";
     protected static final Logger logger = LoggerFactory.getLogger(Parser.class);
 
     private opennlp.tools.parser.Parser parser;
 
-    public Parser() throws OpenNLPWebServiceException {
+    protected Parser() throws BrandeisServiceException {
         loadAnnotators();
-        this.metadata = loadMetadata();
     }
 
     @Override
-    synchronized protected void loadAnnotators() throws OpenNLPWebServiceException {
+    synchronized protected void loadAnnotators() throws BrandeisServiceException {
         super.loadParserModel();
         parser = ParserFactory.create(parserModel);
     }
@@ -72,31 +61,20 @@ public class Parser extends OpenNLPAbstractWebService {
 
 
     @Override
-    public String execute(Container container) throws OpenNLPWebServiceException {
+    public String execute(Container container) throws BrandeisServiceException {
+        logger.info("Executing");
         String txt = container.getText();
-
         List<View> sentViews = container.findViewsThatContain(Uri.SENTENCE);
+
+        // throw exception here, the outer execute method will wrap it into a LEDS
         if (sentViews.size() == 0) {
-            throw new OpenNLPWebServiceException(String.format(
-                    "Wrong Input: CANNOT find %s within previous annotations",
-                    Uri.SENTENCE));
+            throw new BrandeisServiceException(unmetRequirements(Uri.SENTENCE));
         }
-        List<Annotation> sentAnns = sentViews.get(sentViews.size() - 1).getAnnotations();
+        View sentView = sentViews.get(sentViews.size() - 1);
+        List<Annotation> sentAnns = sentView.getAnnotations();
 
         View view = container.newView();
-        view.addContains(Uri.PHRASE_STRUCTURE,
-                String.format("%s:%s", this.getClass().getName(), getVersion()),
-                "parser:opennlp");
-        view.addContains(Uri.CONSTITUENT,
-                String.format("%s:%s", this.getClass().getName(), getVersion()),
-                "parser:opennlp");
-
-        view.addContains(Uri.CONSTITUENT,
-                String.format("%s:%s", this.getClass().getName(), getVersion()),
-                "parser:opennlp");
-        view.addContains(Uri.PHRASE_STRUCTURE,
-                String.format("%s:%s", this.getClass().getName(), getVersion()),
-                "parser:opennlp");
+        setUpContainsMetadata(view, PRODUCER_ALIAS);
 
         for (int sid = 0; sid < sentAnns.size(); sid++) {
             // for each sentence
@@ -142,31 +120,14 @@ public class Parser extends OpenNLPAbstractWebService {
         return cid;
     }
 
-    public String loadMetadata() {
-        ServiceMetadata meta = new ServiceMetadata();
-        meta.setName(this.getClass().getName());
-        meta.setDescription("parser:opennlp");
-        meta.setVersion(getVersion());
-        meta.setVendor("http://www.cs.brandeis.edu/");
-        meta.setLicense(Uri.APACHE2);
+    public ServiceMetadata loadMetadata() {
+        ServiceMetadata meta = setDefaultMetadata();
+        meta.setDescription(TOOL_DESCRIPTION);
+        meta.getRequires().addAnnotation(Uri.SENTENCE);
+        meta.getProduces().addAnnotation(Uri.CONSTITUENT);
+        meta.getProduces().addAnnotation(Uri.PHRASE_STRUCTURE);
+        return meta;
 
-        IOSpecification requires = new IOSpecification();
-        requires.setEncoding("UTF-8");
-        requires.addLanguage("en");
-        requires.addFormat(Uri.LAPPS);
-        requires.addAnnotation(Uri.SENTENCE);
-
-        IOSpecification produces = new IOSpecification();
-        produces.setEncoding("UTF-8");
-        produces.addLanguage("en");
-        produces.addFormat(Uri.LAPPS);
-        produces.addAnnotation(Uri.CONSTITUENT);
-        produces.addAnnotation(Uri.PHRASE_STRUCTURE);
-
-        meta.setRequires(requires);
-        meta.setProduces(produces);
-        Data<ServiceMetadata> data = new Data<>(Uri.META, meta);
-        return data.asPrettyJson();
     }
 }
 

@@ -1,94 +1,66 @@
 package edu.brandeis.lapps.opennlp;
 
-import org.junit.Assert;
-import org.junit.Before;
+import edu.brandeis.lapps.BrandeisServiceException;
 import org.junit.Test;
 import org.lappsgrid.discriminator.Discriminators.Uri;
 import org.lappsgrid.metadata.IOSpecification;
 import org.lappsgrid.metadata.ServiceMetadata;
 import org.lappsgrid.serialization.Data;
 import org.lappsgrid.serialization.Serializer;
+import org.lappsgrid.serialization.lif.Annotation;
+import org.lappsgrid.serialization.lif.Container;
+import org.lappsgrid.serialization.lif.View;
 
-import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
-/**
- * <i>TestParser.java</i> Language Application Grids (<b>LAPPS</b>)
- * <p> 
- * <p> Test cases are from <a href="http://www.programcreek.com/2012/05/opennlp-tutorial/">OpenNLP Tutorial</a>
- * <p> 
- *
- * @author Chunqi Shi ( <i>shicq@cs.brandeis.edu</i> )<br>Nov 20, 2013<br>
- * 
- */
-public class TestParser extends TestService {
-	
-//	Parser parser;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-	String splitterjson = "{\"discriminator\":\"http://vocab.lappsgrid.org/ns/media/jsonld#lif\",\"payload\":{\"@context\":\"http://vocab.lappsgrid.org/context-1.0.0.jsonld\",\"metadata\":{},\"text\":{\"@value\":\"If possible, we would appreciate comments no later than 3:00 PM EST on Sunday, August 26.  Comments can be faxed to my attention at 202/338-2416 or emailed to cfr@vnf.com or gdb@vnf.com (Gary GaryBachman).\\n\\nThank you.\"},\"views\":[{\"metadata\":{\"contains\":{\"http://vocab.lappsgrid.org/Sentence\":{\"producer\":\"Splitter:2.0.1-SNAPSHOT\",\"type\":\"splitter:opennlp\"}}},\"annotations\":[{\"id\":\"sent0\",\"@type\":\"http://vocab.lappsgrid.org/Sentence\",\"start\":0,\"end\":89,\"features\":{\"sentence\":\"If possible, we would appreciate comments no later than 3:00 PM EST on Sunday, August 26.\"}},{\"id\":\"sent1\",\"@type\":\"http://vocab.lappsgrid.org/Sentence\",\"start\":91,\"end\":185,\"features\":{\"sentence\":\"Comments can be faxed to my attention at 202/338-2416 or emailed to cfr@vnf.com or gdb@vnf.com\"}},{\"id\":\"sent2\",\"@type\":\"http://vocab.lappsgrid.org/Sentence\",\"start\":186,\"end\":205,\"features\":{\"sentence\":\"(Gary GaryBachman).\"}},{\"id\":\"sent3\",\"@type\":\"http://vocab.lappsgrid.org/Sentence\",\"start\":207,\"end\":217,\"features\":{\"sentence\":\"Thank you.\"}}]}]}}";
+public class TestParser extends TestOpennlpService {
 
-    @Before
-    public void data() throws IOException {
-
+    public TestParser() throws BrandeisServiceException {
+        service = new Parser();
+        testText = "{\"discriminator\":\"http://vocab.lappsgrid.org/ns/media/jsonld#lif\",\"payload\":{\"@context\":\"http://vocab.lappsgrid.org/context-1.0.0.jsonld\",\"$schema\":\"http://vocab.lappsgrid.org/schema/1.1.0/lif-schema-1.1.0.json\",\"metadata\":{},\"text\":{\"@value\":\"Karen flew to New York. She went to see her cousin. \\n\",\"@language\":\"en\"},\"views\":[{\"id\":\"v1\",\"metadata\":{\"contains\":{\"http://vocab.lappsgrid.org/Sentence\":{\"producer\":\"hand-written-sample\",\"type\":\"sentences\"}}},\"annotations\":[{\"id\":\"s_0\",\"start\":0,\"end\":23,\"@type\":\"http://vocab.lappsgrid.org/Sentence\",\"features\":{\"sentence\":\"Karen flew to New York.\"}},{\"id\":\"s_1\",\"start\":24,\"end\":51,\"@type\":\"http://vocab.lappsgrid.org/Sentence\",\"features\":{\"sentence\":\"She went to see her cousin.\"}}]}]}}";
     }
 
-    public TestParser() throws OpenNLPWebServiceException {
-		service = new Parser();
-	}
-	
-	@Test
-	public void testParser() throws OpenNLPWebServiceException {
-		String print = new Parser().parse("Programcreek is a very huge and useful website.");
-		System.out.println(print);
+    @Test
+    public void testParser() throws BrandeisServiceException {
+        String print = new Parser().parse("Programcreek is a very huge and useful website.");
+        System.out.println(print);
 
-		String goldPrint = "(TOP (S (NP (NN Programcreek)) (VP (VBZ is) (NP (DT a) (ADJP (RB very) (JJ huge) (CC and) (JJ useful)))) (. website.)))\n";
-		Assert.assertEquals("Parse Failure.", print, goldPrint);
-	}
+        String goldPrint = "(TOP (S (NP (NN Programcreek)) (VP (VBZ is) (NP (DT a) (ADJP (RB very) (JJ huge) (CC and) (JJ useful)))) (. website.)))\n";
+        assertEquals("Parse Failure.", print, goldPrint);
+    }
 
     @Test
     public void testExecute(){
+        Data executedData = Serializer.parse(service.execute(testText), Data.class);
+        Container executionResult = new Container((Map) executedData.getPayload());
 
-		String result = service.execute(splitterjson);
-		System.out.println("<------------------------------------------------------------------------------");
-		System.out.println(String.format("      %s         ", this.getClass().getName()));
-		System.out.println("-------------------------------------------------------------------------------");
-		System.out.println(result);
-		System.out.println("------------------------------------------------------------------------------>");
+        super.testExecuteResult(executionResult, true);
 
+        View view = executionResult.getView(executionResult.getViews().size() - 1);
+        List<Annotation> annotations = view.getAnnotations();
 
-	}
-    
+        assertEquals("Trees", 2, annotations.stream().filter(
+                ann -> ann.getAtType().equals(Uri.PHRASE_STRUCTURE)).count());
+
+    }
+
     @Test
     public void testMetadata() {
-    	String json = service.getMetadata();
-    	Assert.assertNotNull("service.getMetadata() returned null", json);
 
-		Data data = Serializer.parse(json, Data.class);
-		Assert.assertNotNull("Unable to parse metadata json.", data);
-		Assert.assertNotSame(data.getPayload().toString(), Uri.ERROR, data.getDiscriminator());
-		
-		ServiceMetadata metadata = new ServiceMetadata((Map) data.getPayload());
-		Assert.assertEquals("Vendor is not correct", "http://www.cs.brandeis.edu/", metadata.getVendor());
-		Assert.assertEquals("Name is not correct", service.getClass().getName(), metadata.getName());
-		Assert.assertEquals("Version is not correct", service.getVersion(), metadata.getVersion());
-		Assert.assertEquals("License is not correct", Uri.APACHE2, metadata.getLicense());
-		
-		IOSpecification requires = metadata.getRequires();
-		Assert.assertEquals("Requires encoding is not correct", "UTF-8", requires.getEncoding());
-		Assert.assertTrue("English not accepted", requires.getLanguage().contains("en"));
-		Assert.assertEquals("One format should be required", 1, requires.getFormat().size());
-		Assert.assertTrue("LIF format not accepted", requires.getFormat().contains(Uri.LAPPS));
-		Assert.assertEquals("One annotation should be required", 1, requires.getAnnotations().size());
-		Assert.assertTrue("Sentence annotation required", requires.getAnnotations().contains(Uri.SENTENCE));
-		
-		IOSpecification produces = metadata.getProduces();
-		Assert.assertEquals("Produces encoding is not correct", "UTF-8", produces.getEncoding());
-		Assert.assertTrue("English not produced", produces.getLanguage().contains("en"));
-		Assert.assertEquals("One format should be produced", 1, produces.getFormat().size());
-		Assert.assertTrue("LIF format not produced.", produces.getFormat().contains(Uri.LAPPS));
-		Assert.assertEquals("Two annotations should be produced", 2, produces.getAnnotations().size());
-		Assert.assertTrue("Constituent not produced", produces.getAnnotations().contains(Uri.CONSTITUENT));
-		Assert.assertTrue("Phrase structure not produced", produces.getAnnotations().contains(Uri.PHRASE_STRUCTURE));
+        ServiceMetadata metadata = super.testDefaultMetadata();
+
+        IOSpecification requires = metadata.getRequires();
+        assertEquals("One annotation should be required", 1, requires.getAnnotations().size());
+        assertTrue("Sentence annotations should be required", requires.getAnnotations().contains(Uri.SENTENCE));
+
+        IOSpecification produces = metadata.getProduces();
+        assertEquals("Two annotation should be produced", 2, produces.getAnnotations().size());
+        assertTrue("Constituents not produced", produces.getAnnotations().contains(Uri.CONSTITUENT));
+        assertTrue("PS not produced", produces.getAnnotations().contains(Uri.PHRASE_STRUCTURE));
     }
-    
+
 }

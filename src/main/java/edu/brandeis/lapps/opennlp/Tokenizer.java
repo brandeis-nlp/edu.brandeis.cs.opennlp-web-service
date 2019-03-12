@@ -1,9 +1,9 @@
 package edu.brandeis.lapps.opennlp;
 
+import edu.brandeis.lapps.BrandeisServiceException;
 import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.util.Span;
 import org.lappsgrid.discriminator.Discriminators.Uri;
-import org.lappsgrid.metadata.IOSpecification;
 import org.lappsgrid.metadata.ServiceMetadata;
 import org.lappsgrid.serialization.Data;
 import org.lappsgrid.serialization.Serializer;
@@ -11,26 +11,18 @@ import org.lappsgrid.serialization.lif.Annotation;
 import org.lappsgrid.serialization.lif.Container;
 import org.lappsgrid.serialization.lif.View;
 
-/**
- * <i>Tokenizer.java</i> Language Application Grids (<b>LAPPS</b>)
- * <p> 
- * <p><a href="http://opennlp.sourceforge.net/models-1.5/">Models for 1.5 series</a>
- * <p> 
- *
- * @author Chunqi Shi ( <i>shicq@cs.brandeis.edu</i> )<br>Nov 20, 2013<br>
- * 
- */
 public class Tokenizer extends OpenNLPAbstractWebService {
-
+    private static String TOOL_DESCRIPTION = "This service is a wrapper around Apache OpenNLP 1.5.3 providing an English tokenizer service." +
+            "\nInternally it uses public OpenNLP-1.5 models (available at http://opennlp.sourceforge.net/models-1.5/), in particular, \n" +
+            "\"/en-token.bin\" is used. ";
     private opennlp.tools.tokenize.Tokenizer tokenizer;
 
-    public Tokenizer() throws OpenNLPWebServiceException {
+    public Tokenizer() throws BrandeisServiceException {
         loadAnnotators();
-        this.metadata = loadMetadata();
     }
 
     @Override
-    protected void loadAnnotators() throws OpenNLPWebServiceException {
+    protected void loadAnnotators() throws BrandeisServiceException {
         super.loadTokenizerModel();
         tokenizer = new TokenizerME(tokenizerModel);
     }
@@ -41,18 +33,17 @@ public class Tokenizer extends OpenNLPAbstractWebService {
     }
 
     public Span[] tokenizePos(String s) {
-        Span [] boundaries = tokenizer.tokenizePos(s);
+        Span[] boundaries = tokenizer.tokenizePos(s);
         return boundaries;
     }
 
     @Override
-    public String execute(Container container) throws OpenNLPWebServiceException {
+    public String execute(Container container) {
         logger.info("Executing");
         String txt = container.getText();
+
         View view = container.newView();
-        view.addContains(Uri.TOKEN,
-                String.format("%s:%s", this.getClass().getName(), getVersion()),
-                "tokenizer:opennlp");
+        setUpContainsMetadata(view, PRODUCER_ALIAS);
         Span[] spans = tokenizePos(txt);
         int count = 0;
         for (Span span : spans) {
@@ -66,28 +57,10 @@ public class Tokenizer extends OpenNLPAbstractWebService {
         return Serializer.toJson(data);
     }
 
-    public String loadMetadata() {
-    	ServiceMetadata meta = new ServiceMetadata();
-    	meta.setName(this.getClass().getName());
-    	meta.setDescription("tokenizer:opennlp");
-    	meta.setVersion(getVersion());
-    	meta.setVendor("http://www.cs.brandeis.edu/");
-    	meta.setLicense(Uri.APACHE2);
-
-    	IOSpecification requires = new IOSpecification();
-    	requires.setEncoding("UTF-8");
-    	requires.addLanguage("en");
-    	requires.addFormat(Uri.LAPPS);
-
-    	IOSpecification produces = new IOSpecification();
-    	produces.setEncoding("UTF-8");
-    	produces.addLanguage("en");
-    	produces.addAnnotation(Uri.TOKEN);
-    	produces.addFormat(Uri.LAPPS);
-
-    	meta.setRequires(requires);
-    	meta.setProduces(produces);
-    	Data<ServiceMetadata> data = new Data<> (Uri.META, meta);
-    	return data.asPrettyJson();
+    public ServiceMetadata loadMetadata() {
+        ServiceMetadata meta = setDefaultMetadata();
+        meta.setDescription(TOOL_DESCRIPTION);
+        meta.getProduces().addAnnotation(Uri.TOKEN);
+        return meta;
     }
 }
