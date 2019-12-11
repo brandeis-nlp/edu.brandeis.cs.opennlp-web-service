@@ -189,6 +189,10 @@ public abstract class AbstractOpennlpWrapper extends BrandeisService {
     @Override
     protected ServiceMetadata setDefaultMetadata() {
         ServiceMetadata metadata = super.setDefaultMetadata();
+        metadata.setLicense(Discriminators.Uri.APACHE2);
+        metadata.setLicenseDesc("This service provides an interface to a Apache OpenNLP tool, which is originally licensed under Apache License, Version 2.0 . For more information, please visit `the Apache License website <https://www.apache.org/licenses/LICENSE-2.0>`_. ");
+        metadata.setAllow(Discriminators.Uri.ALL);
+
         IOSpecification required = new IOSpecification();
         required.addLanguage("en");
         required.setEncoding("UTF-8");
