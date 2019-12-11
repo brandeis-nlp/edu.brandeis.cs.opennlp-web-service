@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 import java.util.LinkedList;
 import java.util.List;
 
-public class Parser extends OpenNLPAbstractWebService {
+public class Parser extends AbstractOpennlpWrapper {
     private static String TOOL_DESCRIPTION = "This service is a wrapper around Apache OpenNLP 1.5.3 providing an English constituent parser service." +
             "\nInternally it uses public OpenNLP-1.5 models (available at http://opennlp.sourceforge.net/models-1.5/), in particular, \n" +
             "\"/en-parser-chunking.bin\" is used. ";
@@ -61,7 +61,7 @@ public class Parser extends OpenNLPAbstractWebService {
 
 
     @Override
-    public String execute(Container container) throws BrandeisServiceException {
+    public String processPayload(Container container) throws BrandeisServiceException {
         logger.info("Executing");
         String txt = container.getText();
         List<View> sentViews = container.findViewsThatContain(Uri.SENTENCE);

@@ -11,7 +11,7 @@ import org.lappsgrid.serialization.lif.Annotation;
 import org.lappsgrid.serialization.lif.Container;
 import org.lappsgrid.serialization.lif.View;
 
-public class Tokenizer extends OpenNLPAbstractWebService {
+public class Tokenizer extends AbstractOpennlpWrapper {
     private static String TOOL_DESCRIPTION = "This service is a wrapper around Apache OpenNLP 1.5.3 providing an English tokenizer service." +
             "\nInternally it uses public OpenNLP-1.5 models (available at http://opennlp.sourceforge.net/models-1.5/), in particular, \n" +
             "\"/en-token.bin\" is used. ";
@@ -38,7 +38,7 @@ public class Tokenizer extends OpenNLPAbstractWebService {
     }
 
     @Override
-    public String execute(Container container) {
+    public String processPayload(Container container) {
         logger.info("Executing");
         String txt = container.getText();
 

@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public class NamedEntityRecognizer extends OpenNLPAbstractWebService {
+public class NamedEntityRecognizer extends AbstractOpennlpWrapper {
 
     private static String TOOL_DESCRIPTION = "This service is a wrapper around Apache OpenNLP 1.5.3 providing an English name finder (NER) service." +
             "\nInternally it uses public OpenNLP-1.5 models (available at http://opennlp.sourceforge.net/models-1.5/), in particular, \n" +
@@ -60,7 +60,7 @@ public class NamedEntityRecognizer extends OpenNLPAbstractWebService {
     }
 
     @Override
-    public String execute(Container container) throws BrandeisServiceException {
+    public String processPayload(Container container) throws BrandeisServiceException {
         logger.info("Executing");
         String txt = container.getText();
         List<View> tokenViews = container.findViewsThatContain(Uri.TOKEN);

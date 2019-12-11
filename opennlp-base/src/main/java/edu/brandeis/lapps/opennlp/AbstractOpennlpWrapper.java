@@ -12,7 +12,6 @@ import org.lappsgrid.discriminator.Discriminators;
 import org.lappsgrid.metadata.IOSpecification;
 import org.lappsgrid.metadata.ServiceMetadata;
 import org.lappsgrid.serialization.lif.Annotation;
-import org.lappsgrid.serialization.lif.Container;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,9 +22,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
-public abstract class OpenNLPAbstractWebService extends BrandeisService {
+public abstract class AbstractOpennlpWrapper extends BrandeisService {
     protected static final Properties MODELS = new Properties();
-    protected static final Logger logger = LoggerFactory.getLogger(OpenNLPAbstractWebService.class);
+    protected static final Logger logger = LoggerFactory.getLogger(AbstractOpennlpWrapper.class);
     public static final String MODEL_PROP_FILENAME = "/models.properties";
     protected static final String PRODUCER_ALIAS = "opennlp";
 
@@ -78,7 +77,7 @@ public abstract class OpenNLPAbstractWebService extends BrandeisService {
         }
     }
 
-    protected OpenNLPAbstractWebService() throws BrandeisServiceException {
+    protected AbstractOpennlpWrapper() throws BrandeisServiceException {
         this.loadModelPaths();
     }
 
@@ -184,8 +183,6 @@ public abstract class OpenNLPAbstractWebService extends BrandeisService {
         }
         return tokenText;
     }
-
-    protected abstract String execute(Container in) throws BrandeisServiceException;
 
     protected abstract ServiceMetadata loadMetadata();
 
