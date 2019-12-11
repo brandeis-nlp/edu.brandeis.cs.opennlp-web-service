@@ -8,9 +8,8 @@
     <description>
         This project is to build Apache OpenNLP wrappers based on LAPPS Grid I/O specification,
         namely using LAPPS Interchange Format and LAPPS Vocabulary.
-        Two wrappers are available: a simple commandline interface and lapps webservice.
-        By default (mvn package), the webservice module is built into a war artifact.
-        To build the CLI application, use "cli" profile (mvn pacakge -Pcli).
+        Currently a wrapper as LAPPS web service is available.
+        By default (mvn package), the `webservice` module is built into a war artifact.
         This version uses OpenNLP ${opennlp.version} internally.
     </description>
     <parent>
