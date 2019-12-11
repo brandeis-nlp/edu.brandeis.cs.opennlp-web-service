@@ -57,7 +57,7 @@
 
     <modules>
         <module>opennlp-base</module>
-        <module>opennlp-cli</module>
+        <!-- amodule>opennlp-cli</module -->
         <module>opennlp-webservice</module>
     </modules>
 
@@ -66,17 +66,17 @@
     </properties>
 
     <profiles>
-        <profile>
+        <!-- profile>
             <id>cli</id>
             <modules>
                 <module>opennlp-cli</module>
             </modules>
-        </profile>
+        </profile -->
         <profile>
             <id>release</id>
             <modules>
                 <module>opennlp-webservice</module>
-                <module>opennlp-cli</module>
+                <!-- module>opennlp-cli</module -->
             </modules>
         </profile>
         <profile>
