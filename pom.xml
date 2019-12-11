@@ -1,105 +1,121 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>edu.brandeis.lapps</groupId>
-    <artifactId>opennlp-web-service</artifactId>
+    <artifactId>opennlp</artifactId>
+    <packaging>pom</packaging>
     <version>2.1.1-SNAPSHOT</version>
-    <packaging>war</packaging>
-    <name>Brandeis LAPPS Web Services wrapping OpenNLP tools</name>
+    <name>Brandeis LAPPS Grid wrapper for Apache OpenNLP tools</name>
     <description>
-        This web service publishes APIs to call Apache OpenNLP annotators using JSON-LD-serialized LEDS data.
-        This version uses CoreNLP ${opennlp.version} internally.
+        This project is to build Apache OpenNLP wrappers based on LAPPS Grid I/O specification,
+        namely using LAPPS Interchange Format and LAPPS Vocabulary.
+        Two wrappers are available: a simple commandline interface and lapps webservice.
+        By default (mvn package), the webservice module is built into a war artifact.
+        To build the CLI application, use "cli" profile (mvn pacakge -Pcli).
+        This version uses OpenNLP ${opennlp.version} internally.
     </description>
     <parent>
-        <groupId>org.lappsgrid.maven</groupId>
-        <artifactId>war-parent-pom</artifactId>
-        <version>2.2.0</version>
+        <groupId>edu.brandeis.lapps</groupId>
+        <artifactId>parent-pom</artifactId>
+        <version>1.0.0</version>
     </parent>
 
+    <developers>
+        <developer>
+            <id>keighrim</id>
+            <name>Keigh Rim</name>
+            <email>krim@brandeis.edu</email>
+            <organization>Lab for Linguistics and Computation, Brandeis University</organization>
+            <organizationUrl>https://www.cs.brandeis.edu/~llc/</organizationUrl>
+        </developer>
+    </developers>
 
-    <properties>
-        <opennlp.version>1.5.3</opennlp.version>
-        <scaffolding.version>1.0.0-SNAPSHOT</scaffolding.version>
-        <brandeis.nexus.baseurl>http://morbius.cs-i.brandeis.edu:8081</brandeis.nexus.baseurl>
-    </properties>
+    <scm>
+        <connection>scm:git:https://github.com/lappsgrid-services/brandeis-opennlp-service.git</connection>
+        <developerConnection>scm:git:git@github.com:lappsgrid-services/brandeis-opennlp-service.git</developerConnection>
+        <url>https://github.com/lappsgrid-services/brandeis-opennlp-service</url>
+        <tag>master</tag>
+    </scm>
+
+    <issueManagement>
+        <url>https://github.com/lappsgrid-services/brandeis-opennlp-service/issues</url>
+        <system>GitHub</system>
+    </issueManagement>
 
     <repositories>
         <repository>
-            <id>maven-group</id>
-            <url>${brandeis.nexus.baseurl}/repository/maven-public/</url>
+            <id>brandeis-llc-nexus</id>
+            <url>http://morbius.cs-i.brandeis.edu:8081/repository/maven-public/</url>
         </repository>
     </repositories>
 
-    <dependencies>
-        <dependency>
-            <groupId>edu.brandeis.lapps</groupId>
-            <artifactId>brandeis-lapps-service</artifactId>
-            <version>${scaffolding.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>edu.brandeis.lapps</groupId>
-            <artifactId>brandeis-lapps-service</artifactId>
-            <version>${scaffolding.version}</version>
-            <classifier>tests</classifier>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
 
-        <dependency>
-            <groupId>org.apache.opennlp</groupId>
-            <artifactId>opennlp-tools</artifactId>
-            <version>${opennlp.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.opennlp</groupId>
-            <artifactId>opennlp-maxent</artifactId>
-            <version>3.0.3</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>1.4</version>
-        </dependency>
+    <modules>
+        <module>opennlp-base</module>
+        <module>opennlp-cli</module>
+        <module>opennlp-webservice</module>
+    </modules>
 
-    </dependencies>
+    <properties>
+        <opennlp.version>1.5.3</opennlp.version>
+    </properties>
+
+    <profiles>
+        <profile>
+            <id>cli</id>
+            <modules>
+                <module>opennlp-cli</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>release</id>
+            <modules>
+                <module>opennlp-webservice</module>
+                <module>opennlp-cli</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>default</id>
+            <modules>
+                <module>opennlp-webservice</module>
+            </modules>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+    </profiles>
 
     <build>
-        <finalName>opennlp-web-service#${project.version}</finalName>
         <plugins>
-
             <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.1.0</version>
                 <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass/>
-                        </manifest>
-                    </archive>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
+                    <filesets>
+                        <fileset>
+                            <directory>${basedir}</directory>
+                            <includes>
+                                <include>${project.artifactId}*.war</include>
+                                <include>${project.artifactId}*.jar</include>
+                            </includes>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5.3</version>
+                <configuration>
+                    <tagNameFormat>v@{project.version}</tagNameFormat>
                 </configuration>
             </plugin>
 
         </plugins>
-
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-                <includes>
-                    <include>version.properties</include>
-                </includes>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>false</filtering>
-                <includes>
-                    <include>**</include>
-                </includes>
-            </resource>
-
-        </resources>
 
     </build>
 
