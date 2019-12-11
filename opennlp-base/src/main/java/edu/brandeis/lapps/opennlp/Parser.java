@@ -91,7 +91,7 @@ public class Parser extends AbstractOpennlpWrapper {
             for (Parse parse : parses) {
                 findConstituents(parse, constituentIds, sid, view);
             }
-            ps.getFeatures().put(Features.PhraseStructure.CONSTITUENTS, constituentIds);
+            ps.addFeature(Features.PhraseStructure.CONSTITUENTS, constituentIds);
         }
         Data<Container> data = new Data<>(Uri.LIF, container);
         return Serializer.toJson(data);
@@ -115,7 +115,7 @@ public class Parser extends AbstractOpennlpWrapper {
                 String childId = findConstituents(child, constituentIds, sentId, view);
                 children.add(childId);
             }
-            constituentAnn.getFeatures().put("children", children.toString());
+            constituentAnn.addFeature("children", children.toString());
         }
         return cid;
     }

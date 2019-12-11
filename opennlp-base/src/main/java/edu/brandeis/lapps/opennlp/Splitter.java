@@ -68,7 +68,7 @@ public class Splitter extends AbstractOpennlpWrapper {
             int end = span.getEnd();
             Annotation ann = view.newAnnotation(SENT_ID + count++,
                     Uri.SENTENCE, start, end);
-            ann.getFeatures().put("sentence", txt.substring(start, end));
+            ann.addFeature("sentence", txt.substring(start, end));
         }
         Data<Container> data = new Data<>(Uri.LIF, container);
         return Serializer.toJson(data);

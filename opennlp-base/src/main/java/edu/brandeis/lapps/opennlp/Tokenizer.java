@@ -10,6 +10,7 @@ import org.lappsgrid.serialization.Serializer;
 import org.lappsgrid.serialization.lif.Annotation;
 import org.lappsgrid.serialization.lif.Container;
 import org.lappsgrid.serialization.lif.View;
+import org.lappsgrid.vocabulary.Features;
 
 public class Tokenizer extends AbstractOpennlpWrapper {
     private static String TOOL_DESCRIPTION = "This service is a wrapper around Apache OpenNLP 1.5.3 providing an English tokenizer service." +
@@ -51,7 +52,7 @@ public class Tokenizer extends AbstractOpennlpWrapper {
             int end = span.getEnd();
             Annotation ann = view.newAnnotation(TOKEN_ID + count++,
                     Uri.TOKEN, start, end);
-            ann.getFeatures().put("word", txt.substring(start, end));
+            ann.addFeature(Features.Token.WORD, txt.substring(start, end));
         }
         Data<Container> data = new Data<>(Uri.LIF, container);
         return Serializer.toJson(data);
