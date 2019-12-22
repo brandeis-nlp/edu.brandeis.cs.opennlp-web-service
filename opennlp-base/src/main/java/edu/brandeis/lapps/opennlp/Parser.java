@@ -20,9 +20,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Parser extends AbstractOpennlpWrapper {
-    private static String TOOL_DESCRIPTION = "This service is a wrapper around Apache OpenNLP 1.5.3 providing an English constituent parser service." +
-            "\nInternally it uses public OpenNLP-1.5 models (available at http://opennlp.sourceforge.net/models-1.5/), in particular, \n" +
-            "\"/en-parser-chunking.bin\" is used. ";
+    private static String MODEL_NAME = DEFAULT_MODEL_RES_FILE_MAP.get(Parser.class);
+    private static String TOOL_DESCRIPTION = String.format("This service is a wrapper around Apache OpenNLP %s " +
+                    "providing an English constituent parser service. Internally it uses public OpenNLP-1.5 models " +
+                    "(available at http://opennlp.sourceforge.net/models-1.5/), in particular, \"%s\" is used.",
+                    getWrappeeVersion(), MODEL_NAME);
     protected static final Logger logger = LoggerFactory.getLogger(Parser.class);
 
     private opennlp.tools.parser.Parser parser;

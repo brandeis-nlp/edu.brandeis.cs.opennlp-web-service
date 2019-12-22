@@ -15,9 +15,11 @@ import org.lappsgrid.vocabulary.Features;
 import java.util.List;
 
 public class POSTagger extends AbstractOpennlpWrapper {
-    private static String TOOL_DESCRIPTION = "This service is a wrapper around Apache OpenNLP 1.5.3 providing an English part-of-speech tagger service." +
-            "\nInternally it uses public OpenNLP-1.5 models (available at http://opennlp.sourceforge.net/models-1.5/), in particular, \n" +
-            "\"/en-pos-maxent.bin\" is used. ";
+    private static String MODEL_NAME = DEFAULT_MODEL_RES_FILE_MAP.get(POSTagger.class);
+    private static String TOOL_DESCRIPTION = String.format("This service is a wrapper around Apache OpenNLP %s " +
+                    "providing an English part-of-speech tagger service. Internally it uses public OpenNLP-1.5 models " +
+                    "(available at http://opennlp.sourceforge.net/models-1.5/), in particular, \"%s\" is used.",
+            getWrappeeVersion(), MODEL_NAME);
     private opennlp.tools.postag.POSTagger postagger;
 
     public POSTagger() throws BrandeisServiceException {

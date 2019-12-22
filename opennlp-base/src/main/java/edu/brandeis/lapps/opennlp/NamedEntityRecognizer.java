@@ -16,14 +16,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 public class NamedEntityRecognizer extends AbstractOpennlpWrapper {
-
-    private static String TOOL_DESCRIPTION = "This service is a wrapper around Apache OpenNLP 1.5.3 providing an English name finder (NER) service." +
-            "\nInternally it uses public OpenNLP-1.5 models (available at http://opennlp.sourceforge.net/models-1.5/), in particular, \n" +
-            "\"en-ner-person.bin\", \"en-ner-location.bin\", \"en-ner-organization.bin\", \"en-ner-date.bin\" are used. ";
+    private static String MODEL_NAME = Arrays.toString(DEFAULT_MODEL_RES_FILE_MAP.get(NamedEntityRecognizer.class).split(":"));
+    private static String TOOL_DESCRIPTION = String.format("This service is a wrapper around Apache OpenNLP %s " +
+                    "providing an English name finder (NER) service. Internally it uses public OpenNLP-1.5 models " +
+                    "(available at http://opennlp.sourceforge.net/models-1.5/), in particular, \"%s\" are used.",
+            getWrappeeVersion(), MODEL_NAME);
     protected static final Logger logger = LoggerFactory.getLogger(NamedEntityRecognizer.class);
 
     private List<TokenNameFinder> nameFinders = new LinkedList<> ();

@@ -13,9 +13,11 @@ import org.lappsgrid.serialization.lif.View;
 import org.lappsgrid.vocabulary.Features;
 
 public class Tokenizer extends AbstractOpennlpWrapper {
-    private static String TOOL_DESCRIPTION = "This service is a wrapper around Apache OpenNLP 1.5.3 providing an English tokenizer service." +
-            "\nInternally it uses public OpenNLP-1.5 models (available at http://opennlp.sourceforge.net/models-1.5/), in particular, \n" +
-            "\"/en-token.bin\" is used. ";
+    private static String MODEL_NAME = DEFAULT_MODEL_RES_FILE_MAP.get(Tokenizer.class);
+    private static String TOOL_DESCRIPTION = String.format("This service is a wrapper around Apache OpenNLP %s " +
+                    "providing an English tokenizer service. Internally it uses public OpenNLP-1.5 models " +
+                    "(available at http://opennlp.sourceforge.net/models-1.5/), in particular, \"%s\" is used.",
+            getWrappeeVersion(), MODEL_NAME);
     private opennlp.tools.tokenize.Tokenizer tokenizer;
 
     public Tokenizer() throws BrandeisServiceException {
