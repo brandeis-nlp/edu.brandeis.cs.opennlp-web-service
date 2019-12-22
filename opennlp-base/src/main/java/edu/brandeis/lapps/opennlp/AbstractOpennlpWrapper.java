@@ -23,9 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 public abstract class AbstractOpennlpWrapper extends BrandeisService {
-    protected static final Properties MODELS = new Properties();
     protected static final Logger logger = LoggerFactory.getLogger(AbstractOpennlpWrapper.class);
-    public static final String MODEL_PROP_FILENAME = "/models.properties";
     protected static final String PRODUCER_ALIAS = "opennlp";
 
     // NOTE: models can be static, but the actual NameFinders cannot be static,
@@ -36,49 +34,17 @@ public abstract class AbstractOpennlpWrapper extends BrandeisService {
     static ParserModel parserModel;
     static TokenizerModel tokenizerModel;
 
-    protected static final Map<Class, String> MODEL_PROP_KEY_MAP = new HashMap<>();
-    static {
-        MODEL_PROP_KEY_MAP.put(Tokenizer.class, "Tokenizer");
-        MODEL_PROP_KEY_MAP.put(Splitter.class, "Sentence-Detector");
-        MODEL_PROP_KEY_MAP.put(NamedEntityRecognizer.class, "Name-Finder");
-        MODEL_PROP_KEY_MAP.put(Parser.class, "Parser");
-//        MODEL_PROP_KEY_MAP.put(Coreference.class, "Coreference");
-        MODEL_PROP_KEY_MAP.put(POSTagger.class, "Part-of-Speech-Tagger");
-    }
-
     protected static final Map<Class, String> DEFAULT_MODEL_RES_FILE_MAP = new HashMap<>();
     static {
-        DEFAULT_MODEL_RES_FILE_MAP.put(Tokenizer.class, "/en-token.bin");
-        DEFAULT_MODEL_RES_FILE_MAP.put(Splitter.class, "/en-sent.bin");
-        DEFAULT_MODEL_RES_FILE_MAP.put(NamedEntityRecognizer.class, "/en-ner-person.bin:/en-ner-location.bin:/en-ner-organization.bin:/en-ner-date.bin");
-        DEFAULT_MODEL_RES_FILE_MAP.put(Parser.class, "/en-parser-chunking.bin");
+        DEFAULT_MODEL_RES_FILE_MAP.put(Tokenizer.class, "en-token.bin");
+        DEFAULT_MODEL_RES_FILE_MAP.put(Splitter.class, "en-sent.bin");
+        DEFAULT_MODEL_RES_FILE_MAP.put(NamedEntityRecognizer.class, "en-ner-person.bin:en-ner-location.bin:en-ner-organization.bin:en-ner-date.bin");
+        DEFAULT_MODEL_RES_FILE_MAP.put(Parser.class, "en-parser-chunking.bin");
 //        DEFAULT_MODEL_RES_FILE_MAP.put(Coreference.class, "/coref");
-        DEFAULT_MODEL_RES_FILE_MAP.put(POSTagger.class, "/en-pos-maxent.bin");
+        DEFAULT_MODEL_RES_FILE_MAP.put(POSTagger.class, "en-pos-maxent.bin");
     }
 
-    private void loadModelPaths() throws BrandeisServiceException {
-        if (MODELS.size() == 0) {
-            logger.info("Finding paths of pre-trained models.");
-            InputStream stream = this.getClass().getResourceAsStream(MODEL_PROP_FILENAME);
-            if (stream == null) {
-                logger.error("Fail to open \"" + MODEL_PROP_FILENAME + "\".");
-                throw new BrandeisServiceException("fail to open \"" + MODEL_PROP_FILENAME + "\".");
-            }
-            try {
-                logger.info("loading " + MODEL_PROP_FILENAME);
-                MODELS.load(stream);
-                stream.close();
-            } catch (IOException e) {
-                logger.error("Fail to load \"" + MODEL_PROP_FILENAME + "\".");
-                throw new BrandeisServiceException("fail to load \"" + MODEL_PROP_FILENAME + "\".");
-            }
-        } else {
-            logger.info("Found cache of the paths of pre-trained models, contains " + MODELS.size() + " items.");
-        }
-    }
-
-    protected AbstractOpennlpWrapper() throws BrandeisServiceException {
-        this.loadModelPaths();
+    protected AbstractOpennlpWrapper() {
     }
 
     protected abstract void loadAnnotators() throws BrandeisServiceException;
@@ -92,9 +58,7 @@ public abstract class AbstractOpennlpWrapper extends BrandeisService {
 
     void loadSentenceModel() throws BrandeisServiceException {
         if (sentenceDetectorModel == null) {
-            String sentenceModelResPath = MODELS.getProperty(
-                    MODEL_PROP_KEY_MAP.get(Splitter.class),
-                    DEFAULT_MODEL_RES_FILE_MAP.get(Splitter.class));
+            String sentenceModelResPath = DEFAULT_MODEL_RES_FILE_MAP.get(Splitter.class);
             sentenceDetectorModel =(SentenceModel) loadBinaryModel(
                     "SENTENCE", sentenceModelResPath, SentenceModel.class);
         }
@@ -102,9 +66,7 @@ public abstract class AbstractOpennlpWrapper extends BrandeisService {
 
     void loadPOSModel() throws BrandeisServiceException {
         if (posModel == null) {
-            String posModelResPath = MODELS.getProperty(
-                    MODEL_PROP_KEY_MAP.get(POSTagger.class),
-                    DEFAULT_MODEL_RES_FILE_MAP.get(POSTagger.class));
+            String posModelResPath = DEFAULT_MODEL_RES_FILE_MAP.get(POSTagger.class);
             posModel = (POSModel) loadBinaryModel(
                     "POSTAGGER", posModelResPath, POSModel.class);
         }
@@ -112,9 +74,7 @@ public abstract class AbstractOpennlpWrapper extends BrandeisService {
 
     void loadParserModel() throws BrandeisServiceException {
         if (parserModel == null) {
-            String syntacticModelResPath = MODELS.getProperty(
-                    MODEL_PROP_KEY_MAP.get(Parser.class),
-                    DEFAULT_MODEL_RES_FILE_MAP.get(Parser.class));
+            String syntacticModelResPath = DEFAULT_MODEL_RES_FILE_MAP.get(Parser.class);
             parserModel = (ParserModel) loadBinaryModel(
                     "PARSER", syntacticModelResPath, ParserModel.class);
         }
@@ -122,9 +82,7 @@ public abstract class AbstractOpennlpWrapper extends BrandeisService {
 
     void loadTokenizerModel() throws BrandeisServiceException {
         if (tokenizerModel == null) {
-            String tokenModelResPath = MODELS.getProperty(
-                    MODEL_PROP_KEY_MAP.get(Tokenizer.class),
-                    DEFAULT_MODEL_RES_FILE_MAP.get(Tokenizer.class));
+            String tokenModelResPath = DEFAULT_MODEL_RES_FILE_MAP.get(Tokenizer.class);
             tokenizerModel = (TokenizerModel) loadBinaryModel(
                     "TOKEN", tokenModelResPath, TokenizerModel.class);
         }
@@ -132,10 +90,7 @@ public abstract class AbstractOpennlpWrapper extends BrandeisService {
 
     void loadNameFinderModels() throws BrandeisServiceException {
         if (nameFinderModels.size() == 0) {
-            String[] neModelsResPaths = MODELS.getProperty(
-                    MODEL_PROP_KEY_MAP.get(NamedEntityRecognizer.class),
-                    DEFAULT_MODEL_RES_FILE_MAP.get(NamedEntityRecognizer.class)).split(":");
-            Arrays.toString(neModelsResPaths);
+            String[] neModelsResPaths = DEFAULT_MODEL_RES_FILE_MAP.get(NamedEntityRecognizer.class).split(":");
             for (String neModelResPath : neModelsResPaths) {
                 if (neModelResPath.trim().length() > 0) {
                     nameFinderModels.add((TokenNameFinderModel) loadBinaryModel(
@@ -145,9 +100,11 @@ public abstract class AbstractOpennlpWrapper extends BrandeisService {
         }
     }
 
-    BaseModel loadBinaryModel(String modelName, String modelResPath, Class modelClass) throws BrandeisServiceException {
-        this.loadModelPaths();
+    BaseModel loadBinaryModel(String modelName, String modelResPath, Class<? extends BaseModel> modelClass) throws BrandeisServiceException {
 
+        if (! modelResPath.startsWith("/")) {
+            modelResPath = "/" + modelResPath;
+        }
         logger.info(String.format("Opening a binary model for %s: %s", modelName, modelResPath));
         InputStream stream = this.getClass().getResourceAsStream(modelResPath);
         if (stream == null) {
