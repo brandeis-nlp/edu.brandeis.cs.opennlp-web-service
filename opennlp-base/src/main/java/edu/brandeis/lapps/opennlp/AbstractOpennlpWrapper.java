@@ -141,6 +141,11 @@ public abstract class AbstractOpennlpWrapper extends BrandeisService {
         return tokenText;
     }
 
+    @Override
+    public String execute(String input) {
+        return executeLIFOnly(input);
+    }
+
     protected abstract ServiceMetadata loadMetadata();
 
     @Override
