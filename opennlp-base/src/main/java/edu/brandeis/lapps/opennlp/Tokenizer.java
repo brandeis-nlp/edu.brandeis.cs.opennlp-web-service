@@ -54,6 +54,7 @@ public class Tokenizer extends AbstractOpennlpWrapper {
             int end = span.getEnd();
             Annotation ann = view.newAnnotation(TOKEN_ID + count++,
                     Uri.TOKEN, start, end);
+            ann.setLabel("TOK");
             ann.addFeature(Features.Token.WORD, txt.substring(start, end));
         }
         Data<Container> data = new Data<>(Uri.LIF, container);

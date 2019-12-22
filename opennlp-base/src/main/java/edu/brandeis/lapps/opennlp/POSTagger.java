@@ -109,6 +109,7 @@ public class POSTagger extends AbstractOpennlpWrapper {
         meta.setDescription(TOOL_DESCRIPTION);
         meta.getRequires().addAnnotation(Uri.TOKEN);
         meta.getProduces().addAnnotation(Uri.POS);
+        meta.getProduces().addTagSet(Uri.POS, String.format("%s#%s-%s", Uri.TAGS_POS, PRODUCER_ALIAS, MODEL_NAME));
         return meta;
 
     }

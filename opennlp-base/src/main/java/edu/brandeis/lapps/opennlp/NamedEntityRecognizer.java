@@ -140,6 +140,7 @@ public class NamedEntityRecognizer extends AbstractOpennlpWrapper {
         meta.setDescription(TOOL_DESCRIPTION);
         meta.getRequires().addAnnotation(Uri.TOKEN);
         meta.getProduces().addAnnotation(Uri.NE);
+        meta.getProduces().addTagSet(Uri.NE, Uri.TAGS_NER_OPENNLP);
         return meta;
     }
 }
