@@ -58,8 +58,8 @@ public class TestParser extends TestOpennlpService {
         assertTrue("Sentence annotations should be required", requires.getAnnotations().contains(Uri.SENTENCE));
 
         IOSpecification produces = metadata.getProduces();
-        assertEquals("Two annotation should be produced", 2, produces.getAnnotations().size());
-        assertTrue("Constituents not produced", produces.getAnnotations().contains(Uri.CONSTITUENT));
+        assertEquals("Three annotation types should be produced", 3, produces.getAnnotations().size());
+        assertTrue("Tokens not produced", produces.getAnnotations().contains(Uri.TOKEN));
         assertTrue("PS not produced", produces.getAnnotations().contains(Uri.PHRASE_STRUCTURE));
     }
 
